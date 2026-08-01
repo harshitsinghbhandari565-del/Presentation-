@@ -1,0 +1,26 @@
+{
+  "presentations": [
+    {
+      "id": "english-lost-spring-mcqs",
+      "title": "MCQs Practice",
+      "subject": "English",
+      "topic": "Ch 2 – The Lost Spring",
+      "description": "MCQs practice presentation for English Chapter 2, The Lost Spring.",
+      "platform": "Google Slides",
+      "url": "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/edit?usp=drivesdk&ouid=113784417699374679691&rtpof=true&sd=true",
+      "presentUrl": "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/present",
+      "embedUrl": "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/embed?start=false&loop=false&delayms=3000",
+      "backupLinks": [
+        {
+          "label": "Backup PPTX",
+          "platform": "Dropbox",
+          "url": "https://www.dropbox.com/scl/fi/ovqnktu25x7f2oq6txzjr/The_Lost_Spring_MCQs.pptx?rlkey=ethvwy1cuuvdasrn0gxk6p1sg&st=raevvife&dl=0",
+          "description": "Backup presentation file if the primary Google Slides link is unavailable."
+        }
+      ],
+      "tags": ["english", "the-lost-spring", "mcqs", "class-12"],
+      "pinned": true,
+      "accent": "indigo"
+    }
+  ]
+}
