@@ -6,6 +6,7 @@ interface VaultCardProps {
   headerAction?: React.ReactNode;
   footer?: React.ReactNode;
   interactive?: boolean;
+  glass?: boolean;
   className?: string;
   onClick?: () => void;
 }
@@ -16,6 +17,7 @@ export const VaultCard: React.FC<VaultCardProps> = ({
   headerAction,
   footer,
   interactive = false,
+  glass = false,
   className = '',
   onClick,
 }) => {
@@ -23,7 +25,7 @@ export const VaultCard: React.FC<VaultCardProps> = ({
   
   return (
     <Component 
-      className={`ov-card ${interactive ? 'ov-card--interactive' : ''} ${className}`}
+      className={`ov-card ${interactive ? 'ov-card--interactive' : ''} ${glass ? 'ov-card--glass' : ''} ${className}`}
       onClick={onClick}
     >
       {(title || headerAction) && (
