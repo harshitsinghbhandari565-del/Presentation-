@@ -9,18 +9,17 @@ import type { Presentation } from "@/types/presentation";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const presentations = (data.presentations || []) as Presentation[];
-
   const filtered = useMemo(() => {
-    if (!query.trim()) return presentations;
+    const allPresentations = (data.presentations || []) as Presentation[];
+    if (!query.trim()) return allPresentations;
     const q = query.toLowerCase();
-    return presentations.filter(p => 
+    return allPresentations.filter(p => 
       p.title.toLowerCase().includes(q) || 
       p.subject.toLowerCase().includes(q) || 
       p.topic.toLowerCase().includes(q) ||
       p.tags.some(t => t.toLowerCase().includes(q))
     );
-  }, [query, presentations]);
+  }, [query]);
 
   return (
     <div className="space-y-10 max-w-5xl mx-auto">

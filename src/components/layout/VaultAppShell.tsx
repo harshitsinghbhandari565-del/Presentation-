@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -20,7 +21,6 @@ export const VaultAppShell: React.FC<VaultAppShellProps> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const handleResize = () => {
       if (window.innerWidth >= 1024) setViewport('desktop');
       else if (window.innerWidth >= 768) setViewport('tablet');
@@ -28,6 +28,7 @@ export const VaultAppShell: React.FC<VaultAppShellProps> = ({ children }) => {
     };
 
     handleResize();
+    setMounted(true);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);

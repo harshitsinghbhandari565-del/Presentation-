@@ -2,7 +2,7 @@
   background-color: var(--color-surface-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -10,9 +10,9 @@
 }
 
 .ov-card--interactive:hover {
-  border-color: var(--color-border-default);
-  box-shadow: var(--shadow-level-2);
-  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
   background-color: var(--color-surface-overlay);
 }
 

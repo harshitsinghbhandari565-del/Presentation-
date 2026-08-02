@@ -59,32 +59,46 @@ export default function FeaturedPresentation({
                     </div>
                 </div>
 
-                {/* Perspective Showcase Side */}
-                <div className="hidden lg:flex flex-1 relative perspective-1000 items-center justify-center">
-                    {/* Main Slide */}
-                    <div className="relative z-20 w-full aspect-video bg-white/[0.04] backdrop-blur-2xl rounded-[2.5rem] border border-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden transform rotate-x-6 rotate-y-[-10deg] rotate-z-1 group-hover/hero:rotate-0 group-hover/hero:scale-[1.02] transition-all duration-1000 p-8 md:p-10 flex flex-col gap-6">
-                        <div className="flex justify-between items-center">
-                            <div className="w-20 h-2 bg-orange-500/40 rounded-full" />
-                            <Sparkles size={20} className="text-orange-400" />
-                        </div>
-                        <div className="space-y-4 flex-1">
-                            <div className="w-full h-8 bg-white/5 rounded-2xl" />
-                            <div className="w-full h-8 bg-white/5 rounded-2xl" />
-                            <div className="w-2/3 h-8 bg-white/5 rounded-2xl" />
-                        </div>
-                        <div className="h-32 bg-black/40 rounded-[2rem] border border-white/5 flex items-center justify-center shadow-inner relative">
-                            <div className="absolute inset-0 bg-orange-600/5" />
-                            <Play size={48} className="text-white/10" />
+            {/* Perspective Showcase Side */}
+            <div className="hidden lg:flex flex-1 relative perspective-1000 items-center justify-center">
+                {/* Background Glow */}
+                <div className="absolute -inset-20 bg-orange-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse" />
+
+                {/* Secondary Slide (Back) */}
+                <div className="absolute top-0 right-0 z-10 w-64 aspect-video bg-white/[0.02] backdrop-blur-xl rounded-[2rem] border border-white/5 shadow-2xl transform rotate-12 -translate-y-8 translate-x-8 group-hover/hero:translate-x-12 group-hover/hero:-translate-y-12 transition-all duration-1000 ease-out" />
+
+                {/* Main Slide */}
+                <div className="relative z-20 w-full aspect-video bg-white/[0.04] backdrop-blur-3xl rounded-[2.5rem] border border-white/15 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.9)] overflow-hidden transform rotate-x-6 rotate-y-[-10deg] rotate-z-1 group-hover/hero:rotate-0 group-hover/hero:scale-[1.05] transition-all duration-1000 ease-out p-10 flex flex-col gap-8">
+                    <div className="flex justify-between items-center">
+                        <div className="w-24 h-2.5 bg-orange-500/40 rounded-full" />
+                        <div className="flex gap-2.5">
+                            <div className="w-3 h-3 rounded-full bg-white/10" />
+                            <div className="w-3 h-3 rounded-full bg-white/10" />
+                            <div className="w-3 h-3 rounded-full bg-white/10" />
                         </div>
                     </div>
-
-                    {/* Floating Secondary Slides */}
-                    <div className="absolute -top-12 -right-8 z-10 w-48 aspect-video bg-white/[0.02] backdrop-blur-lg rounded-2xl border border-white/5 shadow-2xl transform rotate-12 group-hover/hero:translate-x-4 group-hover/hero:-translate-y-4 transition-all duration-1000" />
-                    <div className="absolute -bottom-10 -left-6 z-30 w-56 aspect-video bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl transform -rotate-12 group-hover/hero:-translate-x-6 group-hover/hero:translate-y-4 transition-all duration-1000" />
-                    
-                    {/* Decorative Ambient Light */}
-                    <div className="absolute -inset-20 bg-orange-500/10 blur-[100px] rounded-full pointer-events-none mix-blend-screen animate-pulse" />
+                    <div className="space-y-5 flex-1">
+                        <div className="w-full h-10 bg-white/5 rounded-2xl" />
+                        <div className="w-full h-10 bg-white/5 rounded-2xl" />
+                        <div className="w-4/5 h-10 bg-white/5 rounded-2xl" />
+                    </div>
+                    <div className="mt-auto h-44 bg-black/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center shadow-inner relative group/play overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-transparent opacity-0 group-hover/play:opacity-100 transition-opacity" />
+                        <Play size={80} className="text-white/5 group-hover/play:text-orange-500 group-hover/play:scale-110 transition-all duration-700 ease-out" />
+                    </div>
                 </div>
+
+                {/* Front Element (Floating Badge) */}
+                <div className="absolute -bottom-8 -left-8 z-30 px-6 py-4 bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl transform -rotate-12 group-hover/hero:-translate-x-4 group-hover/hero:translate-y-4 transition-all duration-1000 ease-out flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
+                        <PresentationIcon size={20} />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-black text-white uppercase tracking-widest">Active session</span>
+                        <span className="text-[10px] text-white/40 font-mono">01:24:55</span>
+                    </div>
+                </div>
+            </div>
             </div>
 
             {/* Bottom Glow Bar */}
