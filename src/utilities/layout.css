@@ -1,0 +1,37 @@
+.ov-container {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 1200px;
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .ov-container {
+    padding-inline: var(--space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ov-container {
+    padding-inline: var(--space-7);
+  }
+}
+
+.ov-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (min-width: 768px) {
+  .ov-grid {
+    gap: var(--space-5);
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ov-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}

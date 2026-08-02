@@ -1,0 +1,20 @@
+:root {
+  /* Duration */
+  --motion-micro: 150ms;    /* hover states, toggles, color transitions */
+  --motion-short: 300ms;    /* page transitions, panel reveals */
+  --motion-medium: 400ms;   /* modal entrances, drawer slides */
+  --motion-exit: 200ms;     /* all exit animations */
+  
+  /* Easing */
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-linear: linear;    /* opacity-only, progress bars */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-micro: 150ms;
+    --motion-short: 150ms;
+    --motion-medium: 150ms;
+    --motion-exit: 150ms;
+  }
+}

@@ -1,0 +1,104 @@
+.ov-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-default);
+  font-family: var(--font-body);
+  font-size: var(--type-body-strong-size);
+  font-weight: var(--type-body-strong-weight);
+  line-height: var(--type-body-strong-line-height);
+  cursor: pointer;
+  transition: all var(--motion-micro) var(--ease-default);
+  white-space: nowrap;
+  border: 1px solid transparent;
+  outline: none;
+}
+
+.ov-button:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-button:active {
+    transform: none;
+  }
+}
+
+.ov-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Variants - Height & Padding */
+.ov-button--default {
+  height: 48px;
+  padding-inline: var(--space-5);
+}
+
+.ov-button--small {
+  height: 36px;
+  padding-inline: var(--space-4);
+  font-size: var(--type-caption-size);
+}
+
+/* Primary */
+.ov-button--primary {
+  background-color: var(--color-accent-default);
+  color: var(--color-primitive-black);
+}
+
+.ov-button--primary:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.ov-button--primary:active {
+  background-color: var(--color-accent-pressed);
+  box-shadow: 0 0 15px var(--color-accent-default);
+}
+
+/* Secondary */
+.ov-button--secondary {
+  background-color: var(--color-surface-overlay);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.ov-button--secondary:hover {
+  background-color: var(--color-primitive-gray-500);
+}
+
+/* Ghost */
+.ov-button--ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ov-button--ghost:hover {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+}
+
+/* Destructive */
+.ov-button--destructive {
+  background-color: transparent;
+  color: var(--color-semantic-error);
+  border-color: var(--color-semantic-error);
+}
+
+.ov-button--destructive:hover {
+  background-color: var(--color-semantic-error);
+  color: var(--color-primitive-warm-white);
+}
+
+/* States */
+.ov-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ov-button--loading {
+  pointer-events: none;
+}

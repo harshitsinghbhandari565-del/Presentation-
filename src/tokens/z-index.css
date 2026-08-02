@@ -1,0 +1,10 @@
+:root {
+  --z-base: 0;
+  --z-sticky: 100;      /* sticky headers, bottom tab bar */
+  --z-dropdown: 200;    /* dropdowns, select menus */
+  --z-overlay: 300;     /* backdrop overlays */
+  --z-modal: 400;       /* modal dialogs, drawers */
+  --z-popover: 500;     /* tooltips, popovers */
+  --z-toast: 600;       /* toast notifications */
+  --z-vault-door: 700;  /* vault door authentication animation */
+}

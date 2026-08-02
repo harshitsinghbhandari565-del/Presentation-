@@ -1,0 +1,6 @@
+.ov-text-success { color: var(--color-semantic-success); }
+.ov-text-error { color: var(--color-semantic-error); }
+.ov-text-info { color: var(--color-semantic-info); }
+.ov-text-accent { color: var(--color-accent-default); }
+.ov-text-primary { color: var(--color-text-primary); }
+.ov-text-secondary { color: var(--color-text-secondary); }

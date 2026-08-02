@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Legacy fallbacks (optional, will remove gradually) */
+:root {
+  --font-geist: var(--font-body);
+  --font-editorial: var(--font-display);
+}

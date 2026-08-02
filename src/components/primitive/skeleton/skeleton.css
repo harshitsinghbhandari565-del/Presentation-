@@ -1,0 +1,22 @@
+.ov-skeleton {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-default);
+  width: 100%;
+  height: 100%;
+  animation: ov-skeleton-pulse var(--motion-medium) var(--ease-linear) infinite alternate;
+}
+
+@keyframes ov-skeleton-pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-skeleton {
+    animation: none;
+  }
+}

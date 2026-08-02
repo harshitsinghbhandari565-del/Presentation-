@@ -1,0 +1,56 @@
+.ov-side-rail {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 64px;
+  background-color: var(--color-surface-elevated);
+  border-inline-end: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--space-5);
+  z-index: var(--z-sticky);
+  transition: width var(--motion-short) var(--ease-default);
+}
+
+.ov-side-rail:hover {
+  width: 200px;
+  align-items: stretch;
+}
+
+.ov-side-rail__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all var(--motion-micro) var(--ease-default);
+  overflow: hidden;
+}
+
+.ov-side-rail__item--active {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-overlay);
+}
+
+.ov-side-rail__icon {
+  flex-shrink: 0;
+}
+
+.ov-side-rail__item--active .ov-side-rail__icon {
+  color: var(--color-accent-default);
+}
+
+.ov-side-rail__label {
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--motion-short) var(--ease-default);
+}
+
+.ov-side-rail:hover .ov-side-rail__label {
+  opacity: 1;
+}

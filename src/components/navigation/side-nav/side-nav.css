@@ -1,0 +1,51 @@
+.ov-side-nav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 240px;
+  background-color: var(--color-surface-elevated);
+  border-inline-end: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--space-5);
+  z-index: var(--z-sticky);
+}
+
+.ov-side-nav__header {
+  padding-inline: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.ov-side-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  font-weight: 500;
+  transition: all var(--motion-micro) var(--ease-default);
+}
+
+.ov-side-nav__item:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-overlay);
+}
+
+.ov-side-nav__item--active {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-overlay);
+}
+
+.ov-side-nav__icon {
+  color: var(--color-text-secondary);
+  transition: color var(--motion-micro) var(--ease-default);
+}
+
+.ov-side-nav__item--active .ov-side-nav__icon {
+  color: var(--color-accent-default);
+}

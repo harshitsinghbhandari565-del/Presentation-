@@ -1,0 +1,48 @@
+.ov-app-shell {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-surface-base);
+}
+
+.ov-app-shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ov-app-shell__content {
+  flex: 1;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom)); /* Mobile height */
+}
+
+@media (min-width: 768px) {
+  .ov-app-shell__content {
+    padding-inline-start: 64px;
+    padding-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ov-app-shell__content {
+    padding-inline-start: 240px;
+  }
+}
+
+/* Skip link */
+.ov-skip-link {
+  position: absolute;
+  top: -100px;
+  inset-inline-start: var(--space-4);
+  background-color: var(--color-primitive-black);
+  color: var(--color-primitive-warm-white);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-default);
+  z-index: 1000;
+  font-weight: 600;
+  transition: top var(--motion-short) var(--ease-default);
+}
+
+.ov-skip-link:focus-visible {
+  top: var(--space-4);
+}

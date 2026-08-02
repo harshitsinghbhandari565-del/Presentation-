@@ -1,0 +1,44 @@
+.ov-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color var(--motion-micro) var(--ease-linear);
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+  outline: none;
+  padding: 0;
+}
+
+.ov-toggle--on {
+  background-color: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+}
+
+.ov-toggle:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.ov-toggle__knob {
+  position: absolute;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-circular);
+  background-color: var(--color-primitive-warm-white);
+  transition: transform var(--motion-micro) var(--ease-default);
+}
+
+.ov-toggle--on .ov-toggle__knob {
+  transform: translateX(20px);
+}
+
+.ov-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

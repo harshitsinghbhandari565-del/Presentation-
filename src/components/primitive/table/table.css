@@ -1,0 +1,67 @@
+.ov-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-default);
+}
+
+.ov-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  text-align: left;
+}
+
+.ov-table__header-cell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-letter-spacing);
+  text-transform: var(--type-micro-text-transform);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.ov-table__row {
+  transition: background-color var(--motion-micro) var(--ease-default);
+}
+
+.ov-table__row--striped:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.ov-table__row:hover {
+  background-color: var(--color-surface-overlay);
+}
+
+.ov-table__cell {
+  padding: var(--space-4);
+  font-size: var(--type-body-size);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  min-height: 52px;
+}
+
+@media (max-width: 767px) {
+  .ov-table-container--responsive .ov-table {
+    display: block;
+  }
+  
+  .ov-table-container--responsive .ov-table__thead {
+    display: none;
+  }
+  
+  .ov-table-container--responsive .ov-table__row {
+    display: block;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  
+  .ov-table-container--responsive .ov-table__cell {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+    border-bottom: none;
+  }
+}

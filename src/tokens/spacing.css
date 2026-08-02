@@ -1,0 +1,15 @@
+:root {
+  --space-1: 4px;    /* intra-component only (icon-to-label gap) */
+  --space-2: 8px;    /* tight spacing, inline gaps */
+  --space-3: 12px;   /* small internal padding */
+  --space-4: 16px;   /* component padding, mobile margins */
+  --space-5: 24px;   /* element spacing, gutters */
+  --space-6: 32px;   /* wide gutters */
+  --space-7: 48px;   /* group spacing, desktop margins */
+  --space-8: 64px;   /* large section spacing on mobile */
+  --space-9: 96px;   /* section spacing on desktop */
+
+  /* Border radius tokens */
+  --radius-default: 6px;
+  --radius-circular: 50%;
+}

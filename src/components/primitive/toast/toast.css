@@ -1,0 +1,85 @@
+.ov-toast-region {
+  position: fixed;
+  bottom: var(--space-5);
+  inset-inline: var(--space-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .ov-toast-region {
+    inset-inline: auto var(--space-5);
+    width: 360px;
+  }
+}
+
+.ov-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-default);
+  box-shadow: var(--shadow-level-3);
+  position: relative;
+  overflow: hidden;
+  animation: ov-toast-enter var(--motion-short) var(--ease-default);
+}
+
+.ov-toast--exit {
+  animation: ov-toast-exit var(--motion-exit) var(--ease-default) forwards;
+}
+
+@keyframes ov-toast-enter {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes ov-toast-exit {
+  to {
+    opacity: 0;
+  }
+}
+
+.ov-toast__accent {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 3px;
+}
+
+.ov-toast--success .ov-toast__accent { background-color: var(--color-semantic-success); }
+.ov-toast--error .ov-toast__accent { background-color: var(--color-semantic-error); }
+.ov-toast--info .ov-toast__accent { background-color: var(--color-semantic-info); }
+
+.ov-toast__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ov-toast__title {
+  font-family: var(--font-body);
+  font-size: var(--type-body-strong-size);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ov-toast__message {
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  color: var(--color-text-secondary);
+}

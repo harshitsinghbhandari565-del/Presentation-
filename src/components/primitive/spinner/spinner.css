@@ -1,0 +1,32 @@
+.ov-spinner {
+  display: inline-block;
+  border: 2px solid var(--color-border-subtle);
+  border-top-color: var(--color-accent-default);
+  border-radius: var(--radius-circular);
+  animation: ov-spinner-spin 800ms linear infinite;
+}
+
+.ov-spinner--inline {
+  width: 20px;
+  height: 20px;
+}
+
+.ov-spinner--area {
+  width: 40px;
+  height: 40px;
+}
+
+@keyframes ov-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-spinner {
+    animation: none;
+    border-top-color: var(--color-border-subtle);
+    background-color: var(--color-accent-default);
+    opacity: 0.5;
+  }
+}

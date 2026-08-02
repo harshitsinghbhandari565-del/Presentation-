@@ -1,0 +1,82 @@
+:root {
+  /* Font families */
+  --font-display: 'Space Grotesk', 'Arial', sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Type scale — format: font-size/line-height */
+  --type-display-size: 48px;
+  --type-display-line-height: 52px;
+  --type-display-weight: 500;
+  --type-display-family: var(--font-display);
+
+  --type-h1-size: 32px;
+  --type-h1-line-height: 38px;
+  --type-h1-weight: 500;
+  --type-h1-family: var(--font-display);
+
+  --type-h2-size: 24px;
+  --type-h2-line-height: 30px;
+  --type-h2-weight: 500;
+  --type-h2-family: var(--font-display);
+
+  --type-h3-size: 18px;
+  --type-h3-line-height: 24px;
+  --type-h3-weight: 600;
+  --type-h3-family: var(--font-body);
+
+  --type-h4-size: 15px;
+  --type-h4-line-height: 22px;
+  --type-h4-weight: 600;
+  --type-h4-family: var(--font-body);
+
+  --type-body-size: 15px;
+  --type-body-line-height: 22px;
+  --type-body-weight: 400;
+  --type-body-family: var(--font-body);
+
+  --type-body-strong-size: 15px;
+  --type-body-strong-line-height: 22px;
+  --type-body-strong-weight: 600;
+  --type-body-strong-family: var(--font-body);
+
+  --type-caption-size: 13px;
+  --type-caption-line-height: 18px;
+  --type-caption-weight: 400;
+  --type-caption-family: var(--font-body);
+
+  --type-micro-size: 11px;
+  --type-micro-line-height: 16px;
+  --type-micro-weight: 500;
+  --type-micro-family: var(--font-body);
+  --type-micro-letter-spacing: 0.08em;
+  --type-micro-text-transform: uppercase;
+
+  --type-code-size: 14px;
+  --type-code-line-height: 20px;
+  --type-code-weight: 400;
+  --type-code-family: var(--font-mono);
+}
+
+/* Responsive scale */
+@media (max-width: 767px) {
+  :root {
+    --type-display-size: 36px;
+    --type-display-line-height: 40px;
+    --type-h1-size: 28px;
+    --type-h1-line-height: 34px;
+    --type-h2-size: 22px;
+    --type-h2-line-height: 28px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --type-display-size: 42px;
+    --type-display-line-height: 46px;
+    --type-h1-size: 30px;
+    --type-h1-line-height: 36px;
+    --type-h2-size: 23px;
+    --type-h2-line-height: 29px;
+  }
+}

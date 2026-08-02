@@ -1,0 +1,47 @@
+.ov-bottom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  inset-inline: 0;
+  height: calc(56px + env(safe-area-inset-bottom));
+  background-color: var(--color-surface-elevated);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: var(--z-sticky);
+}
+
+.ov-bottom-tab-bar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  min-height: 48px;
+  flex: 1;
+  transition: color var(--motion-micro) var(--ease-default);
+}
+
+.ov-bottom-tab-bar__item--active {
+  color: var(--color-text-primary);
+}
+
+.ov-bottom-tab-bar__icon {
+  color: var(--color-text-secondary);
+  transition: color var(--motion-micro) var(--ease-default);
+}
+
+.ov-bottom-tab-bar__item--active .ov-bottom-tab-bar__icon {
+  color: var(--color-accent-default);
+}
+
+.ov-bottom-tab-bar__label {
+  font-family: var(--font-body);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-letter-spacing);
+  text-transform: var(--type-micro-text-transform);
+}

@@ -1,0 +1,26 @@
+[data-theme="light"] {
+  color-scheme: light;
+  
+  --color-surface-base: #F5F3F0;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-overlay: #FFFFFF;
+  --color-text-primary: #1A1A1F;
+  --color-text-secondary: #6B6B76;
+  --color-text-disabled: #C5C3BE;
+  --color-border-subtle: #E0DDD8;
+  --color-border-default: #C5C3BE;
+  --color-focus-ring: #1A1A1F;
+  --color-accent-default: #E8640A;
+  --color-accent-hover: #D45A09;
+  --color-accent-pressed: #B34D08;
+
+  /* Shadow overrides */
+  --shadow-level-1: 0px 1px 3px rgba(0,0,0,0.06);
+  --shadow-level-2: 0px 8px 24px rgba(0,0,0,0.10);
+  --shadow-level-3: 0px 4px 12px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] body {
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+}

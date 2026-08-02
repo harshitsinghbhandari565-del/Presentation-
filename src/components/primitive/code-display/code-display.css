@@ -1,0 +1,34 @@
+.ov-code {
+  font-family: var(--font-mono);
+  font-size: var(--type-code-size);
+  line-height: var(--type-code-line-height);
+  font-variant-ligatures: none;
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-default);
+  color: var(--color-accent-default);
+}
+
+.ov-code--inline {
+  padding-inline: var(--space-2);
+  padding-block: 2px;
+}
+
+.ov-code--block {
+  display: block;
+  padding: var(--space-4);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.ov-code-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.ov-code__copy {
+  position: absolute;
+  top: var(--space-2);
+  inset-inline-end: var(--space-2);
+}

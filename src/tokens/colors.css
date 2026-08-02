@@ -1,0 +1,51 @@
+:root {
+  /* Tier 1 — Primitive (never reference directly in components) */
+  --color-primitive-black: #0A0A0C;
+  --color-primitive-gray-900: #1A1A1F;
+  --color-primitive-gray-800: #2A2A32;
+  --color-primitive-gray-500: #6B6B76;
+  --color-primitive-warm-white: #E8E6E3;
+  --color-primitive-warm-cream: #F5F3F0;
+  --color-primitive-orange-600: #E8640A;
+  --color-primitive-orange-400: #FF8A3D;
+  --color-primitive-orange-700: #B34D08;
+  --color-primitive-red-500: #D93636;
+  --color-primitive-green-500: #2D9B6E;
+  --color-primitive-blue-500: #3B82C4;
+
+  /* Tier 2 — Semantic (Default Dark Theme) */
+  /* Surfaces */
+  --color-surface-base: var(--color-primitive-black);
+  --color-surface-elevated: var(--color-primitive-gray-900);
+  --color-surface-overlay: var(--color-primitive-gray-800);
+  
+  /* Text */
+  --color-text-primary: var(--color-primitive-warm-white);
+  --color-text-secondary: var(--color-primitive-gray-500);
+  --color-text-disabled: var(--color-primitive-gray-800);
+  
+  /* Accent */
+  --color-accent-default: var(--color-primitive-orange-600);
+  --color-accent-hover: var(--color-primitive-orange-400);
+  --color-accent-pressed: var(--color-primitive-orange-700);
+  
+  /* Semantic */
+  --color-semantic-error: var(--color-primitive-red-500);
+  --color-semantic-success: var(--color-primitive-green-500);
+  --color-semantic-info: var(--color-primitive-blue-500);
+  
+  /* Borders */
+  --color-border-subtle: var(--color-primitive-gray-800);
+  --color-border-default: var(--color-primitive-gray-500);
+  
+  /* Focus */
+  --color-focus-ring: var(--color-primitive-warm-white);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-border-subtle: var(--color-primitive-gray-500);
+    --color-border-default: var(--color-primitive-warm-white);
+    --color-text-secondary: rgba(232, 230, 227, 0.85);
+  }
+}

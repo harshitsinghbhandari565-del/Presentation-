@@ -1,0 +1,49 @@
+.ov-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+  padding-block: var(--space-1);
+  border-radius: var(--radius-default);
+  font-family: var(--font-body);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-letter-spacing);
+  text-transform: var(--type-micro-text-transform);
+  border: 1px solid transparent;
+}
+
+.ov-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circular);
+  flex-shrink: 0;
+}
+
+.ov-badge--success {
+  background-color: rgba(45, 155, 110, 0.1);
+  color: var(--color-semantic-success);
+  border-color: rgba(45, 155, 110, 0.2);
+}
+.ov-badge--success .ov-badge__dot { background-color: var(--color-semantic-success); }
+
+.ov-badge--error {
+  background-color: rgba(217, 54, 54, 0.1);
+  color: var(--color-semantic-error);
+  border-color: rgba(217, 54, 54, 0.2);
+}
+.ov-badge--error .ov-badge__dot { background-color: var(--color-semantic-error); }
+
+.ov-badge--info {
+  background-color: rgba(59, 130, 196, 0.1);
+  color: var(--color-semantic-info);
+  border-color: rgba(59, 130, 196, 0.2);
+}
+.ov-badge--info .ov-badge__dot { background-color: var(--color-semantic-info); }
+
+.ov-badge--warning {
+  background-color: rgba(232, 100, 10, 0.1);
+  color: var(--color-accent-default);
+  border-color: rgba(232, 100, 10, 0.2);
+}
+.ov-badge--warning .ov-badge__dot { background-color: var(--color-accent-default); }
