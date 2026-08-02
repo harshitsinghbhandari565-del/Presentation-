@@ -13,19 +13,11 @@
 
 .ov-app-shell__content {
   flex: 1;
-  padding-bottom: calc(56px + env(safe-area-inset-bottom)); /* Mobile height */
 }
 
 @media (min-width: 768px) {
   .ov-app-shell__content {
-    padding-inline-start: 64px;
     padding-bottom: 0;
-  }
-}
-
-@media (min-width: 1024px) {
-  .ov-app-shell__content {
-    padding-inline-start: 240px;
   }
 }
 

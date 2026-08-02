@@ -15,51 +15,52 @@
 
   /* Tier 2 — Semantic (Default Dark Theme) */
   /* Surfaces */
-  --color-surface-base: #050505; /* Deeper black for more depth */
-  --color-surface-elevated: #0a0a0a;
-  --color-surface-overlay: #111111;
+  --color-surface-base: #030303; 
+  --color-surface-elevated: #080808;
+  --color-surface-overlay: #0e0e0e;
+  --color-surface-glass: rgba(255, 255, 255, 0.03);
   
   /* Text */
   --color-text-primary: #ffffff;
-  --color-text-secondary: #888888;
-  --color-text-disabled: #333333;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #52525b;
+  --color-text-disabled: #27272a;
   
-  /* Accent - Pure refined orange */
-  --color-accent-default: #ff5500;
-  --color-accent-hover: #ff6622;
+  /* Accents */
+  --color-accent-orange: #ff5500;
+  --color-accent-indigo: #6366f1;
+  --color-accent-violet: #8b5cf6;
+  --color-accent-amber: #f59e0b;
+  --color-accent-emerald: #10b981;
+
+  --color-accent-default: var(--color-accent-orange);
+  --color-accent-hover: #ff7733;
   --color-accent-pressed: #cc4400;
-  
-  /* Semantic */
-  --color-semantic-error: #ff3333;
-  --color-semantic-success: #00cc88;
-  --color-semantic-info: #0088ff;
   
   /* Borders */
   --color-border-subtle: rgba(255, 255, 255, 0.04);
-  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-medium: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
   
   /* Focus */
-  --color-focus-ring: rgba(255, 85, 0, 0.5);
+  --color-focus-ring: rgba(255, 85, 0, 0.4);
 }
 
 [data-theme="light"] {
-  color-scheme: light;
-  
-  --color-surface-base: #fcfcfc;
+  --color-surface-base: #fafafa;
   --color-surface-elevated: #ffffff;
-  --color-surface-overlay: #ffffff;
-  --color-text-primary: #111111;
-  --color-text-secondary: #666666;
-  --color-text-disabled: #cccccc;
-  --color-border-subtle: rgba(0, 0, 0, 0.04);
-  --color-border-default: rgba(0, 0, 0, 0.08);
-  --color-focus-ring: rgba(255, 85, 0, 0.3);
-  --color-accent-default: #ff5500;
-  --color-accent-hover: #e64400;
-  --color-accent-pressed: #cc3d00;
+  --color-surface-overlay: #f4f4f5;
+  --color-surface-glass: rgba(0, 0, 0, 0.01);
+  
+  --color-text-primary: #09090b;
+  --color-text-secondary: #71717a;
+  --color-text-muted: #a1a1aa;
+  
+  --color-border-subtle: rgba(0, 0, 0, 0.03);
+  --color-border-medium: rgba(0, 0, 0, 0.06);
+  --color-border-strong: rgba(0, 0, 0, 0.1);
 
-  /* Shadow overrides */
-  --shadow-level-1: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-level-2: 0 10px 20px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04);
-  --shadow-level-3: 0 20px 40px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.04);
+  --shadow-level-1: 0 1px 2px rgba(0,0,0,0.02), 0 4px 6px -1px rgba(0,0,0,0.05);
+  --shadow-level-2: 0 10px 15px -3px rgba(0,0,0,0.05), 0 20px 25px -5px rgba(0,0,0,0.03);
+  --shadow-level-3: 0 25px 50px -12px rgba(0,0,0,0.1);
 }

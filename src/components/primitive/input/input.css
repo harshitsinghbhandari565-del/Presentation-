@@ -10,11 +10,13 @@
   font-size: var(--type-body-size);
   transition: all var(--motion-micro) var(--ease-default);
   outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .ov-input:focus {
   border-color: var(--color-accent-default);
-  box-shadow: 0 0 0 2px rgba(232, 100, 10, 0.2);
+  background-color: var(--color-surface-elevated);
+  box-shadow: 0 0 0 4px rgba(255, 85, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .ov-input--error {
@@ -39,20 +41,20 @@
 }
 
 .ov-input--has-leading {
-  padding-inline-start: var(--space-9); /* roughly icon space */
+  padding-inline-start: 48px;
 }
 
 .ov-input-icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .ov-input-icon--leading {
-  inset-inline-start: var(--space-4);
+  inset-inline-start: 16px;
 }
 
 .ov-input-icon--trailing {
-  inset-inline-end: var(--space-4);
+  inset-inline-end: 16px;
 }
