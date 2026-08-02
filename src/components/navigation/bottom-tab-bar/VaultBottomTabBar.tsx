@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { VAULT_NAV_ITEMS } from '../constants';
+import { HUB_NAV_ITEMS } from '../constants';
 import { VaultIcon } from '../../primitive/icon/VaultIcon';
 
 export const VaultBottomTabBar: React.FC = () => {
@@ -10,7 +10,7 @@ export const VaultBottomTabBar: React.FC = () => {
 
   return (
     <nav className="ov-bottom-tab-bar" aria-label="Mobile navigation">
-      {VAULT_NAV_ITEMS.map((item) => {
+      {HUB_NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
         return (
           <Link 

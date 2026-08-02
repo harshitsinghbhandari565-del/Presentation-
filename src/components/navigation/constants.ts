@@ -1,8 +1,8 @@
-import { LayoutDashboard, Lock, Clock, Settings } from 'lucide-react';
+import { Home, Layout, Search, Settings } from 'lucide-react';
 
-export const VAULT_NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { label: 'Vault', icon: Lock, href: '/vault' },
-  { label: 'Activity', icon: Clock, href: '/activity' },
+export const HUB_NAV_ITEMS = [
+  { label: 'Home', icon: Home, href: '/' },
+  { label: 'Library', icon: Layout, href: '/library' },
+  { label: 'Search', icon: Search, href: '/search' },
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];

@@ -25,14 +25,13 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#0A0A0C" />
       </head>
-      <body className="antialiased">
-        {/* Theme and projector init script */}
+      <body className="antialiased bg-[var(--color-surface-base)] text-[var(--color-text-primary)] transition-colors duration-300">
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var themeKey = 'ov-theme-preference';
+                  var themeKey = 'ph-theme-preference';
                   var saved = localStorage.getItem(themeKey);
                   var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var theme = saved || (systemDark ? 'dark' : 'light');
