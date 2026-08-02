@@ -35,7 +35,7 @@ export default function AppearanceSettingsPage() {
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-[var(--color-text-primary)]">
           Appearance
         </h1>
-        <p className="text-[var(--color-text-secondary)] mt-1 font-body">Customize your Obsidian Vault experience.</p>
+        <p className="text-[var(--color-text-secondary)] mt-1 font-body">Customize your Hub experience.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -77,7 +77,7 @@ export default function AppearanceSettingsPage() {
                 <div className="w-12 h-12 rounded-xl bg-[var(--color-primitive-gray-900)] border border-white/10" />
                 <div className="w-12 h-12 rounded-xl bg-[var(--color-primitive-warm-white)]" />
            </div>
-           <p className="text-xs text-[var(--color-text-secondary)] font-mono uppercase tracking-[0.2em]">Obsidian Vault Design Language v1.0</p>
+           <p className="text-xs text-[var(--color-text-secondary)] font-mono uppercase tracking-[0.2em]">Presentation Hub Design Language v1.0</p>
       </VaultCard>
     </div>
   );

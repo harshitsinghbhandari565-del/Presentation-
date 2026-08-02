@@ -85,7 +85,7 @@ export default function PresentationDetailPage() {
                             <a href={presentation.presentUrl || presentation.url} target="_blank" rel="noopener noreferrer">
                                 <VaultButton variant="primary" size="default" className="h-14 px-10 text-base font-bold shadow-xl shadow-orange-600/20">
                                     <Play size={20} fill="currentColor" className="mr-3" />
-                                    Launch Viewer
+                                    Launch Hub
                                 </VaultButton>
                             </a>
                         </div>

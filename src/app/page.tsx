@@ -10,6 +10,7 @@ import type { Presentation } from "@/types/presentation";
 import { VaultCard } from "@/components/primitive/card/VaultCard";
 import { VaultBadge } from "@/components/primitive/badge/VaultBadge";
 import { formatNumber } from "@/lib/format";
+import { DashboardSkeleton } from "@/components/layout/DashboardSkeleton";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -57,7 +58,7 @@ export default function DashboardPage() {
     [presentations]
   );
 
-  if (!mounted) return <div className="min-h-screen bg-[var(--color-surface-base)]" />;
+  if (!mounted) return <DashboardSkeleton />;
 
   return (
     <div className="space-y-20 pb-32 max-w-[1600px] mx-auto">
@@ -167,13 +168,13 @@ export default function DashboardPage() {
 
                     <div className="pt-8 border-t border-white/5 flex flex-col gap-6">
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 text-center">
-                                <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Active</div>
-                                <div className="text-3xl font-black text-white mt-1">{formatNumber(presentations.length)}</div>
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center shadow-inner">
+                                <div className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-1">Items</div>
+                                <div className="text-2xl font-black text-white leading-none">{formatNumber(presentations.length)}</div>
                             </div>
-                            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 text-center">
-                                <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">Subjects</div>
-                                <div className="text-3xl font-black text-white mt-1">{formatNumber(subjects.length)}</div>
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center shadow-inner">
+                                <div className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-1">Topics</div>
+                                <div className="text-2xl font-black text-white leading-none">{formatNumber(subjects.length)}</div>
                             </div>
                         </div>
                         

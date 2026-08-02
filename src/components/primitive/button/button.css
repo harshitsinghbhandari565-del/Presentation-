@@ -3,20 +3,21 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border-radius: var(--radius-default);
+  border-radius: 12px;
   font-family: var(--font-body);
   font-size: var(--type-body-strong-size);
-  font-weight: var(--type-body-strong-weight);
+  font-weight: 700;
   line-height: var(--type-body-strong-line-height);
   cursor: pointer;
   transition: all var(--motion-micro) var(--ease-default);
   white-space: nowrap;
   border: 1px solid transparent;
   outline: none;
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
 }
 
 .ov-button:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26,20 +27,19 @@
 }
 
 .ov-button:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-focus-ring);
-  outline: 2px solid transparent;
-  outline-offset: 2px;
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 4px;
 }
 
 /* Variants - Height & Padding */
 .ov-button--default {
-  height: 48px;
-  padding-inline: var(--space-5);
+  height: 52px;
+  padding-inline: 28px;
 }
 
 .ov-button--small {
-  height: 36px;
-  padding-inline: var(--space-4);
+  height: 40px;
+  padding-inline: 20px;
   font-size: var(--type-caption-size);
 }
 
