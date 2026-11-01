@@ -1,10 +1,10 @@
+// Legacy source-record shape. New application code uses EducationalDocument.
 export interface BackupLink {
   label: string;
   platform: string;
   url: string;
   description?: string;
 }
-
 export interface Presentation {
   id: string;
   title: string;
