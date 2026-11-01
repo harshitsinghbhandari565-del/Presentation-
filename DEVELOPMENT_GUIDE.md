@@ -40,7 +40,7 @@ In a headless Linux environment without a bundled browser, set `PLAYWRIGHT_CHROM
 
 ## Supabase setup (owner approval required)
 
-1. Create/select the project and region in Supabase. No project currently exists in the connected account.
+1. Confirm the intended project and region in Supabase. The current connected candidate is `nypojddjzzycicfinxbv` (eu-north-1, PostgreSQL 17); its public schema and Auth users are empty. Do not apply changes until the owner confirms this target. See `SUPABASE_AUDIT.md`.
 2. Review `supabase/migrations/202611010001_catalog.sql`. Apply it through the Supabase migration workflow/SQL editor. It is additive and transactional; it does not delete existing data.
 3. Review and run `supabase/seed.sql`. It idempotently inserts the original real resource and does not overwrite owner-edited metadata.
 4. In Authentication, create the owner-controlled administrator user. For this product, disable public signup unless you intentionally need it. Configure the real Site URL and allowed redirect URLs.
@@ -59,7 +59,7 @@ on conflict (user_id) do nothing;
 ## Production origin and deployment
 
 - Set `NEXT_PUBLIC_SITE_URL` to the real HTTPS origin before production build/deploy. Without it, sitemap is empty and canonical metadata falls back to localhost.
-- No Vercel project exists yet. Create/configure one only with owner approval, set environment variables, deploy, then verify routes, Auth redirects, headers, canonical/OG/sitemap and admin behavior on the actual origin.
+- Reuse Vercel project `harshit-presentation-hub-preview` (`prj_r1xElM95Mvip4jILWhgX3yWlympi`), already serving `https://harshit-presentation-hub-preview.vercel.app`. Preserve its install/build/output settings. Add the public Supabase variables, redeploy explicitly (Git auto-deploy is disabled), then verify routes, Auth redirects, headers, canonical/OG/sitemap and admin behavior on the actual origin. Do not enable writable previews against production data without an approved isolation decision.
 - The app needs no Drive/Dropbox API credentials. It only links to original sharing URLs.
 
 ## Content and safety rules
@@ -74,7 +74,7 @@ on conflict (user_id) do nothing;
 
 - **Admin shows setup:** Supabase env values are absent/invalid, or a secret key was rejected. This is fail-closed behavior.
 - **Access denied after login:** the Auth user lacks a row in `public.administrators`.
-- **Health 503 `not_configured`:** expected when optional `DATABASE_URL` is absent; public compatibility mode still works.
+- **Health 503 `not_configured`:** the retained health route currently checks only optional `DATABASE_URL`, not Supabase. This is expected in compatibility mode but is a pre-production mismatch after Supabase activation; fix the health boundary rather than adding a direct database secret unnecessarily.
 - **Empty sitemap:** set `NEXT_PUBLIC_SITE_URL` and rebuild.
 - **External document won’t open:** check the owner’s sharing permissions in a signed-out browser; the hub cannot bypass them.
 - **Hydration/HMR issues in a proxy:** use the configured preview origin; Next dev origins allow `*.e2b.app`. Local checks should use `localhost`, not an origin blocked by dev protection.

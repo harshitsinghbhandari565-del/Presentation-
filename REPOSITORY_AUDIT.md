@@ -175,3 +175,8 @@ The baseline findings above are preserved as historical evidence. Since the audi
 Local verification now passes lint, typecheck, 14 unit tests, 8 PGlite PostgreSQL/RLS tests, production build, 11 production-server Playwright tests and axe checks in both themes. Production dependency audit is clean. See `VERIFICATION.md` for exact scope.
 
 **Still unresolved externally:** no Supabase project/administrator/applied migration, no Vercel project/deployment, no confirmed production origin, and no owner verification of external sharing permissions. Hosted admin persistence/auth and deployment are not claimed complete. The Arena public proxy URL could not be fetched from inside the sandbox; local production browser checks passed. Current blockers and next actions are in `KNOWN_ISSUES.md`, `PROGRESS.md` and `DEVELOPMENT_GUIDE.md`.
+
+
+## Production Supabase audit — 2026-11-01
+
+The historical baseline and implementation addendum above remain unchanged. A new read-only service/configuration audit is recorded in `SUPABASE_AUDIT.md`: one healthy but uninitialized Supabase project is connected, the existing Vercel deployment lacks Supabase variables, and hosted Auth/CRUD/RLS remain unverified. The audit identifies non-destructive activation steps and pre-production security/health fixes. No application source or hosted data was changed during that audit.

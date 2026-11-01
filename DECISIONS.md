@@ -34,3 +34,8 @@ Local gates include lint, typecheck, unit tests, PGlite migration/RLS tests, pro
 
 ## D11 — Dependency security without destructive forced fixes
 Next.js/eslint-config-next were upgraded to 16.4.3 and PostCSS to 8.5.32; production audit is clean. Moderate development-only advisories in retained Drizzle Kit/ESLint toolchains are documented rather than “fixed” by npm’s suggested breaking downgrades.
+
+
+## D12 — Production activation is audited and non-destructive
+
+The 2026-11-01 read-only audit (`SUPABASE_AUDIT.md`) found an existing empty Supabase project and an existing Vercel deployment. Reuse both. Confirm the database target before applying the exact reviewed transactional migration and non-overwriting seed. Preserve the original JSON and external URLs. Keep administrator membership owner-controlled, use only public client keys, and do not enable writable preview deployments against production data without an explicit isolation decision. Address the documented cookie/config/logout/health findings within the existing architecture before claiming production readiness.

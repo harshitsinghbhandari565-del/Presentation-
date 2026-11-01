@@ -17,11 +17,11 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 
 ## Important limits
 
-- PGlite tests emulate Supabase's `auth.uid()` and roles. They do **not** verify hosted Supabase Auth, network/API integration, cookies, redirect configuration or a deployed administrator account. No hosted Supabase project exists in the connected account.
+- PGlite tests emulate Supabase's `auth.uid()` and roles. They do **not** verify hosted Supabase Auth, network/API integration, cookies, redirect configuration or a deployed administrator account. A hosted project is now connected but remains uninitialized; historical local results are not hosted verification.
 - Admin editor/action source is implemented, but end-to-end persistence/auth remains unverified until the owner configures a project. Do not describe admin CRUD as production-complete.
 - Full dependency audit still reports moderate development-only advisories through the retained Drizzle Kit and ESLint toolchains. No forced breaking downgrade was applied. Production audit is clean.
 - External Google/Dropbox destinations were not fetched from this restricted sandbox. Their current sharing permissions/availability require owner verification.
-- No Vercel project or deployment was created. `NEXT_PUBLIC_SITE_URL` is unset, so the sitemap is intentionally empty and production canonical origin is not configured.
+- Historical pre-restoration limitation, superseded below: initially no Vercel project/deployment existed and `NEXT_PUBLIC_SITE_URL` was unset. The existing Vercel project now serves the public preview with that origin configured; Supabase variables remain absent.
 - Browser checks used Chromium, not Safari/Firefox or physical mobile devices. Automated contrast/keyboard checks do not replace assistive-technology testing.
 - Final `npm run lint && npm run typecheck && npm test && npm run build` passed after the scalability changes (bounded landing/related queries, database facet counts, paginated subject pages, batched sitemap reads).
 - Arena proxy-host browser verification could not be completed from inside the sandbox (`ERR_CONNECTION_CLOSED` to the public preview URL). The server binds to 0.0.0.0 and allows the preview dev origin; the user-facing proxy still needs an external browser check.
@@ -35,3 +35,13 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - Durable preview: deployed the same branch to Vercel project `harshit-presentation-hub-preview`. Public URL opened and verified: `https://harshit-presentation-hub-preview.vercel.app`.
 - Public URL verification: landing, library, search (`q=mcqs`), empty search (`q=nonexistent`), subject page, document detail, admin setup redirect and sitemap were opened successfully through the external page-fetch tool. Interactive browser/E2E verification ran against the identical local production build because the sandbox's outbound network blocks direct browser TLS to Vercel.
 - No application source code was changed to fix the infrastructure issue.
+
+
+## Production Supabase audit — 2026-11-01
+
+- Read-only hosted inspection found Supabase project `nypojddjzzycicfinxbv` healthy, with no public tables/policies/functions, no migration history and zero Auth users.
+- Vercel metadata inspection confirmed the existing production deployment and only `NEXT_PUBLIC_SITE_URL`; no Supabase environment variables. No secret values were requested.
+- Re-ran `npm run test:unit`: 14/14 passed; `npm run test:db`: 8/8 passed using the exact migration and seed.
+- `git diff --exit-code 4307a68 -- src/data/presentations.json`: unchanged. Git blob `b57c75a73ba5f82a67a691acfaf986c272a3f207`; file SHA-256 `1a021afd9c49a2bc81d09076cee934b653282b45072b1bc483335ba3ffa0a059`.
+- Full findings and safe next steps: `SUPABASE_AUDIT.md`.
+- No hosted migration, seed, Auth change, environment change or deployment was performed during this audit. Hosted workflow/RLS verification remains pending.

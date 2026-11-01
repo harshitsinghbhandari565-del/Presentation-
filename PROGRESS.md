@@ -22,7 +22,7 @@ Updated: 2026-11-01
 - Added setup/login/access-denied states, server-side administrator membership checks and protected server actions.
 - Added resource create/edit/archive/slug-confirmed permanent delete, category add/edit, metadata preview, admin search/filter/pagination and public-cache revalidation.
 - Added additive Supabase migration/seed with RLS, constraints, indexes, full-text search and facets.
-- PGlite tests verify migration/seed and role policies locally. Hosted Supabase is still unconfigured.
+- PGlite tests verify migration/seed and role policies locally. A healthy Supabase project is connected, but migration/seed and Auth remain unconfigured; see `SUPABASE_AUDIT.md`.
 
 ### Phase 6 — quality
 - `npm run lint`, `npm run typecheck`: passed.
@@ -35,14 +35,26 @@ Updated: 2026-11-01
 
 ## Remaining external setup / verification
 
-1. Owner chooses/configures Supabase project and region; apply reviewed migration and idempotent seed.
-2. Create owner-controlled Auth user, disable public signup as appropriate, add its UUID to `public.administrators`, configure Auth site/redirect URLs.
-3. Set public Supabase env values; verify hosted login, non-admin denial, CRUD/archive/delete, revalidation and RLS through the real API.
-4. Owner verifies original Google/Dropbox sharing permissions in a signed-out browser.
-5. Set real `NEXT_PUBLIC_SITE_URL`; verify canonical/OG/sitemap on the production origin.
-6. Configure/deploy Vercel only after approval; run production smoke tests. No deployment has been made.
-7. Optional: Safari/Firefox/physical-device and assistive-technology testing; resolve moderate dev-only toolchain advisories without forced breaking downgrades.
+1. Owner confirms the connected Supabase target `nypojddjzzycicfinxbv` and reviewed migration/seed application.
+2. Apply and verify the additive migration and idempotent seed without overwriting data.
+3. Disable public signup, configure Auth origin, create the owner-controlled user and grant its actual UUID membership.
+4. Address the production audit security/health findings and verify regression tests.
+5. Configure the existing Vercel production environment; decide isolated preview backend configuration before enabling preview writes.
+6. Deploy and verify hosted login/logout, CRUD/archive/delete, public propagation and API RLS.
+7. Owner verifies original Google/Dropbox sharing permissions; review backup/monitoring procedures.
+8. Run GitHub CI and broaden Safari/Firefox/physical-device/assistive-technology coverage; review moderate dev-only advisories without forced breaking downgrades.
 
 ## Current runtime
 
 Local production server (`next start`) is running on port 3000, bound to 0.0.0.0. A durable Vercel preview is available at `https://harshit-presentation-hub-preview.vercel.app`. Both use compatibility mode because Supabase env values are absent. The old E2B sandbox URL expired; the current raw E2B URL requires a traffic token. The Vercel URL was opened and verified externally.
+
+
+## Production Supabase audit — 2026-11-01
+
+- Completed a read-only source/service audit, recorded in `SUPABASE_AUDIT.md`; no hosted writes or application source changes.
+- Found one healthy Supabase project (`nypojddjzzycicfinxbv`, PostgreSQL 17, eu-north-1), with empty public schema/policies/migration history and zero Auth users.
+- Confirmed the existing Vercel deployment has only `NEXT_PUBLIC_SITE_URL`; Supabase URL/key are missing.
+- Re-ran unit tests (14/14) and exact migration/seed PGlite policy tests (8/8).
+- Verified the original resource remains byte-identical to baseline.
+- Identified pre-production fixes: shared browser config validation, explicit secure/HttpOnly session handling, logout error handling, honest Supabase health reporting and preview backend isolation.
+- Awaiting owner confirmation of the target project before any migration, seed or Auth configuration change.

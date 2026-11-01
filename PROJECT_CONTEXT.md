@@ -25,14 +25,14 @@ Harshit Presentation Hub is an educational resource discovery hub for students. 
 - `src/lib/urls.ts`, `search.ts`, `document-validation.ts` own URL safety, discovery semantics and shared validation.
 - Public routes: `/`, `/library`, `/resources/[slug]`, `/subjects`, `/subjects/[slug]`, `/about`. Legacy `/presentation/[id]` redirects to canonical resource pages.
 - Admin routes live under `/admin`; server pages and server actions recheck authenticated administrator membership. No service-role key is used by the app.
-- `supabase/migrations/202611010001_catalog.sql` and `supabase/seed.sql` are written and locally policy-tested but **not applied to any hosted database**.
+- `supabase/migrations/202611010001_catalog.sql` and `supabase/seed.sql` are written and locally policy-tested but **not applied to the connected hosted database**. A read-only production audit is recorded in `SUPABASE_AUDIT.md`.
 - Theme/projector preferences persist locally. Motion respects reduced-motion preferences.
 
 ## Current status
 
 Public experience, discovery, document detail, compatibility mode, responsive themes, SEO/error surfaces and admin source are implemented. Local lint, typecheck, unit tests, PostgreSQL policy tests, production build and production-server browser/E2E checks pass. See `VERIFICATION.md` for exact scope.
 
-**Not production-complete:** no Supabase project, administrator identity, applied migration, Vercel project, production origin or deployment exists in the connected accounts. Hosted admin auth/CRUD and external document permissions remain owner-verification tasks. Do not claim otherwise.
+**Not production-complete:** one healthy Supabase project is now connected (`nypojddjzzycicfinxbv`, eu-north-1), but its public schema and Auth user list are empty and no migration is applied. The existing Vercel project serves the public compatibility-mode site at `https://harshit-presentation-hub-preview.vercel.app`; its Supabase variables are absent. Owner target confirmation, migration/seed, administrator setup, security hardening, hosted workflow verification and external permission checks remain. See `SUPABASE_AUDIT.md`; do not claim production readiness.
 
 ## Continuity
 
