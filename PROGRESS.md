@@ -35,7 +35,7 @@ Updated: 2026-11-01
 
 ## Remaining external setup / verification
 
-1. Disable public signup, configure Auth origin, create the owner-controlled user and grant its actual UUID membership.
+1. Owner completes Supabase Auth URL configuration, disables public signup, creates their own Auth account, and confirms completion; then verify the actual Auth UUID and grant only that UUID membership.
 2. Address the production audit security/health findings and verify regression tests.
 3. Configure the existing Vercel production environment; decide isolated preview backend configuration before enabling preview writes.
 4. Deploy and verify hosted login/logout, CRUD/archive/delete, public propagation and API RLS.
@@ -79,3 +79,14 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Re-ran rollback-only hosted RLS probes: anonymous catalog reads/facets/search work; anonymous writes are denied at the grant layer; authenticated non-admin writes are denied by RLS or affect zero rows; no probe rows persisted.
 - Added `tests/database/least-privilege-grants.test.ts`; `npm run test:db` passed 15/15. Lint, typecheck and unit tests passed. ESLint now ignores generated Playwright/test-result artifacts.
 - No administrator, Auth setting, Vercel environment variable or deployment change was made. Stopped after successful verification as requested.
+
+
+## Phase 3 Auth configuration audit — 2026-11-01
+
+- Completed a read-only Auth implementation/configuration audit in `SUPABASE_AUTH_AUDIT.md`; no application code, Auth setting, administrator account, membership, Vercel environment variable or deployment was changed.
+- Confirmed hosted Auth still uses `http://localhost:3000`, has an empty redirect allow list, and allows public email/password signup. Auth users and administrator memberships remain zero.
+- Confirmed the deployed production origin is `https://harshit-presentation-hub-preview.vercel.app`; the deployed admin login page still shows compatibility/setup mode because Supabase environment variables are absent.
+- Documented exact dashboard actions: set Site URL and redirect allow list to the deployed origin, disable public signup while keeping Email provider enabled, then owner-create a confirmed Auth user.
+- Documented safe membership rule: obtain the actual Auth UUID through the authorized Supabase workflow, confirm it with the owner, and insert only that UUID into `public.administrators`; never grant access from an email supplied in chat.
+- Documented Auth hardening findings for later approved fixes: browser client config guard, explicit production cookie security, logout error handling, and deployed admin cache/session verification.
+- Waiting for owner confirmation before account creation or administrator authorization.

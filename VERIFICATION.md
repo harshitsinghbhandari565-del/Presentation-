@@ -68,3 +68,11 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - Rollback-only hosted probes: anonymous reads/facets/search passed; anonymous INSERT/UPDATE/DELETE denied with `42501 permission denied`; anonymous administrator SELECT denied; authenticated non-admin INSERT denied by RLS, UPDATE/DELETE affected 0 rows; `is_administrator()` false for both roles.
 - Local gates after remediation: `npm run lint`, `npm run typecheck`, `npm run test:unit` (14/14), `npm run test:db` (15/15) passed. ESLint ignore list now excludes generated `playwright-report/` and `test-results/` artifacts.
 - No administrator, Auth setting, Vercel environment variable or deployment change was made. Full details: `SUPABASE_DATABASE_VERIFICATION.md`.
+
+## Phase 3 Auth configuration audit — 2026-11-01
+
+- Read-only audit recorded in `SUPABASE_AUTH_AUDIT.md`; no application code, Auth setting, administrator account, membership, Vercel environment variable or deployment was changed.
+- Hosted Auth observed: Site URL `http://localhost:3000`, empty redirect allow list, public signup enabled, Email provider enabled, 0 Auth users, 0 administrator memberships.
+- Deployed production origin observed: `https://harshit-presentation-hub-preview.vercel.app`; deployed `/admin/login` still shows compatibility/setup mode because Supabase environment variables are absent.
+- Local compatibility-mode admin routes do not expose the admin dashboard; unconfigured admin access renders the setup state and protected routes redirect away from admin content.
+- Exact owner dashboard actions and UUID-only membership procedure are documented. Waiting for owner confirmation before account creation or administrator authorization.

@@ -8,7 +8,7 @@ Scope: read-only inspection of the existing implementation, connected Supabase p
 
 The existing application already contains a real Supabase-backed catalog and administrator CRUD implementation. It is not a mock admin. However, the connected database has not been initialized, no administrator exists, and the deployed application has not received Supabase environment variables. The public site therefore remains in its explicitly labeled read-only compatibility mode.
 
-**Production readiness is not yet established.** The owner later confirmed the target and approved applying the exact migration/seed; see `SUPABASE_DATABASE_VERIFICATION.md`. Schema/data/RLS probes passed. Hosted verification found excessive Supabase default table privileges; the owner then approved a separate grant-only remediation, which was applied as hosted migration `20261101153928` and verified. Hosted authentication, administrator CRUD, public propagation, deployed API-level RLS, and external document permissions still require configuration and real verification.
+**Production readiness is not yet established.** The owner later confirmed the target and approved applying the exact migration/seed; see `SUPABASE_DATABASE_VERIFICATION.md`. Schema/data/RLS probes passed. Hosted verification found excessive Supabase default table privileges; the owner then approved a separate grant-only remediation, which was applied as hosted migration `20261101153928` and verified. Phase 3 Auth configuration is audited in `SUPABASE_AUTH_AUDIT.md` and awaits owner dashboard action. Hosted authentication, administrator CRUD, public propagation, deployed API-level RLS, and external document permissions still require configuration and real verification.
 
 ## Connected services observed
 

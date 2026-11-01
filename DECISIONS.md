@@ -48,3 +48,7 @@ The hosted Supabase verification found default privileges broader than the revie
 ## D14 — Apply catalog least-privilege grants without changing global defaults
 
 The owner approved and the project applied `202611010002_least_privilege_catalog_grants.sql` as hosted migration `20261101153928`. `anon` receives SELECT only on `subjects`, `courses` and `documents`; `authenticated` receives SELECT/INSERT/UPDATE/DELETE, with existing RLS policies remaining the authorization boundary. Neither role receives TRUNCATE, REFERENCES, TRIGGER or MAINTAIN. Global Supabase default privileges were intentionally left unchanged, so every future public table migration must include explicit least-privilege grants and post-migration privilege verification.
+
+## D15 — Administrator access is owner-created, UUID-authorized, and signup-disabled
+
+Phase 3 uses the existing Supabase Auth email/password login and `public.administrators` membership boundary. Public signup should be disabled while the Email provider remains enabled for administrator login. The owner creates their own Auth user in the Supabase dashboard; the application/chat never invents credentials. Administrator membership is granted only after the actual Auth UUID is read through the authorized Supabase workflow and confirmed with the owner. Email strings supplied by an unverified user are never an authorization source. Auth cookie/logout/config hardening must be verified before claiming production-ready administrator sessions.
