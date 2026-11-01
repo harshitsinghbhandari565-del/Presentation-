@@ -90,3 +90,14 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Documented safe membership rule: obtain the actual Auth UUID through the authorized Supabase workflow, confirm it with the owner, and insert only that UUID into `public.administrators`; never grant access from an email supplied in chat.
 - Documented Auth hardening findings for later approved fixes: browser client config guard, explicit production cookie security, logout error handling, and deployed admin cache/session verification.
 - Waiting for owner confirmation before account creation or administrator authorization.
+
+
+## Phase 3 owner confirmation and Auth verification — 2026-11-02
+
+- Owner confirmed Supabase URL configuration, public signup disabling, and administrator Auth account creation.
+- AC resynchronized the local checkout to `origin/arena/c9d0d599-presentation` at `4f9495a` after finding the sandbox checkout at baseline; no work was discarded.
+- Verified hosted Auth: public signup disabled, Email provider enabled, exact redirect allow pattern present, one confirmed Auth user, and zero administrator memberships.
+- Found Site URL mismatch: hosted value has a trailing period (`https://harshit-presentation-hub-preview.vercel.app.`); owner must remove it.
+- Identified owner-created Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`; membership is pending explicit owner UUID confirmation.
+- Advised owner to keep Confirm email enabled; the owner account is already confirmed.
+- No membership, Auth setting, Vercel environment variable, deployment, schema, or document record was changed.

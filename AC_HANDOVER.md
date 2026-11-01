@@ -1,11 +1,12 @@
 # AC handover — backend finalization
 
-Updated: 2026-11-01
+Updated: 2026-11-02
 Workstream: AC — backend finalization
 Branch: `arena/c9d0d599-presentation`
 Latest commit inspected before handover creation: `af2f4997c0577975f2a346f115be42a5e50ed032`
+Latest resynchronized HEAD: `4f9495a4d6bc5cbc3c7c1cbad49564e2b94cce43`
 Current phase: Phase 3 — Supabase Auth and secure administrator setup
-Current status: **waiting for owner-controlled Supabase dashboard confirmation**
+Current status: **owner confirmation received; waiting for Site URL correction and owner UUID confirmation**
 
 ## Inspection summary
 
@@ -61,27 +62,38 @@ Verified data state at last database verification:
 
 ### Supabase Auth
 
-Last audited hosted Auth state:
+Verified hosted Auth state on 2026-11-02 after owner confirmation:
 
-- Site URL: `http://localhost:3000` — not production-ready.
-- Redirect allow list: empty — not production-ready.
-- Email provider: enabled.
-- Public signup: enabled — should be disabled.
+- Public signup: disabled (`disable_signup: true`).
+- Email provider: enabled (`external_email_enabled: true`).
+- Redirect allow list: `https://harshit-presentation-hub-preview.vercel.app/**`.
+- Email confirmation required: `mailer_autoconfirm: false`.
+- Unverified email sign-ins: disabled (`mailer_allow_unverified_email_sign_ins: false`).
 - Phone/OAuth/anonymous users: disabled.
 - Refresh token rotation: enabled.
 - Custom SMTP: not configured.
-- Auth users: 0.
+- Auth users: 1.
 - Administrator memberships: 0.
+- Owner-created Auth UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+- The owner-created Auth user's email is confirmed.
 
-Required owner dashboard action:
+Unexpected difference:
 
-1. Set Site URL to `https://harshit-presentation-hub-preview.vercel.app`.
-2. Add redirect URL `https://harshit-presentation-hub-preview.vercel.app/**`.
-3. Disable public signup while keeping Email provider enabled.
-4. Owner-create their own confirmed Auth user in Supabase dashboard.
-5. Confirm completion to AC.
+- Hosted Site URL is `https://harshit-presentation-hub-preview.vercel.app.` with a trailing period.
+- Required exact Site URL: `https://harshit-presentation-hub-preview.vercel.app`.
 
-Do not proceed to membership authorization until the owner confirms and the actual Auth UUID is verified and owner-confirmed.
+Confirm email guidance:
+
+- Keep **Confirm email** enabled.
+- The owner-created account is already confirmed, so this setting does not block the owner.
+- Do not enable unverified email sign-ins.
+
+Required owner action before membership:
+
+1. Remove the trailing period from Supabase Site URL.
+2. Explicitly confirm that UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is the owner-created administrator account.
+
+Do not proceed to membership authorization until both are complete.
 
 ### Vercel
 
@@ -193,4 +205,4 @@ Unverified:
 
 ## Blocker
 
-AC is blocked by owner-controlled Supabase dashboard actions. The exact required owner action is listed in `AO_HANDOVER.md` and above. AC should stop and wait for owner confirmation before account verification, UUID confirmation, membership insertion, or production configuration.
+AC is blocked by two owner-controlled items: correcting the trailing period in Supabase Site URL and explicitly confirming Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. AC should stop and wait before membership insertion or production configuration.

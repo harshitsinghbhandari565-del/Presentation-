@@ -1,10 +1,11 @@
 # AO handover — AC backend finalization workstream
 
-Updated: 2026-11-01
+Updated: 2026-11-02
 Owner/workstream: AC — backend finalization
 Repository: `harshitsinghbhandari565-del/Presentation-`
 Working branch: `arena/c9d0d599-presentation`
 Latest implementation/audit commit inspected before this handover was created: `af2f4997c0577975f2a346f115be42a5e50ed032`
+Latest handover resynchronization: local checkout was restored to `origin/arena/c9d0d599-presentation` at `4f9495a4d6bc5cbc3c7c1cbad49564e2b94cce43` without discarding work.
 
 ## Purpose
 
@@ -16,7 +17,7 @@ At the time of inspection, `AO_HANDOVER.md` and `AC_HANDOVER.md` did not exist i
 
 Phase 3 — Supabase Auth and secure administrator setup.
 
-Status: **blocked by owner-controlled Supabase dashboard actions**.
+Status: **owner confirmation received; blocked by Site URL correction and owner UUID confirmation**.
 
 No Supabase Auth setting, administrator account, administrator membership, Vercel environment variable, deployment, database schema, or document record was changed during the latest AC inspection.
 
@@ -32,31 +33,40 @@ No Supabase Auth setting, administrator account, administrator membership, Verce
   - Neither role has TRUNCATE, REFERENCES, TRIGGER, or MAINTAIN on the catalog tables.
 - Original document and external Google/Dropbox URLs were verified unchanged.
 - Auth audit is documented in `SUPABASE_AUTH_AUDIT.md` and commit `af2f499`.
-- Auth users: 0 at last verification.
-- Administrator memberships: 0 at last verification.
-- Hosted Auth still needs owner configuration:
-  - Site URL is still `http://localhost:3000`.
-  - Redirect allow list is empty.
-  - Public signup is still enabled.
+- Auth users: 1 at the 2026-11-02 verification.
+- Administrator memberships: 0 at the 2026-11-02 verification.
+- Hosted Auth after owner dashboard action:
+  - Public signup is disabled.
+  - Email provider is enabled.
+  - Redirect allow list contains `https://harshit-presentation-hub-preview.vercel.app/**`.
+  - The owner-created Auth user's email is confirmed.
+  - Site URL has an unexpected trailing period and must be corrected.
 - Vercel project `harshit-presentation-hub-preview` still serves compatibility mode because Supabase environment variables are absent.
 
 ## Exact action currently required from the owner
 
-In Supabase project `nypojddjzzycicfinxbv`:
+Owner confirmed that Supabase URL configuration, public signup disabling, and administrator Auth account creation were completed. AC then verified the hosted state through authorized Supabase access.
 
-1. **Authentication → URL Configuration**
-   - Site URL: `https://harshit-presentation-hub-preview.vercel.app`
-   - Redirect URL: `https://harshit-presentation-hub-preview.vercel.app/**`
-2. **Authentication → Providers → Email**
-   - Keep Email provider enabled.
-   - Disable public signup.
-3. **Authentication → Users → Add user → Create new user**
-   - Owner creates their own administrator Auth account.
-   - Use a strong unique password directly in Supabase.
-   - Auto-confirm the owner-created user if the dashboard offers that option.
-   - Do not paste passwords or secret keys into chat.
+Verified:
 
-After completing those actions, the owner must confirm completion to AC.
+- Public signup is disabled.
+- Email provider remains enabled.
+- Redirect allow list contains `https://harshit-presentation-hub-preview.vercel.app/**`.
+- One Auth user exists and its email is already confirmed.
+- Administrator memberships remain 0.
+- The owner-created Auth UUID is `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+
+Unexpected difference:
+
+- Hosted Site URL is currently `https://harshit-presentation-hub-preview.vercel.app.` with a trailing period. It must be exactly `https://harshit-presentation-hub-preview.vercel.app` without the trailing period.
+
+Required owner action:
+
+1. In Supabase **Authentication → URL Configuration**, remove the trailing period from Site URL.
+2. Keep **Confirm email** enabled. The owner-created account is already confirmed, so this does not block the owner.
+3. Confirm to AC that UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is the owner-created administrator account.
+
+Do not grant administrator membership until the Site URL is corrected and the owner confirms the UUID.
 
 ## AC next steps after owner confirmation
 

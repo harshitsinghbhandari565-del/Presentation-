@@ -305,6 +305,33 @@ After the owner confirms dashboard configuration and account creation:
 
 Full deployed browser/Auth verification will still require Supabase environment variables and a deployment, which are explicitly deferred. Until then, hosted Auth configuration and database authorization can be verified, but the deployed website will remain in compatibility mode.
 
+## Post-owner-confirmation verification — 2026-11-02
+
+The owner confirmed that URL configuration, public signup disabling, and administrator Auth account creation were completed. AC then verified hosted Auth through authorized Supabase access.
+
+Verified:
+
+- Public signup is disabled: `disable_signup: true`.
+- Email provider remains enabled: `external_email_enabled: true`.
+- Redirect allow list contains `https://harshit-presentation-hub-preview.vercel.app/**`.
+- Email confirmation is required: `mailer_autoconfirm: false`.
+- Unverified email sign-ins are disabled: `mailer_allow_unverified_email_sign_ins: false`.
+- One Auth user exists.
+- The Auth user's email is confirmed.
+- Administrator memberships remain 0.
+- Owner-created Auth UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+
+Unexpected difference:
+
+- Hosted Site URL is `https://harshit-presentation-hub-preview.vercel.app.` with a trailing period.
+- It must be corrected to `https://harshit-presentation-hub-preview.vercel.app` without the trailing period.
+
+Confirm email setting:
+
+- Keep **Confirm email** enabled.
+- The owner-created account is already confirmed, so this setting does not block the owner.
+- Do not enable unverified email sign-ins.
+
 ## Current blocker
 
-Waiting for the owner to perform the Supabase dashboard actions above and confirm completion. No account creation or administrator authorization should proceed before that confirmation.
+Waiting for the owner to correct the Site URL trailing period and explicitly confirm Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. No administrator membership should be inserted before both are complete.
