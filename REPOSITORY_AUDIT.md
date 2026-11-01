@@ -180,3 +180,8 @@ Local verification now passes lint, typecheck, 14 unit tests, 8 PGlite PostgreSQ
 ## Production Supabase audit — 2026-11-01
 
 The historical baseline and implementation addendum above remain unchanged. A new read-only service/configuration audit is recorded in `SUPABASE_AUDIT.md`: one healthy but uninitialized Supabase project is connected, the existing Vercel deployment lacks Supabase variables, and hosted Auth/CRUD/RLS remain unverified. The audit identifies non-destructive activation steps and pre-production security/health fixes. No application source or hosted data was changed during that audit.
+
+
+## Hosted database application update — 2026-11-01
+
+After the read-only audit, the owner confirmed Supabase project `nypojddjzzycicfinxbv` and approved only the exact reviewed migration and non-overwriting seed. They were applied transactionally and verified; the original resource URLs remained unchanged. Hosted verification found excessive Supabase default table privileges, including `TRUNCATE`, on catalog tables. This is recorded as a production blocker in `SUPABASE_DATABASE_VERIFICATION.md`; no grant remediation, Auth change, administrator creation or Vercel change was performed without further approval.

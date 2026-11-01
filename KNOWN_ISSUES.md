@@ -4,7 +4,7 @@ Updated: 2026-11-01. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 ## External blockers (not resolved by code)
 
-- **Supabase unconfigured:** one healthy project is connected (`nypojddjzzycicfinxbv`), but its public schema and Auth user list are empty. Migration/seed are not applied. Hosted Auth, cookies, admin CRUD and API/RLS integration are unverified. Local PGlite tests cover SQL/policies only. Owner target confirmation is pending.
+- **Supabase partially configured:** project `nypojddjzzycicfinxbv` has the reviewed schema and original resource applied and verified. Auth users/administrators are still zero. Hosted Auth, cookies, admin CRUD and deployed API/RLS integration remain unverified. **Blocker:** Supabase default table privileges are broader than the reviewed design, including `TRUNCATE` on `subjects`, `courses` and `documents`; an approved least-privilege remediation is required. See `SUPABASE_DATABASE_VERIFICATION.md`.
 - **No administrator identity:** owner must create the Auth user and explicitly grant membership. The app intentionally has no default password, public signup shortcut or service-role key.
 - **Vercel preview deployment:** project `harshit-presentation-hub-preview` now exists and serves the branch. It is a preview/staging URL on the hobby plan, not a custom production domain. Supabase/admin remain unconfigured.
 - **Production origin:** `NEXT_PUBLIC_SITE_URL` is configured in the existing Vercel project for the public preview origin. A custom domain is optional and not configured. Preview metadata currently shares the production origin; review during activation.
@@ -13,7 +13,7 @@ Updated: 2026-11-01. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 ## Production audit findings
 
-See `SUPABASE_AUDIT.md` for the full read-only audit. Before production sign-off: disable unnecessary public Auth signup (it does not grant admin access), set the real Auth Site URL, harden browser config/session cookies and logout errors, and make health check the actual Supabase catalog rather than only optional `DATABASE_URL`. Decide preview database isolation before enabling writable previews. No secret is currently configured in a public variable.
+See `SUPABASE_AUDIT.md` and `SUPABASE_DATABASE_VERIFICATION.md`. Before production sign-off: remediate excessive default table grants, disable unnecessary public Auth signup (it does not grant admin access), set the real Auth Site URL, harden browser config/session cookies and logout errors, and make health check the actual Supabase catalog rather than only optional `DATABASE_URL`. Decide preview database isolation before enabling writable previews. No secret is currently configured in a public variable.
 
 ## Product limitations kept visible
 

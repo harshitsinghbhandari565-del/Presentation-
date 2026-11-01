@@ -39,3 +39,8 @@ Next.js/eslint-config-next were upgraded to 16.4.3 and PostCSS to 8.5.32; produc
 ## D12 — Production activation is audited and non-destructive
 
 The 2026-11-01 read-only audit (`SUPABASE_AUDIT.md`) found an existing empty Supabase project and an existing Vercel deployment. Reuse both. Confirm the database target before applying the exact reviewed transactional migration and non-overwriting seed. Preserve the original JSON and external URLs. Keep administrator membership owner-controlled, use only public client keys, and do not enable writable preview deployments against production data without an explicit isolation decision. Address the documented cookie/config/logout/health findings within the existing architecture before claiming production readiness.
+
+
+## D13 — Hosted default privileges require explicit least-privilege remediation
+
+The hosted Supabase verification found default privileges broader than the reviewed migration intended, including `TRUNCATE` for `anon` and `authenticated` on catalog tables. RLS blocked unauthorized DML probes, but `TRUNCATE` is not RLS-controlled. Do not treat the database as production-ready until a separate approved transactional migration revokes excess grants and re-grants only intended privileges. Do not alter global default privileges or use destructive workarounds without explicit review.

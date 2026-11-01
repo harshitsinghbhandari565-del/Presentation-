@@ -40,9 +40,11 @@ In a headless Linux environment without a bundled browser, set `PLAYWRIGHT_CHROM
 
 ## Supabase setup (owner approval required)
 
-1. Confirm the intended project and region in Supabase. The current connected candidate is `nypojddjzzycicfinxbv` (eu-north-1, PostgreSQL 17); its public schema and Auth users are empty. Do not apply changes until the owner confirms this target. See `SUPABASE_AUDIT.md`.
-2. Review `supabase/migrations/202611010001_catalog.sql`. Apply it through the Supabase migration workflow/SQL editor. It is additive and transactional; it does not delete existing data.
-3. Review and run `supabase/seed.sql`. It idempotently inserts the original real resource and does not overwrite owner-edited metadata.
+Hosted status on 2026-11-01: target `nypojddjzzycicfinxbv` (eu-north-1) was owner-confirmed. The exact catalog migration and original-resource seed were applied as hosted versions `20261101134604` and `20261101135344`; do not reapply them. A least-privilege grant remediation is pending owner approval. See `SUPABASE_DATABASE_VERIFICATION.md`.
+
+1. Confirm the intended project and region in Supabase before any further changes. Do not recreate the project or reapply the initial migration/seed.
+2. The initial migration `supabase/migrations/202611010001_catalog.sql` is already applied. Review and apply only the pending least-privilege remediation after owner approval; verify grants and RLS afterward.
+3. The seed `supabase/seed.sql` is already applied. It is idempotent and must not overwrite owner-edited metadata; do not use it to reset data.
 4. In Authentication, create the owner-controlled administrator user. For this product, disable public signup unless you intentionally need it. Configure the real Site URL and allowed redirect URLs.
 5. Grant membership explicitly using the user's UUID from Authentication → Users:
 

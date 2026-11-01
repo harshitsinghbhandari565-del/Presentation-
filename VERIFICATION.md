@@ -17,7 +17,7 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 
 ## Important limits
 
-- PGlite tests emulate Supabase's `auth.uid()` and roles. They do **not** verify hosted Supabase Auth, network/API integration, cookies, redirect configuration or a deployed administrator account. A hosted project is now connected but remains uninitialized; historical local results are not hosted verification.
+- PGlite tests emulate Supabase's `auth.uid()` and roles. They do **not** verify hosted Supabase Auth, network/API integration, cookies, redirect configuration or a deployed administrator account. The hosted schema/seed are now applied and database-role probes were run, but hosted Auth/deployed CRUD remain unverified; historical local results are not hosted verification.
 - Admin editor/action source is implemented, but end-to-end persistence/auth remains unverified until the owner configures a project. Do not describe admin CRUD as production-complete.
 - Full dependency audit still reports moderate development-only advisories through the retained Drizzle Kit and ESLint toolchains. No forced breaking downgrade was applied. Production audit is clean.
 - External Google/Dropbox destinations were not fetched from this restricted sandbox. Their current sharing permissions/availability require owner verification.
@@ -45,3 +45,15 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - `git diff --exit-code 4307a68 -- src/data/presentations.json`: unchanged. Git blob `b57c75a73ba5f82a67a691acfaf986c272a3f207`; file SHA-256 `1a021afd9c49a2bc81d09076cee934b653282b45072b1bc483335ba3ffa0a059`.
 - Full findings and safe next steps: `SUPABASE_AUDIT.md`.
 - No hosted migration, seed, Auth change, environment change or deployment was performed during this audit. Hosted workflow/RLS verification remains pending.
+
+
+## Hosted database verification — 2026-11-01
+
+- Owner-approved target: Supabase `nypojddjzzycicfinxbv`, `eu-north-1`.
+- Exact reviewed migration/seed applied through connector transactional migrations. Hosted versions: `20261101134604` (`catalog_schema`), `20261101135344` (`original_resource_seed`). Stored SQL MD5 matched repository file MD5.
+- Verified 4 RLS-enabled tables, 7 policies, 29 constraints, 14 indexes, 4 functions, 1 trigger; documents has 9 indexes.
+- Verified 1 subject, 1 course, 1 published featured document, 0 administrators, 0 Auth users, 0 probe rows. Original Google/Dropbox URLs matched exactly; repository JSON unchanged.
+- Rollback-only hosted RLS probes verified anonymous/non-admin published reads, zero-row unauthorized update/delete, and RLS-denied unauthorized inserts.
+- **Blocker:** Supabase default privileges grant excessive table privileges to `anon`/`authenticated`, including `TRUNCATE`, on `subjects`, `courses`, `documents`. Remediation awaits owner approval.
+- Transient Supabase API 502s occurred during some probes; subsequent read-only checks confirmed health and no probe persistence. Verification-query syntax/introspection errors were corrected and did not change catalog data.
+- No Auth settings, administrator accounts, Vercel environment variables or deployment configuration were changed. Full details: `SUPABASE_DATABASE_VERIFICATION.md`.

@@ -8,7 +8,7 @@ Scope: read-only inspection of the existing implementation, connected Supabase p
 
 The existing application already contains a real Supabase-backed catalog and administrator CRUD implementation. It is not a mock admin. However, the connected database has not been initialized, no administrator exists, and the deployed application has not received Supabase environment variables. The public site therefore remains in its explicitly labeled read-only compatibility mode.
 
-**Production readiness is not yet established.** Hosted authentication, authorization, CRUD, public propagation, API-level RLS, and external document permissions still require configuration and real verification.
+**Production readiness is not yet established.** The owner later confirmed the target and approved applying the exact migration/seed; see `SUPABASE_DATABASE_VERIFICATION.md`. Schema/data/RLS probes passed, but hosted verification found excessive Supabase default table privileges requiring an approved least-privilege remediation. Hosted authentication, administrator CRUD, public propagation, deployed API-level RLS, and external document permissions still require configuration and real verification.
 
 ## Connected services observed
 
@@ -254,4 +254,4 @@ Not yet verified: hosted migration, hosted Auth login/logout/cookies, administra
 
 ## First action required from the owner
 
-Confirm that Supabase project reference `nypojddjzzycicfinxbv` is the intended database and approve applying the reviewed additive migration plus the non-overwriting original-resource seed. No dashboard action or credential sharing is needed for this confirmation. If it is not the intended project, provide the correct project reference instead; do not create another project merely to bypass this check.
+The target was confirmed and the exact migration/seed were applied. The next required decision is approval of the non-destructive least-privilege grant remediation described in `SUPABASE_DATABASE_VERIFICATION.md`. Do not proceed to Auth, administrator creation or Vercel changes until that database blocker is resolved and the owner separately approves the next phase.

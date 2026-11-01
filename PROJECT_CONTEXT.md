@@ -25,14 +25,14 @@ Harshit Presentation Hub is an educational resource discovery hub for students. 
 - `src/lib/urls.ts`, `search.ts`, `document-validation.ts` own URL safety, discovery semantics and shared validation.
 - Public routes: `/`, `/library`, `/resources/[slug]`, `/subjects`, `/subjects/[slug]`, `/about`. Legacy `/presentation/[id]` redirects to canonical resource pages.
 - Admin routes live under `/admin`; server pages and server actions recheck authenticated administrator membership. No service-role key is used by the app.
-- `supabase/migrations/202611010001_catalog.sql` and `supabase/seed.sql` are written and locally policy-tested but **not applied to the connected hosted database**. A read-only production audit is recorded in `SUPABASE_AUDIT.md`.
+- `supabase/migrations/202611010001_catalog.sql` and `supabase/seed.sql` were applied to the confirmed hosted database through the connector transactional migration workflow. Hosted versions are `20261101134604` (`catalog_schema`) and `20261101135344` (`original_resource_seed`). See `SUPABASE_AUDIT.md` and `SUPABASE_DATABASE_VERIFICATION.md`.
 - Theme/projector preferences persist locally. Motion respects reduced-motion preferences.
 
 ## Current status
 
 Public experience, discovery, document detail, compatibility mode, responsive themes, SEO/error surfaces and admin source are implemented. Local lint, typecheck, unit tests, PostgreSQL policy tests, production build and production-server browser/E2E checks pass. See `VERIFICATION.md` for exact scope.
 
-**Not production-complete:** one healthy Supabase project is now connected (`nypojddjzzycicfinxbv`, eu-north-1), but its public schema and Auth user list are empty and no migration is applied. The existing Vercel project serves the public compatibility-mode site at `https://harshit-presentation-hub-preview.vercel.app`; its Supabase variables are absent. Owner target confirmation, migration/seed, administrator setup, security hardening, hosted workflow verification and external permission checks remain. See `SUPABASE_AUDIT.md`; do not claim production readiness.
+**Not production-complete:** Supabase project `nypojddjzzycicfinxbv` (eu-north-1) now has the reviewed schema and original resource, and the resource URLs were verified unchanged. Activation is blocked by excessive Supabase default table privileges on `subjects`, `courses` and `documents`, including `TRUNCATE`; a least-privilege remediation awaits owner approval. Auth users/administrators remain zero. The existing Vercel project still serves compatibility mode because Supabase variables are absent. Auth settings, administrator creation, Vercel environment variables and deployment configuration were intentionally not changed. See `SUPABASE_DATABASE_VERIFICATION.md`; do not claim production readiness.
 
 ## Continuity
 
