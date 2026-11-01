@@ -45,4 +45,4 @@ Updated: 2026-11-01
 
 ## Current runtime
 
-Local production server (`next start`) is running on port 3000, bound to 0.0.0.0. It uses compatibility mode because Supabase env values are absent. The Arena public proxy URL could not be fetched from inside the sandbox; external browser verification of that proxy remains pending.
+Local production server (`next start`) is running on port 3000, bound to 0.0.0.0. A durable Vercel preview is available at `https://harshit-presentation-hub-preview.vercel.app`. Both use compatibility mode because Supabase env values are absent. The old E2B sandbox URL expired; the current raw E2B URL requires a traffic token. The Vercel URL was opened and verified externally.

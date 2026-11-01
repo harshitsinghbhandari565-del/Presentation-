@@ -25,3 +25,13 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - Browser checks used Chromium, not Safari/Firefox or physical mobile devices. Automated contrast/keyboard checks do not replace assistive-technology testing.
 - Final `npm run lint && npm run typecheck && npm test && npm run build` passed after the scalability changes (bounded landing/related queries, database facet counts, paginated subject pages, batched sitemap reads).
 - Arena proxy-host browser verification could not be completed from inside the sandbox (`ERR_CONNECTION_CLOSED` to the public preview URL). The server binds to 0.0.0.0 and allows the preview dev origin; the user-facing proxy still needs an external browser check.
+
+
+## Preview restoration — 2026-11-01
+
+- Root cause: the previously supplied E2B sandbox URL belonged to sandbox `iv26ch7a04bldhw2h6vod`, which no longer exists in this session. The current sandbox is `iocv5wz1sehn0g774my6m`; its raw public URL requires an E2B traffic access token, so it is not a durable anonymous preview link.
+- Preservation: all implementation changes were committed and pushed to `arena/c9d0d599-presentation` at `94728bf` before restoration. `src/data/presentations.json` hash remained `b57c75a73ba5f82a67a691acfaf986c272a3f207`, identical to baseline.
+- Local restore: `npm ci`, `npm run build`, and `npm run start -- --hostname 0.0.0.0 --port 3000` succeeded. Local production E2E suite passed 11/11.
+- Durable preview: deployed the same branch to Vercel project `harshit-presentation-hub-preview`. Public URL opened and verified: `https://harshit-presentation-hub-preview.vercel.app`.
+- Public URL verification: landing, library, search (`q=mcqs`), empty search (`q=nonexistent`), subject page, document detail, admin setup redirect and sitemap were opened successfully through the external page-fetch tool. Interactive browser/E2E verification ran against the identical local production build because the sandbox's outbound network blocks direct browser TLS to Vercel.
+- No application source code was changed to fix the infrastructure issue.

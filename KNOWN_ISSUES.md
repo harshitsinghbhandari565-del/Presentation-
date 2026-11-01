@@ -6,10 +6,10 @@ Updated: 2026-11-01. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 - **Supabase unconfigured:** connected account has no project. Migration/seed are not applied. Hosted Auth, cookies, admin CRUD and API/RLS integration are unverified. Local PGlite tests cover SQL/policies only.
 - **No administrator identity:** owner must create the Auth user and explicitly grant membership. The app intentionally has no default password, public signup shortcut or service-role key.
-- **No deployment:** connected Vercel account has no project. No production deployment is claimed.
+- **Vercel preview deployment:** project `harshit-presentation-hub-preview` now exists and serves the branch. It is a preview/staging URL on the hobby plan, not a custom production domain. Supabase/admin remain unconfigured.
 - **Production origin unset:** `NEXT_PUBLIC_SITE_URL` is empty; sitemap is intentionally empty and canonical metadata falls back to localhost until configured.
 - **External permissions unverified:** sandbox network restrictions prevented fetching the original Google/Dropbox destinations. Owner must confirm intentional public sharing; the app cannot guarantee ongoing availability.
-- **Arena proxy check:** server binds to 0.0.0.0 and allows preview dev origins, but the public proxy URL returned `ERR_CONNECTION_CLOSED` from inside the sandbox. Local production browser checks passed; external proxy verification remains.
+- **Preview hosting:** the old E2B sandbox URL expired. The current raw E2B sandbox URL requires a traffic access token and is not a durable anonymous link. A Vercel deployment at `https://harshit-presentation-hub-preview.vercel.app` was opened and verified as the stable preview. Local production browser checks passed; direct browser TLS from the sandbox to Vercel is blocked by sandbox egress rules.
 
 ## Product limitations kept visible
 
