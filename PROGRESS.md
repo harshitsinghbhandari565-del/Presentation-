@@ -22,11 +22,11 @@ Updated: 2026-11-01
 - Added setup/login/access-denied states, server-side administrator membership checks and protected server actions.
 - Added resource create/edit/archive/slug-confirmed permanent delete, category add/edit, metadata preview, admin search/filter/pagination and public-cache revalidation.
 - Added additive Supabase migration/seed with RLS, constraints, indexes, full-text search and facets.
-- PGlite tests verify migration/seed and role policies locally. The exact migration/seed are now applied to the confirmed hosted Supabase project; see `SUPABASE_DATABASE_VERIFICATION.md`. Auth remains unconfigured and a default-privilege remediation is pending.
+- PGlite tests verify migration/seed, role policies and least-privilege grants locally. The exact migration/seed and approved grant remediation are applied to the confirmed hosted Supabase project; see `SUPABASE_DATABASE_VERIFICATION.md`. Auth remains unconfigured.
 
 ### Phase 6 — quality
 - `npm run lint`, `npm run typecheck`: passed.
-- Unit tests: 14 passed. PostgreSQL/RLS tests: 8 passed.
+- Unit tests: 14 passed. PostgreSQL/RLS/grant tests: 15 passed.
 - Playwright E2E: 11 passed against development and final local production server.
 - Axe: zero automated WCAG A/AA violations on landing/library/detail in both themes.
 - Production build: passed. Production dependency audit: zero vulnerabilities.
@@ -35,13 +35,13 @@ Updated: 2026-11-01
 
 ## Remaining external setup / verification
 
-1. Owner approves and applies the least-privilege grant remediation identified during hosted verification.
-2. Disable public signup, configure Auth origin, create the owner-controlled user and grant its actual UUID membership.
-3. Address the production audit security/health findings and verify regression tests.
-4. Configure the existing Vercel production environment; decide isolated preview backend configuration before enabling preview writes.
-5. Deploy and verify hosted login/logout, CRUD/archive/delete, public propagation and API RLS.
-6. Owner verifies original Google/Dropbox sharing permissions; review backup/monitoring procedures.
-7. Run GitHub CI and broaden Safari/Firefox/physical-device/assistive-technology coverage; review moderate dev-only advisories without forced breaking downgrades.
+1. Disable public signup, configure Auth origin, create the owner-controlled user and grant its actual UUID membership.
+2. Address the production audit security/health findings and verify regression tests.
+3. Configure the existing Vercel production environment; decide isolated preview backend configuration before enabling preview writes.
+4. Deploy and verify hosted login/logout, CRUD/archive/delete, public propagation and API RLS.
+5. Owner verifies original Google/Dropbox sharing permissions; review backup/monitoring procedures.
+6. Run GitHub CI and broaden Safari/Firefox/physical-device/assistive-technology coverage; review moderate dev-only advisories without forced breaking downgrades.
+7. Future public table migrations must include explicit least-privilege grants; global Supabase default privileges were intentionally not changed.
 
 ## Current runtime
 
@@ -68,3 +68,14 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Rollback-only RLS probes: anonymous/non-admin reads limited to published data; unauthorized update/delete affected zero rows; unauthorized inserts were denied by RLS.
 - **Blocker found:** Supabase default privileges granted `anon`/`authenticated` excessive table privileges, including `TRUNCATE`, on `subjects`, `courses` and `documents`. No grant remediation was applied without approval.
 - No Auth settings, administrator accounts, Vercel environment variables or deployment configuration were changed.
+
+
+## Least-privilege grant remediation — 2026-11-01
+
+- Owner approved a separate grant-only remediation for `public.subjects`, `public.courses` and `public.documents` on Supabase `nypojddjzzycicfinxbv`.
+- Added and applied `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` as hosted migration `20261101153928` (`least_privilege_catalog_grants`). Hosted stored SQL MD5 matched the repository file: `5ab711b9f3fc25303f84e5490224a848`.
+- Verified effective privileges: `anon` has SELECT only; `authenticated` has SELECT/INSERT/UPDATE/DELETE; neither role has TRUNCATE, REFERENCES, TRIGGER or MAINTAIN on the three catalog tables. `postgres`/`service_role` and `administrators` privileges were unchanged.
+- Verified global default ACL and RLS policy fingerprints unchanged, object counts unchanged, row counts unchanged, original document row fingerprint unchanged, and all original Google/Dropbox URLs unchanged.
+- Re-ran rollback-only hosted RLS probes: anonymous catalog reads/facets/search work; anonymous writes are denied at the grant layer; authenticated non-admin writes are denied by RLS or affect zero rows; no probe rows persisted.
+- Added `tests/database/least-privilege-grants.test.ts`; `npm run test:db` passed 15/15. Lint, typecheck and unit tests passed. ESLint now ignores generated Playwright/test-result artifacts.
+- No administrator, Auth setting, Vercel environment variable or deployment change was made. Stopped after successful verification as requested.

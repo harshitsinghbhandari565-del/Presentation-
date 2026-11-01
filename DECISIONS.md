@@ -44,3 +44,7 @@ The 2026-11-01 read-only audit (`SUPABASE_AUDIT.md`) found an existing empty Sup
 ## D13 — Hosted default privileges require explicit least-privilege remediation
 
 The hosted Supabase verification found default privileges broader than the reviewed migration intended, including `TRUNCATE` for `anon` and `authenticated` on catalog tables. RLS blocked unauthorized DML probes, but `TRUNCATE` is not RLS-controlled. Do not treat the database as production-ready until a separate approved transactional migration revokes excess grants and re-grants only intended privileges. Do not alter global default privileges or use destructive workarounds without explicit review.
+
+## D14 — Apply catalog least-privilege grants without changing global defaults
+
+The owner approved and the project applied `202611010002_least_privilege_catalog_grants.sql` as hosted migration `20261101153928`. `anon` receives SELECT only on `subjects`, `courses` and `documents`; `authenticated` receives SELECT/INSERT/UPDATE/DELETE, with existing RLS policies remaining the authorization boundary. Neither role receives TRUNCATE, REFERENCES, TRIGGER or MAINTAIN. Global Supabase default privileges were intentionally left unchanged, so every future public table migration must include explicit least-privilege grants and post-migration privilege verification.

@@ -8,7 +8,7 @@ Scope: read-only inspection of the existing implementation, connected Supabase p
 
 The existing application already contains a real Supabase-backed catalog and administrator CRUD implementation. It is not a mock admin. However, the connected database has not been initialized, no administrator exists, and the deployed application has not received Supabase environment variables. The public site therefore remains in its explicitly labeled read-only compatibility mode.
 
-**Production readiness is not yet established.** The owner later confirmed the target and approved applying the exact migration/seed; see `SUPABASE_DATABASE_VERIFICATION.md`. Schema/data/RLS probes passed, but hosted verification found excessive Supabase default table privileges requiring an approved least-privilege remediation. Hosted authentication, administrator CRUD, public propagation, deployed API-level RLS, and external document permissions still require configuration and real verification.
+**Production readiness is not yet established.** The owner later confirmed the target and approved applying the exact migration/seed; see `SUPABASE_DATABASE_VERIFICATION.md`. Schema/data/RLS probes passed. Hosted verification found excessive Supabase default table privileges; the owner then approved a separate grant-only remediation, which was applied as hosted migration `20261101153928` and verified. Hosted authentication, administrator CRUD, public propagation, deployed API-level RLS, and external document permissions still require configuration and real verification.
 
 ## Connected services observed
 
@@ -76,9 +76,15 @@ The current shared `NEXT_PUBLIC_SITE_URL` also makes preview metadata point at t
 
 ## 3. Existing migrations
 
-Exactly one application migration exists:
+Two application migrations exist:
 
 `supabase/migrations/202611010001_catalog.sql`
+
+and the later grant-only remediation:
+
+`supabase/migrations/202611010002_least_privilege_catalog_grants.sql`
+
+The catalog migration:
 
 - Version: `202611010001`.
 - SHA-256: `9ea984eed7532d6cf44b986f50151717f4858ab0b57d04bf89b08f5a02e45495`.
@@ -90,7 +96,9 @@ Exactly one application migration exists:
 - Document/category foreign keys use `ON DELETE RESTRICT` to protect associations.
 - Plain `CREATE` statements fail on a collision rather than overwriting an existing object. The hosted preflight found no collisions.
 
-The safest available application method after target confirmation is the connected Supabase **transactional migration workflow**, using this exact reviewed SQL and version, followed by read-only schema verification. Do not use Drizzle push or recreate the project.
+The safest available application method after target confirmation is the connected Supabase **transactional migration workflow**, using exact reviewed SQL and version, followed by read-only schema verification. Do not use Drizzle push or recreate the project.
+
+The grant remediation was applied as hosted version `20261101153928`. It revokes excess privileges from `anon`/`authenticated` on `subjects`, `courses` and `documents`, grants SELECT to both roles and INSERT/UPDATE/DELETE to `authenticated`, and leaves RLS policies as the authorization boundary. It does not change global default privileges. SHA-256: `4ffab48b539b4b247641f5d6a1b74f6417304f23997f7ebe3a659610d1b7be3a`; MD5: `5ab711b9f3fc25303f84e5490224a848`.
 
 ## 4. Database schema
 
@@ -222,13 +230,14 @@ Mutations inspect Supabase errors/returned rows and call `revalidatePath` for la
 
 ### Activation blockers
 
-1. Owner confirmation that project `nypojddjzzycicfinxbv` is the intended target.
-2. Apply and verify the reviewed migration and idempotent seed; neither is applied.
-3. Disable unnecessary public Auth signup; configure the real Site URL and appropriate redirect allowlist.
-4. Create the owner-controlled Auth user and explicitly grant administrator membership.
-5. Configure the two public Supabase variables in the existing Vercel production environment; decide preview isolation before enabling preview writes.
-6. Deploy through the existing Vercel project and verify the complete hosted workflow and API-level RLS.
-7. Owner verification of intentional Google/Dropbox sharing permissions in a signed-out browser.
+1. Disable unnecessary public Auth signup; configure the real Site URL and appropriate redirect allowlist.
+2. Create the owner-controlled Auth user and explicitly grant administrator membership.
+3. Configure the two public Supabase variables in the existing Vercel production environment; decide preview isolation before enabling preview writes.
+4. Deploy through the existing Vercel project and verify the complete hosted workflow and API-level RLS.
+5. Owner verification of intentional Google/Dropbox sharing permissions in a signed-out browser.
+6. For future public table migrations, apply explicit least-privilege grants and verify them; global Supabase default privileges remain unchanged.
+
+Completed database prerequisites: owner target confirmation, reviewed catalog migration, idempotent original-resource seed, and approved least-privilege catalog grant remediation are applied and verified.
 
 ### Security/operational fixes before a production-ready claim
 
@@ -254,4 +263,4 @@ Not yet verified: hosted migration, hosted Auth login/logout/cookies, administra
 
 ## First action required from the owner
 
-The target was confirmed and the exact migration/seed were applied. The next required decision is approval of the non-destructive least-privilege grant remediation described in `SUPABASE_DATABASE_VERIFICATION.md`. Do not proceed to Auth, administrator creation or Vercel changes until that database blocker is resolved and the owner separately approves the next phase.
+The target was confirmed, the exact migration/seed were applied, and the approved least-privilege grant remediation was applied and verified. The next phase is owner-controlled Auth/administrator setup and the remaining production configuration/verification steps. Do not proceed to Auth, administrator creation or Vercel changes without separate owner approval.

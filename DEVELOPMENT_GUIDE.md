@@ -40,10 +40,10 @@ In a headless Linux environment without a bundled browser, set `PLAYWRIGHT_CHROM
 
 ## Supabase setup (owner approval required)
 
-Hosted status on 2026-11-01: target `nypojddjzzycicfinxbv` (eu-north-1) was owner-confirmed. The exact catalog migration and original-resource seed were applied as hosted versions `20261101134604` and `20261101135344`; do not reapply them. A least-privilege grant remediation is pending owner approval. See `SUPABASE_DATABASE_VERIFICATION.md`.
+Hosted status on 2026-11-01: target `nypojddjzzycicfinxbv` (eu-north-1) was owner-confirmed. The exact catalog migration, original-resource seed and least-privilege grant remediation were applied as hosted versions `20261101134604`, `20261101135344` and `20261101153928`; do not reapply them. See `SUPABASE_DATABASE_VERIFICATION.md`.
 
-1. Confirm the intended project and region in Supabase before any further changes. Do not recreate the project or reapply the initial migration/seed.
-2. The initial migration `supabase/migrations/202611010001_catalog.sql` is already applied. Review and apply only the pending least-privilege remediation after owner approval; verify grants and RLS afterward.
+1. Confirm the intended project and region in Supabase before any further changes. Do not recreate the project or reapply the initial migration/seed/grant remediation.
+2. The initial migration `supabase/migrations/202611010001_catalog.sql` and grant remediation `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` are already applied. Any future public table migration must include explicit least-privilege `REVOKE`/`GRANT` statements and verify effective privileges afterward; global Supabase default privileges were intentionally left unchanged.
 3. The seed `supabase/seed.sql` is already applied. It is idempotent and must not overwrite owner-edited metadata; do not use it to reset data.
 4. In Authentication, create the owner-controlled administrator user. For this product, disable public signup unless you intentionally need it. Configure the real Site URL and allowed redirect URLs.
 5. Grant membership explicitly using the user's UUID from Authentication → Users:
@@ -75,6 +75,7 @@ on conflict (user_id) do nothing;
 ## Troubleshooting
 
 - **Admin shows setup:** Supabase env values are absent/invalid, or a secret key was rejected. This is fail-closed behavior.
+- **Anonymous write attempts fail with permission denied:** this is expected after the least-privilege grant remediation. Anonymous clients have SELECT only; authenticated non-admin writes are still blocked by RLS.
 - **Access denied after login:** the Auth user lacks a row in `public.administrators`.
 - **Health 503 `not_configured`:** the retained health route currently checks only optional `DATABASE_URL`, not Supabase. This is expected in compatibility mode but is a pre-production mismatch after Supabase activation; fix the health boundary rather than adding a direct database secret unnecessarily.
 - **Empty sitemap:** set `NEXT_PUBLIC_SITE_URL` and rebuild.

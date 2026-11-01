@@ -7,7 +7,7 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - `npm run lint` — passed.
 - `npm run typecheck` — passed.
 - `npm run test:unit` — 14 tests passed (URL safety, source preservation, search/filter/sort, URL state, validation, form conversion).
-- `npm run test:db` — 8 tests passed against PGlite's real PostgreSQL/WASM engine: migration, seed, public reads, anonymous/non-admin denial, administrator membership, draft invisibility, publication/archive/delete, constraints, FK protection, full-text search and idempotent seeding.
+- `npm run test:db` — 15 tests passed against PGlite's real PostgreSQL/WASM engine: migration, seed, public reads, anonymous/non-admin denial, administrator membership, draft invisibility, publication/archive/delete, constraints, FK protection, full-text search, idempotent seeding, and least-privilege grant regression tests.
 - `npm run test:e2e` — 11 tests passed against both the local development server and the final local production server (`next start`). Covers landing, search/filter/empty states, debounced focus, mobile filter disclosure, subject/detail/legacy routes, exact original URL, 404, opt-in preview, command dialog keyboard/focus, theme/projector persistence, 320/390/768px overflow, mobile navigation, reduced motion and honest unconfigured admin/health states.
 - Axe WCAG A/AA automated checks — zero violations on `/`, `/library` and the real resource detail in both dark and light themes. This is not a full accessibility certification.
 - `npm run build` — passed; local fonts, no build-time Google Fonts request.
@@ -54,6 +54,17 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - Verified 4 RLS-enabled tables, 7 policies, 29 constraints, 14 indexes, 4 functions, 1 trigger; documents has 9 indexes.
 - Verified 1 subject, 1 course, 1 published featured document, 0 administrators, 0 Auth users, 0 probe rows. Original Google/Dropbox URLs matched exactly; repository JSON unchanged.
 - Rollback-only hosted RLS probes verified anonymous/non-admin published reads, zero-row unauthorized update/delete, and RLS-denied unauthorized inserts.
-- **Blocker:** Supabase default privileges grant excessive table privileges to `anon`/`authenticated`, including `TRUNCATE`, on `subjects`, `courses`, `documents`. Remediation awaits owner approval.
+- **Blocker found and later resolved:** Supabase default privileges granted excessive table privileges to `anon`/`authenticated`, including `TRUNCATE`, on `subjects`, `courses`, `documents`. The approved grant-only remediation was applied and verified; see the next section.
 - Transient Supabase API 502s occurred during some probes; subsequent read-only checks confirmed health and no probe persistence. Verification-query syntax/introspection errors were corrected and did not change catalog data.
 - No Auth settings, administrator accounts, Vercel environment variables or deployment configuration were changed. Full details: `SUPABASE_DATABASE_VERIFICATION.md`.
+
+
+## Least-privilege grant remediation — 2026-11-01
+
+- Owner-approved grant-only migration `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` applied to Supabase `nypojddjzzycicfinxbv` as hosted version `20261101153928` (`least_privilege_catalog_grants`). Hosted stored SQL MD5 matched the repository file: `5ab711b9f3fc25303f84e5490224a848`.
+- Effective privileges verified on `subjects`, `courses`, `documents`: `anon` SELECT only; `authenticated` SELECT/INSERT/UPDATE/DELETE; neither role has TRUNCATE, REFERENCES, TRIGGER or MAINTAIN. `postgres`/`service_role` and `administrators` ACLs unchanged.
+- Global public default ACL fingerprint unchanged: `062965f518df0b5fa863219c657b026a`. RLS policy fingerprint unchanged: `7ad85d0414c5da1c1f0420ed3d62af2c` (7 policies). Object counts unchanged: 4 tables / 4 functions / 1 trigger / 29 constraints / 14 indexes.
+- Data unchanged: 1 subject / 1 course / 1 document / 0 administrators / 0 Auth users / 0 probe rows. Original document row fingerprint unchanged: `2b7db1a601cd43a0f6a9d88556b74033`. Original Google Slides/presentation/embed/Dropbox backup URLs verified unchanged.
+- Rollback-only hosted probes: anonymous reads/facets/search passed; anonymous INSERT/UPDATE/DELETE denied with `42501 permission denied`; anonymous administrator SELECT denied; authenticated non-admin INSERT denied by RLS, UPDATE/DELETE affected 0 rows; `is_administrator()` false for both roles.
+- Local gates after remediation: `npm run lint`, `npm run typecheck`, `npm run test:unit` (14/14), `npm run test:db` (15/15) passed. ESLint ignore list now excludes generated `playwright-report/` and `test-results/` artifacts.
+- No administrator, Auth setting, Vercel environment variable or deployment change was made. Full details: `SUPABASE_DATABASE_VERIFICATION.md`.
