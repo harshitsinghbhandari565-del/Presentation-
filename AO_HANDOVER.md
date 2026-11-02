@@ -18,7 +18,7 @@ On resume, the sandbox had been re-cloned at baseline `4307a68`. The prior sessi
 
 AC stayed on the active local branch `arena/c9d0d599-presentation`, re-verified the implementation, and preserved the working tree as commit `5a61d6d`. No work was discarded. The handovers now reference `5a61d6d` as the authoritative verified commit for this clone.
 
-Remote refs observed at resume: `AC-Branch`, `arena/019fbda9-presentation`, `arena/9d055deb-presentation`, `main`. AK's `knowledge/frontend-intelligence` was not present and was not created or modified. AC pushes only to `arena/c9d0d599-presentation`.
+Remote refs observed at resume: `AC-Branch`, `arena/019fbda9-presentation`, `arena/9d055deb-presentation`, `main`. On push, GitHub reported that the prior remote branch named `arena/c9d0d599-presentation` had been renamed to `AC-Branch`; the push therefore recreated `arena/c9d0d599-presentation` at the verified preservation state. `AC-Branch` appears to hold the earlier session work; AC did not modify it. AK's `knowledge/frontend-intelligence` was not present and was not created or modified. AC pushes only to `arena/c9d0d599-presentation`.
 
 ## Verified account report to AO
 

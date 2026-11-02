@@ -8,7 +8,7 @@ Handover refresh: committed immediately after the preservation commit.
 
 ## Repository reconciliation (2026-11-02 resume)
 
-The sandbox was re-cloned at baseline `4307a68`. Prior session commits (`b1e73b0`, `380afc8`, `a0097c7`, `4f9495a`) were not in this clone, and origin no longer had `arena/c9d0d599-presentation` (remote refs: `AC-Branch`, `arena/019fbda9-presentation`, `arena/9d055deb-presentation`, `main`). The working tree preserved the full hardened implementation. AC stayed on the active local branch, re-verified all gates, and preserved the working tree as commit `5a61d6d`. No work was discarded; `5a61d6d` is the authoritative verified commit for this clone. AK's `knowledge/frontend-intelligence` was not present and was not touched.
+The sandbox was re-cloned at baseline `4307a68`. Prior session commits (`b1e73b0`, `380afc8`, `a0097c7`, `4f9495a`) were not in this clone, and origin no longer had `arena/c9d0d599-presentation` (remote refs: `AC-Branch`, `arena/019fbda9-presentation`, `arena/9d055deb-presentation`, `main`). The working tree preserved the full hardened implementation. AC stayed on the active local branch, re-verified all gates, and preserved the working tree as commit `5a61d6d` (followed by handover refresh commits). No work was discarded; `5a61d6d` is the authoritative verified commit for this clone. On push, GitHub reported the prior remote branch of this name had been renamed to `AC-Branch`; the push recreated `arena/c9d0d599-presentation`. `AC-Branch` (earlier session work) was not modified. AK's `knowledge/frontend-intelligence` was not present and was not touched.
 
 ## Current status
 
