@@ -1,0 +1,22 @@
+import Link from "next/link";
+import { Plus, Search, Pencil, Star, FolderOpen, LogOut, ShieldCheck } from "lucide-react";
+import { requireAdministrator } from "@/lib/admin/auth";
+import { getAdminDocuments } from "@/lib/admin/repository";
+import { signOut } from "./actions";
+import DeleteDocumentDialog from "@/components/admin/DeleteDocumentDialog";
+export const dynamic = "force-dynamic";
+export default async function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const { client } = await requireAdministrator();
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q.slice(0, 200) : "";
+  const status = typeof params.status === "string" ? params.status : "";
+  const page = Math.max(1, Math.min(10000, Number(params.page) || 1));
+  const result = await getAdminDocuments(client, q, status, page);
+  return <><div className="admin-heading"><div><div className="eyebrow"><ShieldCheck size={14} />PRIVATE ADMINISTRATION</div><h1>Your learning collection.</h1><p>Curate the resources. Keep the original files right where they are.</p></div><div className="admin-heading-actions"><Link href="/admin/resources/new" className="button button-primary"><Plus size={17} />Add resource</Link><form action={signOut}><button className="button button-secondary"><LogOut size={15} />Sign out</button></form></div></div><nav className="admin-nav" aria-label="Admin navigation"><Link href="/admin" className="active"><FolderOpen size={15} />Resources</Link><Link href="/admin/categories"><FolderOpen size={15} />Subjects & courses</Link><Link href="/library">View public library ↗</Link></nav>
+    {params.deleted && <p className="form-success" role="status">The resource metadata was permanently deleted. The original external document was not affected.</p>}
+    <form className="admin-search" action="/admin"><input type="search" name="q" defaultValue={q} maxLength={200} placeholder="Search the admin library…" aria-label="Search admin resources" /><select name="status" defaultValue={status} aria-label="Filter by publication status"><option value="">All statuses</option><option value="published">Published</option><option value="draft">Draft</option><option value="archived">Archived</option></select><button className="button button-secondary"><Search size={15} />Search</button></form>
+    <p className="fine-print" style={{ marginBottom: 15 }}>{result.total} resource{result.total !== 1 ? "s" : ""} · page {result.page} of {result.pageCount}</p>
+    {result.documents.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Resource</th><th>Subject</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead><tbody>{result.documents.map(document => <tr key={document.id}><td><Link href={`/admin/${document.id}/edit`}>{document.title}{document.is_featured && <Star size={11} style={{ display: "inline", marginLeft: 7 }} aria-label="Featured" />}</Link><small>{document.slug}</small></td><td>{document.subjects?.name ?? "—"}</td><td><span className={`status-badge status-${document.publication_status}`}>{document.publication_status}</span></td><td>{new Date(document.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}</td><td><div className="table-actions"><Link href={`/admin/${document.id}/edit`} aria-label={`Edit ${document.title}`}><Pencil size={14} />Edit</Link>{document.publication_status === "published" && <Link href={`/resources/${document.slug}`} aria-label={`View ${document.slug}`} target="_blank">View</Link>}<DeleteDocumentDialog id={document.id} slug={document.slug} title={document.title} /></div></td></tr>)}</tbody></table></div> : <div className="empty-state"><FolderOpen size={30} /><h2>No matching resources.</h2><p>Add your first resource or try a different search.</p><Link href="/admin/resources/new" className="button button-primary"><Plus size={16} />Add resource</Link></div>}
+    {result.pageCount > 1 && <nav className="pagination" aria-label="Admin library pages">{page > 1 && <Link className="button button-secondary" href={`/admin?q=${encodeURIComponent(q)}&status=${status}&page=${page - 1}`}>Previous</Link>}{page < result.pageCount && <Link className="button button-secondary" href={`/admin?q=${encodeURIComponent(q)}&status=${status}&page=${page + 1}`}>Next</Link>}</nav>}
+  </>;
+}
