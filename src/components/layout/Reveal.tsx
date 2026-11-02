@@ -1,11 +1,10 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 /**
- * Content is visible by default. Scroll-driven enhancement is applied only in
- * CSS behind @supports and prefers-reduced-motion, so animation initialization
- * failure cannot hide essential content.
+ * Content is visible by default. One CSS scroll-driven transform enhances it
+ * only behind @supports and motion/width guards. No time-delay stagger: delay
+ * does not offset a scroll timeline. Pinned steps own their animation directly.
  */
-export default function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
-  const style = delay ? ({ "--reveal-delay": `${delay}s` } as CSSProperties) : undefined;
-  return <div className={`reveal ${className}`.trim()} style={style}>{children}</div>;
+export default function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`reveal ${className}`.trim()}>{children}</div>;
 }

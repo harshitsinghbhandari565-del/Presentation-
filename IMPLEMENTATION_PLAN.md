@@ -38,3 +38,7 @@ The existing Vercel project serves commit `94728bf` at `https://harshit-presenta
 ## Approved frontend implementation — 2026-11-02
 
 Typography, motion bundle optimization, search relevance/announcements/loading, editorial cards, pinned storytelling, GLSL ambient and one optional lazy 3D scene are implemented locally. Ranking migration/fixture seed are unapplied pending approval. Next: hosted migration approval, hosted env/deploy approval, real-device/GPU/AT review.
+
+## Consolidated frontend corrections — awaiting independent review
+
+D-1–D-13, projector mode and local fixtures/loading corrections are implemented; full per-item evidence and measured validation are in `FRONTEND_CORRECTIONS.md`. Next: AK re-reviews the correction commit and reports independently; AO decides acceptance. Hosted migration, Vercel env/deploy and owner login remain separate approval gates. Real-device/GPU/AT testing remains outstanding.

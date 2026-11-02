@@ -1,0 +1,20 @@
+# Correction-round acceptance checklist for AK and AO
+
+This is AC's evidence map for the independent review of `681800f`; it **does not replace or erase** AK's historical `frontend-intelligence/phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md` or its independent audit. Labels: **MEASURED-AC** executed here; **REPORTED** from another review; **UNVERIFIED** not executed. Full audit table, exact commands, failures, results, limitations and parent commit: `FRONTEND_CORRECTIONS.md`.
+
+| Original area | Correction evidence / state |
+| --- | --- |
+| A1–A4 / D-5–D-6 | Geist heading/UI and Newsreader italic emphasis; same `--text-*` scale, five motion tokens; font fallback/swap retained. **MEASURED-AC** source + browser computed fonts. No blanket typography rewrite. |
+| A5 / D-3 / D-13 | Shader uses cached dark/light `--bg`/`--accent`, grid above shader, fallback; theme uniform checks and `review-screenshots/landing-{dark,light}-software-webgl.jpg`. **MEASURED-AC** software rendering; PO/hardware appearance **UNVERIFIED**. |
+| B1/B1b/B2 / D-7/D-9 | Single step animation, no scroll-delay stagger, CSS-only hero drift, reduced-motion fallback and keyboard walk. **MEASURED-AC**. |
+| C1–C8 / D-4/D-11/projector | Raw GLSL lazy, WebGL option `failIfMajorPerformanceCaveat`, CSS fallback; 3D explicit intent, context-loss callback/disposal, retry/status, projector startup and teardown. **MEASURED-AC** with test-only software GL override; physical GPU **UNVERIFIED**. |
+| C9 | Ambient continues its throttled loop while the demand-rendered shelf is visible; no continuous 3D loop. Independent audit marked this partial and recommended pausing ambient; AO did not require a change. **DEFERRED / real GPU cost UNVERIFIED**. |
+| D1–D4 | Production landing **187.5 KB JS-only**, shader 1.8 KB and Three 129.0 KB lazy, hashed Three chunk absent from initial requests; route CSS and `/about`/dynamic `/library` measured separately in `FRONTEND_CORRECTIONS.md`. AO ratified exact Three/types. **MEASURED-AC**. |
+| D5 | Lighthouse/RUM LCP/INP/CLS/long frames and device thermal cost **UNVERIFIED**. |
+| E1–E5 / D-8/D-10/E4b | Reduced motion, chapter keyboard order, forced-colors CSS emulation, root/admin/library skeletons/status, readable pending state with axe and live count. **MEASURED-AC**; 200% zoom, physical forced colours and real assistive technology **UNVERIFIED**. |
+| F1/F2 | Dev-only 16-record synthetic source (15 public, one draft) with blank description, 150-character title and Dropbox URL; empty/one/multi screenshots. Production switch ignored. **MEASURED-AC**; human design acceptance **UNVERIFIED**. |
+| F3 / D-1/D-2/D-12 | Local, unapplied SQL has A/B/C/D ranking, indexed document candidate filtering + taxonomy candidates, cross-field full-query verification, NULL paging and explicit grants/RLS. 26 PGlite tests passed. `EXPLAIN` proves GIN eligibility only under forced planner setting, not a hosted plan. Missing-RPC fallback visibly discloses narrower document-only coverage. **MEASURED-AC** local; hosted apply/plan **BLOCKED pending AO approval**. |
+
+## Re-review protocol
+
+AK: inspect this correction commit and parent `681800f`, review SQL semantics/performance/privilege boundaries and screenshots, rerun the listed tests and dynamic-route measurements, identify regressions or unverified criteria independently; do not modify or merge AC's branch. AO makes the acceptance decision after AK reports. Do not apply the SQL, change hosted state, deploy, or merge as part of this review.

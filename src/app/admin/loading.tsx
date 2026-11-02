@@ -1,4 +1,10 @@
-import { LoaderCircle } from "lucide-react";
-export default function Loading() {
-  return <div className="container inner-page" role="status" aria-live="polite"><div className="empty-state" style={{ minHeight: "55vh" }}><LoaderCircle size={28} className="spin" /><h2>Finding your next chapter…</h2><p>Loading the learning collection.</p></div></div>;
+/** Private workspace boundary; never imply that public resources are loading. */
+export default function AdminLoading() {
+  return <>
+    <p className="sr-only" role="status" aria-live="polite">Loading the administrator workspace.</p>
+    <div aria-busy="true" aria-hidden="true">
+      <div className="page-intro"><div className="skeleton skeleton-eyebrow" /><div className="skeleton skeleton-title" /><div className="skeleton skeleton-line short" /></div>
+      <div className="skeleton skeleton-admin-nav" /><div className="skeleton skeleton-admin-search" /><div className="skeleton skeleton-admin-table" />
+    </div>
+  </>;
 }

@@ -1,3 +1,18 @@
+# AO handover — consolidated frontend corrections for independent re-review
+
+Updated: 2026-11-02 · Branch `arena/c9d0d599-presentation` · Reviewed starting commit `681800f894b2cf17021bb540e177a68c05e8f72e` · Reviewed parent `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`.
+
+**Status: correction implementation and local gates complete; NOT accepted.** The correction commit is the commit containing this section (obtain its exact SHA with `git log -1` after committing). Ask AK to independently review that commit against parent `681800f`, then AO decides acceptance. Full D-1–D-13, projector, F1/E4b, proof and caveats: `FRONTEND_CORRECTIONS.md`; per-criterion map: `FRONTEND_ACCEPTANCE_CHECKLIST.md`.
+
+- **Completed / MEASURED-AC:** 47/47 unit, 26/26 local PGlite DB/RLS/search, production build, lint, typecheck, production dependency audit 0; production Chromium 23 passed / 1 dev-only skipped; dev fixture Chromium 1/1 passed. Production landing JS 187.5 KB gzip; about 180.2; dynamic library 187.6; shader 1.8 and lazy Three 129.0. CSS and JS+CSS are separate in the report. Context loss used `WEBGL_lose_context` in a test-only software-GL override, not a real GPU.
+- **Blocking approval:** `supabase/migrations/202611020001_search_ranking.sql` is still **unapplied to hosted Supabase**. AO must independently approve a later hosted migration application. Vercel environment/deployment, hosted Auth, administrator membership and production data were not changed.
+- **Important remaining fallback:** without the RPC, hosted document-vector search cannot match joined subject/course names. Library and command palette now disclose this; explicit missing RPC falls back, other RPC errors fail honestly. Compatibility JSON mode remains intact. Local GIN eligibility was proven with `enable_seqscan=off`; natural PGlite plan and future hosted plans may choose a sequential scan. No hosted performance claim.
+- **Pending / UNVERIFIED:** physical GPU/device/thermal and visual approval; Safari/Firefox, screen readers/AT, physical forced-colors/200% zoom, Lighthouse/RUM, hosted migration plan and interactive owner login. Ambient continues throttled while shelf is active; AK's optional single-producer suggestion is deferred pending GPU evidence.
+- **Existing tracked issues:** `embed_url` validation limits Dropbox embedding (do not weaken without review); many pre-existing <12px microtype declarations need legibility assessment; `src/db/schema.ts` is an empty optional Drizzle scaffold, not a second catalog; health readiness, CSP/HSTS, HttpOnly, MFA challenge and preview isolation remain open. No indiscriminate rewrite or unrelated architecture changes.
+- **Review screenshots:** `review-screenshots/landing-{dark,light}-software-webgl.jpg` and `library-fixtures-{empty,one,multi}.jpg`. Dev fixtures are isolated synthetic records, not production content.
+
+---
+
 # AO handover — approved frontend implementation
 
 Updated: 2026-11-02

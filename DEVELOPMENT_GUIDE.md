@@ -91,3 +91,25 @@ Update `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `DECISIONS
 ## Frontend measurement and optional layers
 
 Run `npm run measure:bundle` after `npm run build` to measure initial route JS from production HTML. The ambient shader and optional Three shelf are lazy; do not import `shelf-scene` into initial bundles. `supabase/migrations/202611020001_search_ranking.sql` and `supabase/seed.test-fixtures.sql` are local/review deliverables only until explicitly approved for hosted use.
+
+## Frontend correction review: fixtures and measurement
+
+Development-only visual dataset (synthetic; never production resources or hosted SQL):
+
+```bash
+npm run dev -- --hostname 0.0.0.0 --port 3001
+# open /library?fixture=1 (15 published of 16 synthetic records)
+# open /library?fixture=one or /library?fixture=empty for state review
+REVIEW_FIXTURE_E2E=1 PLAYWRIGHT_BASE_URL=http://localhost:3001 npm run test:e2e -- tests/e2e/fixtures.spec.ts
+```
+
+The literal `NODE_ENV=development` guard precedes the server-only fixture import; the JSON is outside `public/`. Production ignores every fixture flag. Synthetic card detail links are not persisted resources. The browser-only blank description tests a layout edge case forbidden by the real database's minimum-length validation. Do not seed these records into hosted Supabase.
+
+After `npm run build`, start/restart the production server and run:
+
+```bash
+npm run start -- --hostname 0.0.0.0 --port 3000
+node scripts/measure-bundle.mjs --base-url http://localhost:3000
+```
+
+The script fetches complete production responses, including dynamic `/library`, and separately totals initial JS, CSS and their sum (gzip 9), then identifies lazy shader and Three chunks. HTML/RSC, fonts and later requests are excluded. In this sandbox `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/tmp/chromium` and `LD_LIBRARY_PATH=/tmp/al2023/lib` were needed. `PLAYWRIGHT_SOFTWARE_GL=1` enables software GL for headless tests; the successful-GL tests alone override the app-requested caveat flag in browser instrumentation. This is **not** real-GPU verification. See `FRONTEND_CORRECTIONS.md` for measured data, local SQL/GIN limitations and outstanding checks. Never apply the ranking migration to hosted Supabase without separate AO approval.

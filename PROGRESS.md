@@ -139,3 +139,7 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Implemented Geist + Newsreader tokens, removed framer-motion, CSS pinned story, optional lazy Three shelf, raw-GLSL ambient + fallback, weighted search, live announcements, skeletons, editorial cards.
 - Added unapplied `202611020001_search_ranking.sql` and test-fixture seed; original data/Auth/admin preserved.
 - Gates: lint/typecheck/build pass; unit 35/35; DB 21/21; E2E 17/17; production audit clean. Landing initial JS 228.7 → 187.0 KB gz; shader ~1.5 KB gz lazy; Three ~128.9 KB gz lazy.
+
+## Consolidated frontend corrections — 2026-11-02
+
+Verified base `681800f` and parent `71d6fb9`; read the full AK independent review via `git show` without changing AK's branch. Corrected D-1–D-13, projector mode, development-only fixtures, root/admin loading and the RPC failure disclosures. Added local test and screenshot evidence; preserved original resource/production seed. MEASURED-AC: 47 unit / 26 DB, lint/typecheck/build, production Chromium 23 passed + 1 dev-only skipped, dev fixture Chromium 1 passed, production audit 0; landing 187.5 KB JS gzip. See `FRONTEND_CORRECTIONS.md` for complete commands, limitations and earlier failures. Search migration remains unapplied; no hosted/deployment changes. Pending: AK independent re-review and AO acceptance; physical GPU/device/AT checks.

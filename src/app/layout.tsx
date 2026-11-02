@@ -12,11 +12,12 @@ const geist = localFont({
   display: "swap",
   adjustFontFallback: "Arial",
 });
+// Geist carries headings/UI. Newsreader is an intentional italic editorial
+// accent, so do not preload a roman face with no remaining approved use.
 const editorial = localFont({
-  src: [
-    { path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2", weight: "200 800", style: "normal" },
-    { path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2", weight: "200 800", style: "italic" },
-  ],
+  src: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2",
+  weight: "200 800",
+  style: "italic",
   variable: "--font-newsreader",
   display: "swap",
   adjustFontFallback: "Times New Roman",
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#090b10" }, { media: "(prefers-color-scheme: light)", color: "#f8f9fc" }] };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" data-theme="dark" className={`${geist.variable} ${editorial.variable}`}>
+  return <html lang="en" suppressHydrationWarning data-theme="dark" className={`${geist.variable} ${editorial.variable}`}>
     <body>
       <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('presentation-hub-theme')||'dark';var e=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;if(e!=='light'&&e!=='dark')e='dark';document.documentElement.dataset.theme=e;document.documentElement.classList.toggle('dark',e==='dark');if(localStorage.getItem('presentation-hub-projector')==='true')document.documentElement.classList.add('projector-mode');}catch(e){}})();` }} />
       <a href="#main-content" className="skip-link">Skip to main content</a>

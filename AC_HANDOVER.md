@@ -1,3 +1,15 @@
+# AC handover — consolidated frontend correction round
+
+Updated: 2026-11-02 · Branch `arena/c9d0d599-presentation` · Starting commit `681800f894b2cf17021bb540e177a68c05e8f72e` · Its parent `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`.
+
+**Completed locally; awaiting AK independent re-review, not accepted.** See `FRONTEND_CORRECTIONS.md` for D-1–D-13, file/test evidence, screenshot paths, index-plan limitation and exact commands; `FRONTEND_ACCEPTANCE_CHECKLIST.md` is the updated correction scorecard. This section belongs to the correction commit; use `git log -1` for its SHA. Do not merge/deploy/apply hosted SQL as part of review.
+
+**Gates MEASURED-AC:** lint/typecheck/build pass; unit 47/47; DB 26/26; production Chromium 23 passed with one dev-only skipped; fixture dev Chromium 1/1; production audit 0. Landing/about/dynamic-library JS 187.5/180.2/187.6 KB gzip; shader 1.8 and Three 129.0 KB lazy. No Three initial request. Initial failed test runs and fixes are documented; current full rerun passed. Screenshots are headless software GL with explicit test-only caveat override, not real GPU sign-off.
+
+**Blockers:** hosted ranking migration still unapplied; AO approval required. Vercel env/deploy and hosted interactive login remain separately gated. Real-device/GPU/AT, Safari/Firefox, Lighthouse and physical forced-colors remain unverified. Do not modify administrator membership. Retain the pre-existing Dropbox embed restriction, microtype and empty optional Drizzle scaffold as tracked issues.
+
+---
+
 # AC handover — approved frontend implementation
 
 Updated: 2026-11-02

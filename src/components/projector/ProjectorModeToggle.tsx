@@ -10,8 +10,15 @@ function subscribe(callback: () => void) {
   return () => { listeners.delete(callback); window.removeEventListener("storage", storage); };
 }
 function snapshot() { try { return localStorage.getItem(KEY) === "true"; } catch { return false; } }
+/** Shared live setting: optional rendering must respect classroom projection. */
+export function subscribeToProjectorMode(callback: () => void) {
+  return subscribe(callback);
+}
+export function useProjectorMode() {
+  return useSyncExternalStore(subscribe, snapshot, () => false);
+}
 export default function ProjectorModeToggle() {
-  const active = useSyncExternalStore(subscribe, snapshot, () => false);
+  const active = useProjectorMode();
   const toggle = useCallback(() => {
     const next = !active;
     try { localStorage.setItem(KEY, String(next)); } catch {}

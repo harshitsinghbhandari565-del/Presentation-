@@ -2,8 +2,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Lazy raw-WebGL ambient layer. The CSS fallback remains visible unless a frame
- * renders successfully. No continuous rendering while hidden/reduced-motion.
+ * Lazy raw-WebGL ambient layer. CSS remains visible unless a frame renders.
+ * Theme changes remount the pass so its cached uniforms follow the CSS tokens.
+ * Hidden/offscreen/reduced-motion/projector states do not run a loop.
  */
 export default function AmbientGL() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -13,17 +14,20 @@ export default function AmbientGL() {
     const media = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
     let cleanup: (() => void) | undefined;
     let cancelled = false;
-    const stop = () => { cleanup?.(); cleanup = undefined; canvas.dataset.state = "fallback"; };
+    let revision = 0;
+    const allowed = () => !cancelled && media.matches && !document.documentElement.classList.contains("projector-mode");
+    const stop = () => { revision += 1; cleanup?.(); cleanup = undefined; canvas.dataset.state = "fallback"; };
     const start = async () => {
       stop();
-      if (cancelled || !media.matches || document.documentElement.classList.contains("projector-mode")) return;
+      const current = revision;
+      if (!allowed()) return;
       try {
         const { mountAmbient } = await import("./ambient-shader");
-        if (cancelled || !media.matches) return;
+        if (!allowed() || current !== revision) return;
         cleanup = mountAmbient(canvas);
         canvas.dataset.state = cleanup ? "ready" : "fallback";
       } catch {
-        canvas.dataset.state = "fallback";
+        if (current === revision) canvas.dataset.state = "fallback";
       }
     };
     const idle = window.requestIdleCallback ?? ((fn: IdleRequestCallback) => window.setTimeout(() => fn({ didTimeout: false, timeRemaining: () => 0 }), 200));
@@ -35,5 +39,5 @@ export default function AmbientGL() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
     return () => { cancelled = true; cancelIdle(handle); media.removeEventListener("change", onChange); observer.disconnect(); stop(); };
   }, []);
-  return <canvas ref={ref} className="ambient-canvas" data-state="fallback" />;
+  return <canvas ref={ref} className="ambient-canvas" data-state="fallback" aria-hidden="true" />;
 }

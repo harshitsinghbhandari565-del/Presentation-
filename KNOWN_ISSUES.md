@@ -1,3 +1,14 @@
+# Correction-round open issues — 2026-11-02
+
+- **Search migration BLOCKED:** `202611020001_search_ranking.sql` is corrected locally but remains **unapplied**; AO must independently approve any future hosted application. Local scale `EXPLAIN` proves existing GIN predicate eligibility only with `enable_seqscan=off`; ordinary PGlite planning selected a sequential scan at 4,016 rows. Hosted Postgres plan/latency are **UNVERIFIED**. Broad negation-only/blank/taxonomy searches can scan. Missing-RPC fallback cannot search subject/course names and visibly discloses this; relevance falls back to title order. PostgreSQL `simple` has no stemming and differs from compatibility substring semantics; do not claim full parity. See `FRONTEND_CORRECTIONS.md`.
+- **Dropbox embedding:** existing `embed_url` app/database validation permits only Google Docs viewer URLs, restricting Dropbox embedding. Do not weaken it without separate security/design review; Dropbox original/backup links remain supported.
+- **Micro-typography:** existing styles contain many font-size declarations below 12px, including decorative text and some interface metadata. This is a legibility risk requiring targeted human/device/AT assessment, not permission to globally rewrite the pixel typography ladder.
+- **Drizzle scaffold:** `src/db/schema.ts` remains empty and optional; Supabase SQL migrations remain the only active catalog schema. Do not add a second active database architecture.
+- **Unverified:** real physical GPU/device/thermal and shader/shelf appearance, Safari/Firefox, AT/screen readers, physical forced-colors/200% zoom and Lighthouse/RUM. The screenshots/context-loss checks use headless software WebGL with a **test-only override** of major-caveat protection. Ambient/shelf simultaneous rendering remains a bounded but unverified performance risk.
+- **Fixture limitations:** synthetic development-only browser dataset is isolated and not real content; fixture card detail destinations are not persisted. The blank-description browser fixture intentionally cannot be inserted under the existing SQL minimum-length constraint. Production `?fixture=1` is ignored; original JSON/production seed unchanged.
+
+---
+
 # Known issues and blockers
 
 Updated: 2026-11-02. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact local test results are in `VERIFICATION.md`.

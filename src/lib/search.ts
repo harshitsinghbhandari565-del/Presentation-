@@ -27,7 +27,11 @@ export function matchesSearch(document: EducationalDocument, query: string): boo
   const terms = normalizeSearch(query).split(" ").filter(Boolean);
   if (!terms.length) return true;
   const haystack = normalizeSearch([document.title, document.description, document.subject, document.course, document.semester, document.topic, document.documentType, document.platform, ...document.tags, ...document.keywords].filter(Boolean).join(" "));
-  return terms.every(term => haystack.includes(term));
+  // A numeric term such as "1" must not silently match "10" in another
+  // facet. Text terms retain the existing compatibility substring behaviour.
+  return terms.every(term => /^\d+$/.test(term)
+    ? new RegExp(`(?<![\\p{L}\\p{N}])${term}(?![\\p{L}\\p{N}])`, "u").test(haystack)
+    : haystack.includes(term));
 }
 
 /** Weighted relevance mirror of the proposed SQL setweight/ts_rank ordering. */

@@ -88,9 +88,18 @@ export async function getDocumentBySlug(slug: string): Promise<EducationalDocume
   return data ? normalizeRow(data as Row) : null;
 }
 
-export async function getFacets(): Promise<CatalogFacets> {
+export async function getReviewDocuments(fixture: string | undefined): Promise<EducationalDocument[] | null> {
+  // The production condition is literal so the bundler can eliminate the
+  // development import. Fixture JSON lives outside public/ and is never a
+  // production data source, even when a visitor supplies ?fixture=1.
+  if (process.env.NODE_ENV !== "development" || !fixture || !["1", "multi", "one", "empty"].includes(fixture)) return null;
+  const { loadReviewDocuments } = await import("./review-catalog");
+  return loadReviewDocuments(fixture);
+}
+
+export async function getFacets(reviewDocuments?: EducationalDocument[] | null): Promise<CatalogFacets> {
   const client = getPublicClient();
-  if (!client) return deriveFacets(compatibilityDocuments);
+  if (!client || reviewDocuments) return deriveFacets(reviewDocuments ?? compatibilityDocuments);
   const { data, error } = await client.rpc("get_catalog_facets");
   if (error) { console.error("Facet read failed", error.code); throw new CatalogUnavailableError(); }
   return data as CatalogFacets;
@@ -106,32 +115,37 @@ export function deriveFacets(documents: EducationalDocument[]): CatalogFacets {
   };
 }
 
-export interface CatalogResult { documents: EducationalDocument[]; total: number; page: number; pageCount: number; }
-export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResult> {
+export interface CatalogResult {
+  documents: EducationalDocument[]; total: number; page: number; pageCount: number;
+  searchLimitation?: "document-fields-fallback";
+}
+export async function queryCatalog(filters: LibraryFilters, reviewDocuments?: EducationalDocument[] | null): Promise<CatalogResult> {
   const client = getPublicClient();
-  if (!client) {
-    const all = filterDocuments(compatibilityDocuments, filters);
+  if (!client || reviewDocuments) {
+    const all = filterDocuments(reviewDocuments ?? compatibilityDocuments, filters);
     const page = Math.min(filters.page, Math.max(1, Math.ceil(all.length / PAGE_SIZE)));
     return { documents: all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), total: all.length, page, pageCount: Math.max(1, Math.ceil(all.length / PAGE_SIZE)) };
   }
   const facets = await getFacets();
+  let searchLimitation: CatalogResult["searchLimitation"];
   let query = client.from("documents").select(documentSelect, { count: "exact" }).eq("publication_status", "published");
   if (filters.q) query = query.textSearch("search_vector", filters.q, { type: "websearch", config: "simple" });
   const subject = facets.subjects.find(s => s.slug === filters.subject);
   const course = facets.courses.find(c => c.slug === filters.course);
-  if (filters.subject) query = query.eq("subject_id", subject?.id ?? "00000000-0000-0000-0000-000000000000");
-  if (filters.course) query = query.eq("course_id", course?.id ?? "00000000-0000-0000-0000-000000000000");
+  // Unknown facet slugs must never become NULL RPC filters (which mean "all").
+  if ((filters.subject && !subject?.id) || (filters.course && !course?.id)) return { documents: [], total: 0, page: 1, pageCount: 1 };
+  if (filters.subject) query = query.eq("subject_id", subject!.id!);
+  if (filters.course) query = query.eq("course_id", course!.id!);
   if (filters.semester) query = query.eq("semester", filters.semester);
   if (filters.topic) query = query.eq("topic", filters.topic);
   if (filters.type) query = query.eq("document_type", filters.type);
   if (filters.platform) query = query.eq("platform", filters.platform);
   if (filters.featured) query = query.eq("is_featured", true);
-  if (filters.sort === "title") query = query.order("title");
-  else if (filters.sort === "newest") query = query.order("created_at", { ascending: false });
-  else if (filters.q) {
-    // Prefer the reviewed weighted-ranking RPC when the optional migration is
-    // present. If it has not been applied, fall back to the existing RLS-safe
-    // text search rather than failing or silently using featured ordering.
+  if (filters.q) {
+    // Prefer the reviewed weighted-ranking RPC. Only the explicit missing-RPC
+    // response permits the older document-vector/title-order path; the library
+    // visibly discloses its narrower coverage. Other failures are not silently
+    // presented as complete results. No-Supabase compatibility mode is unchanged.
     const ranked = await client.rpc("search_catalog", {
       query_text: filters.q,
       subject_id_filter: subject?.id ?? null,
@@ -141,7 +155,7 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
       document_type_filter: filters.type || null,
       platform_filter: filters.platform || null,
       featured_filter: filters.featured,
-      sort_option: "relevance",
+      sort_option: filters.sort,
       page_size: PAGE_SIZE,
       page_offset: (filters.page - 1) * PAGE_SIZE,
     });
@@ -154,7 +168,7 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
         const corrected = await client.rpc("search_catalog", {
           query_text: filters.q, subject_id_filter: subject?.id ?? null, course_id_filter: course?.id ?? null,
           semester_filter: filters.semester || null, topic_filter: filters.topic || null, document_type_filter: filters.type || null,
-          platform_filter: filters.platform || null, featured_filter: filters.featured, sort_option: "relevance",
+          platform_filter: filters.platform || null, featured_filter: filters.featured, sort_option: filters.sort,
           page_size: PAGE_SIZE, page_offset: (page - 1) * PAGE_SIZE,
         });
         if (corrected.error || !corrected.data) throw new CatalogUnavailableError();
@@ -163,8 +177,16 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
       }
       return { documents: payload.documents.map(normalizeRow), total, page, pageCount };
     }
-    query = query.order("title");
-  } else query = query.order("is_featured", { ascending: false }).order("title");
+    if (!ranked.error || ranked.error.code !== "PGRST202") {
+      console.error("Ranked catalog query failed", ranked.error?.code ?? "empty_response");
+      throw new CatalogUnavailableError();
+    }
+    searchLimitation = "document-fields-fallback";
+    // Relevance falls back to alphabetical order; explicit sorts remain intact.
+    query = filters.sort === "newest" ? query.order("created_at", { ascending: false }).order("title") : query.order("title");
+  } else if (filters.sort === "title") query = query.order("title");
+  else if (filters.sort === "newest") query = query.order("created_at", { ascending: false }).order("title");
+  else query = query.order("is_featured", { ascending: false }).order("title");
   const from = (filters.page - 1) * PAGE_SIZE;
   const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
   if (error) { console.error("Catalog query failed", error.code); throw new CatalogUnavailableError(); }
@@ -174,23 +196,29 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
   if (page !== filters.page) {
     const corrected = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
     if (corrected.error) throw new CatalogUnavailableError();
-    return { documents: corrected.data.map(row => normalizeRow(row as Row)), total, page, pageCount };
+    return { documents: corrected.data.map(row => normalizeRow(row as Row)), total, page, pageCount, ...(searchLimitation ? { searchLimitation } : {}) };
   }
-  return { documents: data.map(row => normalizeRow(row as Row)), total, page, pageCount };
+  return { documents: data.map(row => normalizeRow(row as Row)), total, page, pageCount, ...(searchLimitation ? { searchLimitation } : {}) };
 }
 
 export async function searchCatalog(query: string, limit = 8) {
   const client = getPublicClient();
-  if (!client) return searchDocuments(compatibilityDocuments, query).slice(0, limit);
+  if (!client) return { documents: searchDocuments(compatibilityDocuments, query).slice(0, limit), searchLimited: false };
   if (query.trim()) {
     const ranked = await client.rpc("search_catalog", { query_text: query.trim().slice(0, 200), sort_option: "relevance", page_size: Math.min(limit, 48), page_offset: 0 });
-    if (!ranked.error && ranked.data) return (ranked.data as { documents: Row[] }).documents.map(normalizeRow);
+    if (!ranked.error && ranked.data) return { documents: (ranked.data as { documents: Row[] }).documents.map(normalizeRow), searchLimited: false };
+    if (!ranked.error || ranked.error.code !== "PGRST202") {
+      console.error("Ranked command search failed", ranked.error?.code ?? "empty_response");
+      throw new CatalogUnavailableError();
+    }
+    // Missing migration: the command palette still searches document fields,
+    // with its existing featured-first/title ordering. See FRONTEND_CORRECTIONS.md.
   }
   let request = client.from("documents").select(documentSelect).eq("publication_status", "published").order("is_featured", { ascending: false }).limit(limit);
   if (query.trim()) request = request.textSearch("search_vector", query.trim().slice(0, 200), { type: "websearch", config: "simple" });
   const { data, error } = await request;
   if (error) throw new CatalogUnavailableError();
-  return data.map(row => normalizeRow(row as Row));
+  return { documents: data.map(row => normalizeRow(row as Row)), searchLimited: Boolean(query.trim()) };
 }
 
 export async function getCatalogHighlights() {

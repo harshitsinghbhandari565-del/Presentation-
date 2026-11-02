@@ -1,3 +1,13 @@
+# Correction-round update — pending AK review (2026-11-02)
+
+The independent review of implementation `681800f` prompted corrections; the historical report below remains as evidence of the **earlier** milestone, not the current typography/search verdict. Geist now owns h1–h4/UI; Newsreader italic is editorial emphasis. The roman face is no longer preloaded. Ambient grid is above the shader; shader colours follow cached theme tokens. Shelf context loss updates React state/poster/retry/status; projector mode enforces a static scene; both GL contexts request `failIfMajorPerformanceCaveat`. Pinned steps animate only once; pending text remains fully opaque; forced-colors decorations are suppressed.
+
+The local ranking migration has C-weight taxonomy/facets and GIN-eligible document candidates; combined query semantics and NULL paging have local DB tests. **It remains unapplied to hosted Supabase and is not accepted for deployment.** A missing RPC uses the explicitly disclosed narrower document-only fallback; other errors fail honestly. Browser-only synthetic fixture views are behind a literal development guard. Full detail, shortcomings and tests: `FRONTEND_CORRECTIONS.md`; checklist: `FRONTEND_ACCEPTANCE_CHECKLIST.md`.
+
+**MEASURED-AC:** 47/47 unit, 26/26 DB, build/lint/typecheck, production Chromium 23 passed/1 dev-only skipped plus fixture dev 1/1, production audit 0. Landing 187.5 KB JS-only, `/about` 180.2 KB, dynamic `/library` 187.6 KB; shader 1.8 KB and Three 129.0 KB lazy. See `FRONTEND_CORRECTIONS.md` for explicit JS+CSS boundaries and software-GL/browser limits. AK's re-review and AO acceptance remain pending.
+
+---
+
 # Approved frontend implementation — AC
 
 Date: 2026-11-02

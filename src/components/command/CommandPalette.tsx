@@ -9,6 +9,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [searchLimited, setSearchLimited] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -28,8 +29,8 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
         if (!response.ok) throw new Error("Search unavailable");
         const data = await response.json();
-        setResults(data.documents); setSelected(0);
-      } catch (err) { if (!(err instanceof Error && err.name === "AbortError")) setError("Search is temporarily unavailable. Try again in a moment."); }
+        setResults(data.documents); setSearchLimited(data.searchLimited === true); setSelected(0);
+      } catch (err) { if (!(err instanceof Error && err.name === "AbortError")) { setResults([]); setSearchLimited(false); setError("Search is temporarily unavailable. Try again in a moment."); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     }, 160);
     return () => { clearTimeout(timer); controller.abort(); };
@@ -47,6 +48,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
           if (event.key === "Enter" && results[selected]) { event.preventDefault(); navigate(results[selected].slug); }
         }} /><button className="key-button" onClick={() => { setQuery(""); onClose(); }} aria-label="Close search">esc</button></div>
       <div className="command-section-label">{query ? "Search results" : "Featured resources"}{loading && <LoaderCircle size={13} className="spin" aria-label="Loading results" />}</div>
+      {searchLimited && !error && <p className="command-empty" role="status" aria-live="polite">Search is temporarily limited to document fields; subject and course names are not included. Featured results appear first.</p>}
       <div ref={listRef} id="command-results" className="command-results" role="listbox" aria-label="Resources" aria-busy={loading}>
         {error ? <p className="command-empty" role="alert">{error}</p> : !loading && results.length === 0 ? <p className="command-empty">No resources found. Try a subject, title or keyword.</p> : results.map((result, index) => <button key={result.slug} id={`command-option-${index}`} data-index={index} role="option" aria-selected={selected === index} tabIndex={-1} className={`command-result ${selected === index ? "selected" : ""}`} onMouseEnter={() => setSelected(index)} onClick={() => navigate(result.slug)}><span className="command-result-icon">{result.isFeatured ? <Star size={18} /> : <FileText size={18} />}</span><span><strong>{result.title}</strong><small>{result.subject} <span aria-hidden="true">·</span> {result.topic}</small></span><ArrowRight size={17} aria-hidden="true" /></button>)}
       </div>

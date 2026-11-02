@@ -2,11 +2,15 @@ import {
   AmbientLight, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer,
 } from "three";
 
-/** Named imports only; no namespace import and no initial-bundle inclusion. */
-export function mountShelf(host: HTMLElement, subjects: { name: string; count: number }[]): (() => void) | undefined {
+/** Named imports only; dynamic import after intent keeps this out of initial JS. */
+export function mountShelf(
+  host: HTMLElement,
+  subjects: { name: string; count: number }[],
+  onFallback: () => void,
+): (() => void) | undefined {
   let renderer: WebGLRenderer;
   try {
-    renderer = new WebGLRenderer({ antialias: false, alpha: true, powerPreference: "low-power" });
+    renderer = new WebGLRenderer({ antialias: false, alpha: true, powerPreference: "low-power", failIfMajorPerformanceCaveat: true });
   } catch {
     return undefined;
   }
@@ -44,6 +48,7 @@ export function mountShelf(host: HTMLElement, subjects: { name: string; count: n
   host.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("aria-hidden", "true");
   const resize = () => {
+    if (disposed) return;
     const width = Math.max(1, host.clientWidth);
     const height = Math.max(1, host.clientHeight);
     renderer.setSize(width, height, false);
@@ -51,17 +56,27 @@ export function mountShelf(host: HTMLElement, subjects: { name: string; count: n
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
   };
+  let disposed = false;
   let dragging = false;
   let lastX = 0;
   const down = (event: PointerEvent) => { dragging = true; lastX = event.clientX; renderer.domElement.setPointerCapture(event.pointerId); };
   const move = (event: PointerEvent) => { if (!dragging) return; group.rotation.y += (event.clientX - lastX) * 0.008; lastX = event.clientX; renderer.render(scene, camera); };
   const up = () => { dragging = false; };
-  const lost = (event: Event) => { event.preventDefault(); dispose(); host.dataset.state = "fallback"; };
+  const lost = (event: Event) => {
+    event.preventDefault();
+    dispose();
+    // React owns the poster, button and polite announcement. A DOM data flag
+    // alone would leave those controls falsely reporting a ready scene.
+    onFallback();
+  };
   const dispose = () => {
+    if (disposed) return;
+    disposed = true;
     window.removeEventListener("resize", resize);
     renderer.domElement.removeEventListener("pointerdown", down);
     renderer.domElement.removeEventListener("pointermove", move);
     renderer.domElement.removeEventListener("pointerup", up);
+    renderer.domElement.removeEventListener("pointercancel", up);
     renderer.domElement.removeEventListener("webglcontextlost", lost);
     geometries.forEach(g => g.dispose());
     materials.forEach(m => m.dispose());
@@ -71,6 +86,7 @@ export function mountShelf(host: HTMLElement, subjects: { name: string; count: n
   renderer.domElement.addEventListener("pointerdown", down);
   renderer.domElement.addEventListener("pointermove", move);
   renderer.domElement.addEventListener("pointerup", up);
+  renderer.domElement.addEventListener("pointercancel", up);
   renderer.domElement.addEventListener("webglcontextlost", lost);
   window.addEventListener("resize", resize);
   resize();

@@ -28,3 +28,17 @@ test("without a query, featured ordering remains available and non-matches are e
   assert.equal(ranked[0].slug, "body");
   assert.equal(searchDocuments([titleMatch, bodyMatch], "photosynthesis").length, 0);
 });
+
+test("taxonomy facets are searchable without outranking a title match", () => {
+  const title = doc({ slug: "taxonomy-title", title: "Sem 1 Worksheet", subject: "Science", course: "Class 10", platform: "Google Drive" });
+  const facet = doc({ slug: "taxonomy-facet", title: "Unrelated", subject: "Sem 1 Worksheet Science", course: "Class 10", platform: "Dropbox", isFeatured: true });
+  for (const query of ["Sem 1", "Worksheet", "Science", "Class 10", "Google Drive"]) assert.ok(searchDocuments([facet, title], query).some(document => document.slug === "taxonomy-title"), query);
+  assert.equal(searchDocuments([facet, title], "Sem 1")[0].slug, "taxonomy-title");
+  assert.ok(relevanceScore(title, "Worksheet") > relevanceScore(facet, "Worksheet"));
+});
+
+test("numeric search terms do not accidentally match digits in unrelated facets", () => {
+  const semesterOne = doc({ slug: "sem-one", semester: "Sem 1", course: "Class 10" });
+  const semesterTwo = doc({ slug: "sem-two", semester: "Sem 2", course: "Class 10" });
+  assert.deepEqual(searchDocuments([semesterOne, semesterTwo], "Sem 1").map(item => item.slug), ["sem-one"]);
+});

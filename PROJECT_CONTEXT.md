@@ -43,3 +43,7 @@ Read `ARCHITECTURE_RECONCILIATION.md` for the branch/commit reconciliation, `REP
 ## Approved frontend milestone — 2026-11-02
 
 PO decisions implemented on the active AC branch: Geist + Newsreader, pinned storytelling + one optional lazy 3D scene, GLSL ambient with CSS fallback. `framer-motion` removed; `three@0.187.0` added for the lazy scene only. Search relevance is weighted; a reviewed ranking RPC migration and 16-row fixture seed are unapplied. Landing initial JS reduced 228.7 → 187.0 KB gz. See `FRONTEND_IMPLEMENTATION.md`.
+
+## Frontend corrections and review gate — 2026-11-02
+
+AO's correction round addresses the independent review of `681800f`; see `FRONTEND_CORRECTIONS.md`, `FRONTEND_ACCEPTANCE_CHECKLIST.md` and the current AO/AC handovers. The local search migration is still unapplied; no hosted database, Auth, membership, production documents, Vercel settings or deployment were touched. All local gates and their limits are recorded. AK must re-review the correction commit; AO decides acceptance. Physical GPU/device/AT and hosted verification remain open.

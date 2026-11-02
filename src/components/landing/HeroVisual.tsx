@@ -1,7 +1,7 @@
 import { ArrowUpRight, Check, FileText, Link2, Sparkles, Star } from "lucide-react";
 import type { EducationalDocument } from "@/types/document";
 
-/** Decorative hero stack. Parallax is a CSS scroll-driven enhancement only. */
+/** Decorative hero stack. A guarded CSS view() rule translates the stack; no JS animation. */
 export default function HeroVisual({ document }: { document?: EducationalDocument }) {
   return <div className="hero-visual" aria-hidden="true">
     <div className="hero-orbit hero-orbit-one" /><div className="hero-orbit hero-orbit-two" />

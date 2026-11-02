@@ -128,3 +128,7 @@ Not executed / not claimed: interactive owner-password hosted login, hosted brow
 ## Approved frontend verification — 2026-11-02
 
 Starting HEAD `71d6fb9`. `npm ci`, lint, typecheck, unit 35/35, DB 21/21, production build, production-server E2E 17/17 and production dependency audit passed. Landing initial JS 228.7 → 187.0 KB gz; about 180.8 → 179.9 KB gz; ambient shader lazy ~1.5 KB gz; optional Three lazy ~128.9 KB gz. Headless Chromium screenshots under `/home/user/audit/frontend-*.png`. No real-device/GPU/AT testing. Ranking migration/fixture seed unapplied; no hosted schema/Auth/membership/deployment change.
+
+## Frontend correction round — MEASURED-AC (2026-11-02)
+
+Correction-round tests, before/after production-route and lazy-chunk measurements, screenshot methodology, initially failed runs and their fixes are recorded in `FRONTEND_CORRECTIONS.md`. Summary: lint/typecheck/build passed; unit 47/47; PGlite DB 26/26; production-server Chromium 23 passed/1 dev-only skipped; development fixture Chromium 1/1; production audit 0. GIN eligibility is proven only under an explicit local planner switch, not a hosted plan. Browser successful-WebGL testing used a test-only software override. Real device/GPU/AT/Lighthouse and AK/AO acceptance remain unverified.
