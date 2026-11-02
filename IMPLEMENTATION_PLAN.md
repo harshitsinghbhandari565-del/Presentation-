@@ -33,3 +33,8 @@ The existing Vercel project serves commit `94728bf` at `https://harshit-presenta
 4. Deploy and verify hosted login/logout, CRUD/archive/confirmed delete, public propagation and direct API RLS.
 5. Owner verifies original sharing permissions; review backups/monitoring, CI and broader browser/AT coverage.
 6. For any future public table migration, include explicit least-privilege grants and verify effective privileges; global Supabase default privileges remain unchanged.
+
+
+## Approved frontend implementation — 2026-11-02
+
+Typography, motion bundle optimization, search relevance/announcements/loading, editorial cards, pinned storytelling, GLSL ambient and one optional lazy 3D scene are implemented locally. Ranking migration/fixture seed are unapplied pending approval. Next: hosted migration approval, hosted env/deploy approval, real-device/GPU/AT review.

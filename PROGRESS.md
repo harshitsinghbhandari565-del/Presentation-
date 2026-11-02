@@ -131,3 +131,11 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Added DB membership regressions and expanded anonymous admin E2E. Local gates: lint, typecheck, unit 33/33, DB 17/17, build, production-server E2E 12/12, production dependency audit clean. Full audit retains 20 moderate dev-only advisories.
 - Updated AO/AC handovers, architecture reconciliation, Auth/database audits, verification and continuity docs. No Vercel env/deploy, schema, Auth setting, document record, AK branch or unrelated user change.
 - Interactive hosted owner login/session/CRUD/logout remains unverified; hosted Auth sessions 0 and owner last sign-in null. Deployment/env approval remains separate.
+
+
+## Approved frontend implementation — 2026-11-02
+
+- Verified starting HEAD `71d6fb9`, clean tree; read AO/AC handovers and AK refs read-only.
+- Implemented Geist + Newsreader tokens, removed framer-motion, CSS pinned story, optional lazy Three shelf, raw-GLSL ambient + fallback, weighted search, live announcements, skeletons, editorial cards.
+- Added unapplied `202611020001_search_ranking.sql` and test-fixture seed; original data/Auth/admin preserved.
+- Gates: lint/typecheck/build pass; unit 35/35; DB 21/21; E2E 17/17; production audit clean. Landing initial JS 228.7 → 187.0 KB gz; shader ~1.5 KB gz lazy; Three ~128.9 KB gz lazy.

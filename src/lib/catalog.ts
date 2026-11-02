@@ -128,7 +128,43 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
   if (filters.featured) query = query.eq("is_featured", true);
   if (filters.sort === "title") query = query.order("title");
   else if (filters.sort === "newest") query = query.order("created_at", { ascending: false });
-  else query = query.order("is_featured", { ascending: false }).order("title");
+  else if (filters.q) {
+    // Prefer the reviewed weighted-ranking RPC when the optional migration is
+    // present. If it has not been applied, fall back to the existing RLS-safe
+    // text search rather than failing or silently using featured ordering.
+    const ranked = await client.rpc("search_catalog", {
+      query_text: filters.q,
+      subject_id_filter: subject?.id ?? null,
+      course_id_filter: course?.id ?? null,
+      semester_filter: filters.semester || null,
+      topic_filter: filters.topic || null,
+      document_type_filter: filters.type || null,
+      platform_filter: filters.platform || null,
+      featured_filter: filters.featured,
+      sort_option: "relevance",
+      page_size: PAGE_SIZE,
+      page_offset: (filters.page - 1) * PAGE_SIZE,
+    });
+    if (!ranked.error && ranked.data) {
+      const payload = ranked.data as { total: number; documents: Row[] };
+      const total = payload.total ?? 0;
+      const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      const page = Math.min(filters.page, pageCount);
+      if (page !== filters.page) {
+        const corrected = await client.rpc("search_catalog", {
+          query_text: filters.q, subject_id_filter: subject?.id ?? null, course_id_filter: course?.id ?? null,
+          semester_filter: filters.semester || null, topic_filter: filters.topic || null, document_type_filter: filters.type || null,
+          platform_filter: filters.platform || null, featured_filter: filters.featured, sort_option: "relevance",
+          page_size: PAGE_SIZE, page_offset: (page - 1) * PAGE_SIZE,
+        });
+        if (corrected.error || !corrected.data) throw new CatalogUnavailableError();
+        const correctedPayload = corrected.data as { total: number; documents: Row[] };
+        return { documents: correctedPayload.documents.map(normalizeRow), total, page, pageCount };
+      }
+      return { documents: payload.documents.map(normalizeRow), total, page, pageCount };
+    }
+    query = query.order("title");
+  } else query = query.order("is_featured", { ascending: false }).order("title");
   const from = (filters.page - 1) * PAGE_SIZE;
   const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
   if (error) { console.error("Catalog query failed", error.code); throw new CatalogUnavailableError(); }
@@ -146,6 +182,10 @@ export async function queryCatalog(filters: LibraryFilters): Promise<CatalogResu
 export async function searchCatalog(query: string, limit = 8) {
   const client = getPublicClient();
   if (!client) return searchDocuments(compatibilityDocuments, query).slice(0, limit);
+  if (query.trim()) {
+    const ranked = await client.rpc("search_catalog", { query_text: query.trim().slice(0, 200), sort_option: "relevance", page_size: Math.min(limit, 48), page_offset: 0 });
+    if (!ranked.error && ranked.data) return (ranked.data as { documents: Row[] }).documents.map(normalizeRow);
+  }
   let request = client.from("documents").select(documentSelect).eq("publication_status", "published").order("is_featured", { ascending: false }).limit(limit);
   if (query.trim()) request = request.textSearch("search_vector", query.trim().slice(0, 200), { type: "websearch", config: "simple" });
   const { data, error } = await request;

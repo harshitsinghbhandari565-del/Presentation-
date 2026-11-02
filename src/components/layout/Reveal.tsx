@@ -1,7 +1,11 @@
-"use client";
-import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+
+/**
+ * Content is visible by default. Scroll-driven enhancement is applied only in
+ * CSS behind @supports and prefers-reduced-motion, so animation initialization
+ * failure cannot hide essential content.
+ */
 export default function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
-  const reduced = useReducedMotion();
-  return <motion.div className={className} initial={false} whileInView={{ y: reduced ? 0 : [18, 0] }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: reduced ? 0 : 0.5, delay: reduced ? 0 : delay, ease: [0.22, 1, 0.36, 1] }}>{children}</motion.div>;
+  const style = delay ? ({ "--reveal-delay": `${delay}s` } as CSSProperties) : undefined;
+  return <div className={`reveal ${className}`.trim()} style={style}>{children}</div>;
 }

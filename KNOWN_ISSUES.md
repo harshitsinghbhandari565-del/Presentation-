@@ -38,3 +38,10 @@ See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_
 - Missing real 404/SEO → canonical routes, metadata, robots/sitemap and streaming-safe detail 404; build/E2E passes.
 
 Do not mark an external blocker resolved without real configuration and verification evidence.
+
+
+## Frontend milestone follow-ups — 2026-11-02
+
+- Search-ranking RPC migration `202611020001_search_ranking.sql` is unapplied; hosted search uses fallback until approved.
+- Optional 3D and GLSL ambient verified headlessly/fallback-only; real-device/GPU appearance and performance unverified.
+- Full dependency audit still reports 20 moderate development-toolchain advisories; production audit clean.

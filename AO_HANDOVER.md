@@ -1,4 +1,24 @@
-# AO handover — architecture reconciliation and administrator membership
+# AO handover — approved frontend implementation
+
+Updated: 2026-11-02
+Branch: `arena/c9d0d599-presentation` (active)
+Reconciliation reference: `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`
+Starting HEAD verified: `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`, clean.
+Implementation evidence: `FRONTEND_IMPLEMENTATION.md`.
+
+## Frontend decision status
+
+Product Owner decisions implemented: Geist + Newsreader; pinned storytelling + one optional lazy 3D scene; GLSL ambient background with CSS fallback. No GSAP. No deployment/Vercel change, AK merge, hosted schema/Auth/membership change or production document-data change.
+
+Key results: landing initial JS 228.7 → 187.0 KB gz (-41.7 KB); ambient shader lazy chunk ~1.5 KB gz; optional Three shelf lazy chunk ~128.9 KB gz and not requested initially. `framer-motion` removed; `three@0.187.0` added exact + dev types. Search ranking migration and 16-row fixture seed are reviewed/unapplied local deliverables only.
+
+Verification: lint/typecheck passed; unit 35/35; DB/RLS/ranking 21/21; production build passed; production-server E2E 17/17 including reduced-motion, WebGL fallback, keyboard/pinned story, search announcements and axe; production dependency audit clean. Headless Chromium only; no real-device/GPU/AT sign-off.
+
+Next approval gates: apply hosted search-ranking migration only if approved; hosted Supabase env/deploy and interactive owner login remain gated. Remaining pre-production findings: health readiness, CSP/HSTS, HttpOnly/server-owned login, MFA challenge flow, real-device/AT review.
+
+---
+
+
 
 Updated: 2026-11-02
 Workstream: AC — Backend Finalization / AO consolidated directive

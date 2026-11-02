@@ -1,3 +1,24 @@
+# AC handover — approved frontend implementation
+
+Updated: 2026-11-02
+Branch: `arena/c9d0d599-presentation`
+Reconciliation reference / starting HEAD: `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`
+Full evidence: `FRONTEND_IMPLEMENTATION.md`.
+
+## What changed
+
+Implemented PO typography (Geist + Newsreader), CSS pinned storytelling, one optional lazy Three.js shelf, raw-GLSL ambient with CSS fallback, weighted search relevance, atomic search announcements, skeleton loading and editorial card hierarchy. Removed `framer-motion`; added exact `three@0.187.0` + dev types. Added unapplied ranking RPC migration and test-fixture-only seed. Original data/Auth/admin/applied migrations preserved.
+
+## Gates
+
+Do not apply `supabase/migrations/202611020001_search_ranking.sql` or `supabase/seed.test-fixtures.sql` to hosted Supabase without explicit approval. Do not deploy/change Vercel, merge AK, change Auth/membership or production documents. Hosted login/env remain gated from backend milestone.
+
+## Verification
+
+Lint/typecheck/build passed; unit 35/35; DB 21/21; E2E 17/17; production audit clean. Landing initial JS -41.7 KB gz. Headless Chromium only; no real-device/GPU/AT verification.
+
+---
+
 # AC handover — Backend Finalization
 
 Updated: 2026-11-02

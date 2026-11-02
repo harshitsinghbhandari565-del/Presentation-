@@ -86,3 +86,8 @@ on conflict (user_id) do nothing;
 ## Continuity
 
 Update `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `DECISIONS.md`, `KNOWN_ISSUES.md`, this guide and `VERIFICATION.md` whenever meaningful behavior or verification status changes.
+
+
+## Frontend measurement and optional layers
+
+Run `npm run measure:bundle` after `npm run build` to measure initial route JS from production HTML. The ambient shader and optional Three shelf are lazy; do not import `shelf-scene` into initial bundles. `supabase/migrations/202611020001_search_ranking.sql` and `supabase/seed.test-fixtures.sql` are local/review deliverables only until explicitly approved for hosted use.

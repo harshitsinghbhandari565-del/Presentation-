@@ -30,8 +30,35 @@ export function matchesSearch(document: EducationalDocument, query: string): boo
   return terms.every(term => haystack.includes(term));
 }
 
+/** Weighted relevance mirror of the proposed SQL setweight/ts_rank ordering. */
+export function relevanceScore(document: EducationalDocument, query: string): number {
+  const terms = normalizeSearch(query).split(" ").filter(Boolean);
+  if (!terms.length) return 0;
+  const fields: [string, number][] = [
+    [document.title, 1.0],
+    [[document.topic, ...document.keywords, ...document.tags].filter(Boolean).join(" "), 0.6],
+    [[document.subject, document.course, document.semester, document.documentType, document.platform].filter(Boolean).join(" "), 0.35],
+    [document.description, 0.15],
+  ];
+  let score = 0;
+  for (const term of terms) {
+    let termScore = 0;
+    for (const [value, weight] of fields) {
+      const normalized = normalizeSearch(value ?? "");
+      if (!normalized) continue;
+      if (normalized.split(" ").includes(term)) termScore = Math.max(termScore, weight);
+      else if (normalized.includes(term)) termScore = Math.max(termScore, weight * 0.6);
+    }
+    if (termScore === 0) return 0;
+    score += termScore;
+  }
+  return score / terms.length;
+}
+
 export function searchDocuments(documents: EducationalDocument[], query: string) {
-  return documents.filter(document => matchesSearch(document, query));
+  return documents
+    .filter(document => matchesSearch(document, query))
+    .sort((a, b) => relevanceScore(b, query) - relevanceScore(a, query) || a.title.localeCompare(b.title));
 }
 
 export function filterDocuments(documents: EducationalDocument[], filters: LibraryFilters) {
@@ -47,6 +74,7 @@ export function filterDocuments(documents: EducationalDocument[], filters: Libra
   return result.sort((a, b) => {
     if (filters.sort === "title") return a.title.localeCompare(b.title);
     if (filters.sort === "newest") return (b.createdAt ? Date.parse(b.createdAt) : 0) - (a.createdAt ? Date.parse(a.createdAt) : 0) || a.title.localeCompare(b.title);
+    if (filters.q) return relevanceScore(b, filters.q) - relevanceScore(a, filters.q) || a.title.localeCompare(b.title);
     return Number(b.isFeatured) - Number(a.isFeatured) || a.title.localeCompare(b.title);
   });
 }

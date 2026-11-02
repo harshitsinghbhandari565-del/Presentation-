@@ -123,3 +123,8 @@ Hosted verification:
 - Migration MD5s and effective grants re-verified; no new migration.
 
 Not executed / not claimed: interactive owner-password hosted login, hosted browser session persistence/refresh, deployed admin CRUD/logout, deployed non-admin browser denial, GitHub CI run, external Google/Dropbox permission check, Safari/Firefox/physical-device/AT sign-off. Vercel env/deploy remains approval-gated.
+
+
+## Approved frontend verification — 2026-11-02
+
+Starting HEAD `71d6fb9`. `npm ci`, lint, typecheck, unit 35/35, DB 21/21, production build, production-server E2E 17/17 and production dependency audit passed. Landing initial JS 228.7 → 187.0 KB gz; about 180.8 → 179.9 KB gz; ambient shader lazy ~1.5 KB gz; optional Three lazy ~128.9 KB gz. Headless Chromium screenshots under `/home/user/audit/frontend-*.png`. No real-device/GPU/AT testing. Ranking migration/fixture seed unapplied; no hosted schema/Auth/membership/deployment change.

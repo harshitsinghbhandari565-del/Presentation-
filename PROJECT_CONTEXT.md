@@ -38,3 +38,8 @@ Public experience, discovery, document detail, compatibility mode, responsive th
 ## Continuity
 
 Read `ARCHITECTURE_RECONCILIATION.md` for the branch/commit reconciliation, `REPOSITORY_AUDIT.md` for the original findings, `IMPLEMENTATION_PLAN.md` for phases, `PROGRESS.md` for status, `DECISIONS.md` for rationale, `KNOWN_ISSUES.md` for blockers, `DEVELOPMENT_GUIDE.md` for setup and `VERIFICATION.md` for evidence.
+
+
+## Approved frontend milestone — 2026-11-02
+
+PO decisions implemented on the active AC branch: Geist + Newsreader, pinned storytelling + one optional lazy 3D scene, GLSL ambient with CSS fallback. `framer-motion` removed; `three@0.187.0` added for the lazy scene only. Search relevance is weighted; a reviewed ranking RPC migration and 16-row fixture seed are unapplied. Landing initial JS reduced 228.7 → 187.0 KB gz. See `FRONTEND_IMPLEMENTATION.md`.

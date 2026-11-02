@@ -1,13 +1,26 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { MotionConfig } from "framer-motion";
 import AmbientBackground from "@/components/layout/AmbientBackground";
 import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import "./globals.css";
 
-const geist = localFont({ src: "../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2", variable: "--font-geist", weight: "100 900", display: "swap" });
-const editorial = localFont({ src: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2", variable: "--font-editorial", weight: "200 800", style: "italic", display: "swap" });
+const geist = localFont({
+  src: "../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+  display: "swap",
+  adjustFontFallback: "Arial",
+});
+const editorial = localFont({
+  src: [
+    { path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2", weight: "200 800", style: "normal" },
+    { path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2", weight: "200 800", style: "italic" },
+  ],
+  variable: "--font-newsreader",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
+});
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 const validSiteUrl = siteUrl && /^https?:\/\//.test(siteUrl) ? siteUrl : "http://localhost:3000";
 export const metadata: Metadata = {
@@ -26,13 +39,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" data-theme="dark" className={`${geist.variable} ${editorial.variable}`}>
     <body>
       <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('presentation-hub-theme')||'dark';var e=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;if(e!=='light'&&e!=='dark')e='dark';document.documentElement.dataset.theme=e;document.documentElement.classList.toggle('dark',e==='dark');if(localStorage.getItem('presentation-hub-projector')==='true')document.documentElement.classList.add('projector-mode');}catch(e){}})();` }} />
-      <MotionConfig reducedMotion="user">
-        <a href="#main-content" className="skip-link">Skip to main content</a>
-        <AmbientBackground />
-        <SiteHeader />
-        <main id="main-content" tabIndex={-1}>{children}</main>
-        <SiteFooter />
-      </MotionConfig>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <AmbientBackground />
+      <SiteHeader />
+      <main id="main-content" tabIndex={-1}>{children}</main>
+      <SiteFooter />
     </body>
   </html>;
 }

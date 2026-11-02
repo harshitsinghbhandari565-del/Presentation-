@@ -62,3 +62,8 @@ Approved Phase 3 hardening uses a shared public-key config guard, explicit produ
 ## D17 — Reconcile architecture by commit and provision only the AO-approved membership
 
 AK’s named baseline `4307a68` is the initial `main` upload; the active AC branch carries the Supabase catalog/Auth/admin implementation. The empty Drizzle stub and optional health scaffold do not describe the catalog runtime. Preserve the working architecture and use `ARCHITECTURE_RECONCILIATION.md` as the branch/commit source of truth. AO’s consolidated directive records explicit Product Owner confirmation/approval for UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`; AC inserted exactly that row into `public.administrators` with `on conflict do nothing` and verified count/FK/idempotency. No schema redesign, new Auth account, unrelated user change, document-record change, Vercel env change or deployment was authorized or performed. Hosted browser login/CRUD remains separately gated.
+
+
+## D18 — Approved frontend direction and lazy-only 3D
+
+PO approved Geist + Newsreader, pinned storytelling + one optional 3D scene, and GLSL ambient with CSS fallback. AC removed framer-motion after verifying the installed mini entry did not provide the required LazyMotion path, preserving behavior with native CSS. Three.js is exact-pinned and loaded only after explicit intent. GSAP/Lenis/R3F/drei are not added. Search-ranking SQL and fixture seed are reviewed but unapplied; hosted application requires separate approval.
