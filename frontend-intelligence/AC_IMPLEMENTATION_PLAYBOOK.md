@@ -13,6 +13,8 @@
 
 ## 1. What AC is actually working with (ground truth)
 
+> **⚠️ Re-read this first:** the table below is the **2026-11-01** baseline and is now partly stale. AC's branch at `cac9c7f` (2026-11-02) has Supabase catalog migrations, 18 route files including `/admin/*`, a server-rendered landing, self-hosted fontsource fonts, a lockfile, and `!important` down from ~15 to 4. Current state, four live defects (incl. a self-referential `--font-editorial` token) and the revised step order: **`phase2/AC_BRANCH_DELTA.md`**.
+
 Do not trust the product brief for the stack; trust this table (full detail: `audit/stack-audit.md`).
 
 | Fact | Value | Evidence |

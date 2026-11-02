@@ -85,3 +85,15 @@ do not copy these pins from a research doc on faith.
 | "sophisticated micro-interactions" | Tier 0 CSS/`@property` + framer-motion `animate` | axe 0 violations; reduced-motion parity |
 | "responsive & performant" | mobile = different implementation (EX10), not a shrunk desktop | 2.0 KB gz mobile variant, 44 px targets |
 | "no animation pile-up" | rule 1 + `@property` default + no Lottie/Rive/GSAP by default | one animated layer per viewport |
+
+## Corrections from the 2026-11-02 verification pass
+
+Four lines in this file were refined after re-reading source instead of summaries (`VERIFICATION_LOG.md` §4):
+
+| line | correction | effect on the recommendation |
+|---|---|---|
+| Tier 2/3 wording implying a `framer-motion` → `motion` **package rename** | npm `framer-motion@14.9.0` exists (published 2026-10-30, same repo, same version line as `motion`) | AC's upgrade is `framer-motion@14.9.0` — one dependency line, no rename, no codemod on that axis |
+| Tier 3 "skip `@react-three/postprocessing`" | its peers are `@react-three/fiber >=9.7`, `react ^19`, `three >=0.156`, `postprocessing ^6.36`; repo `pmndrs/react-postprocessing` ★1,498 MIT, pushed 2026-10-21 | **still ❌**, but the stated reason is now bundle cost, not React-19 uncertainty |
+| Tier 3 `ogl` | no `LICENSE` file in repo; `Unlicense` declared in `package.json`/npm; `ogl@1.0.11` published 2025-01-27 (21 months stale) | **still ❌**, reason changed to staleness + weaker legal position (do not vendor its code) |
+| Tier 2 `cmdk` / `@gsap/react` | `cmdk@1.1.1` last **published** 2025-03-14 (repo quiet since 2025-10-29, and it is not a fork — the upstream repo simply moved); `@gsap/react@2.1.2` last published **2025-01-15** | Pin `cmdk@1.1.1` and treat it as frozen; prefer bare `gsap.context()` + `ctx.revert()` over `@gsap/react` (one less 21-month-old dependency for a 2 KB wrapper) |
+| Tier 1 "virtualisation is unnecessary at 12–24 results/page" | `@tanstack/react-virtual@3.14.25` published **2026-11-01**, MIT, `react ^19` in peers, 1 dep | unchanged conclusion, better evidence: it is the *living* option whenever the dataset passes ~200 rows |

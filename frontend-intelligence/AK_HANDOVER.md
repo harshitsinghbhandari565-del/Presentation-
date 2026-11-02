@@ -135,3 +135,47 @@ AC pushed while Phase 2 was in flight: `arena/c9d0d599-presentation` moved `380a
 **No AK file was edited in response beyond this note:** the recommendations were written to be additive and are
 unaffected by auth hardening. If AO merges AC's branch first, re-read `package.json` before applying step 2 of
 `FRONTEND_IMPLEMENTATION_SEQUENCE.md` (the mini-import step), since framer-motion's version line is its precondition.
+
+---
+
+# Phase 2.1 — verification + AC re-sync (2026-11-02, second AK session)
+
+**Trigger:** AO re-issued the Phase 2 brief. Instead of re-running finished research, this session **re-executed and tried to falsify** it, then re-synced against AC's code.
+
+## State at hand-off
+
+| item | value |
+|---|---|
+| branch | `arena/9d055deb-presentation` (unchanged; the mission's `knowledge/frontend-intelligence-phase-2` name is unavailable — the environment pins this branch) |
+| tip before this session | `2f3c352` (Phase 2 + first re-verify note) |
+| commit added by this session | the Phase 2.1 verification commit — resolve with `git rev-parse HEAD`; **not merged anywhere** |
+| files added | `phase2/VERIFICATION_LOG.md`, `phase2/AC_BRANCH_DELTA.md`, `phase2/tooling/{README.md,verify_atlas.py,fetch_repo_cards.py}` |
+| files updated | `phase2/{WEBSITE_ATLAS,TOP_35_DEEP_EVALUATIONS,REPOSITORY_ATLAS,RECOMMENDED_STACK,GITHUB_RESEARCH_GAPS,README,INTERACTION_EXPERIMENT_LAB}.md`, `README.md`, `RESEARCH_INDEX.md`, `audit/stack-audit.md` (banner), `AC_IMPLEMENTATION_PLAYBOOK.md` (§1 pointer) — **Phase 1 text otherwise untouched, nothing deleted** |
+| AC files touched | **none** (read-only API inspection of `origin/AC-Branch@cac9c7f`; no checkout, no branch writes, `main` @ `4307a68`) |
+
+## Executed this session (do not repeat)
+
+1. Sandbox was re-provisioned mid-mission: fresh clone at `4307a68`, pack files present but untracked, **`/home/user/research/` (pipeline + raw corpus) destroyed**. Repaired with `git fetch` + `git reset --hard FETCH_HEAD` after confirming `diff -rq` showed the disk copy byte-identical to `2f3c352`. **Tooling now lives inside the pack** (`phase2/tooling/`).
+2. `prototype-lab`: fresh `npm install` → `node build.mjs` (10/10) → `node test.mjs` (**20/20**) → `measurements.json` + `headless-results.json` reproduced **byte-identically**. Served `dist/` on `:8123` for AO/AC's visual sign-off (that preview is the only path to closing the browser-only gap).
+3. `verify_atlas.py --sample 18 --seed 42` → 1,914 rows parsed, **18/18 repos exist, 0 fabricated URLs**; the 6 flagged diffs were star drift / UTC rollover / licence-cell parsing (the licence parser was then fixed).
+4. Closed the four "shortlisted-but-uninspected" items + `cmdk` with `fetch_repo_cards.py` → 5 new cards in `TOP_35_DEEP_EVALUATIONS.md` §5, atlas rows promoted ▲→◆ (72 → **77** inspected).
+5. Awwwards depth closed: fetched `sites_of_the_day` → `WEBSITE_ATLAS.md` §E, 14 rows with URL **and** award verified (13 also Developer Award); total websites **154 → 168**. three.js example counts measured: 622 files = **300 `webgl_*` / 243 `webgpu_*`**.
+6. AC re-sync (`AC_BRANCH_DELTA.md`): D1 and D7 are **closed by AC** (Supabase catalog migration with `subjects/courses/documents`, `semester text`, `document_type` enum); R1 server split, lockfile and the `!important` refactor are **done**; **four live defects in AC's code** are flagged (A1 self-referential `--font-editorial`, A2 unweighted `to_tsvector('simple')` + featured-first ordering, A3 `embed_url like 'https://docs.google.com/%'` blocks Dropbox embeds by policy, A4 `seed.sql` has 0 rows).
+
+## Corrections a successor must not "fix back" (new since last handover)
+
+- `troika-three-text` upstream is **`protectwise/troika`** (MIT, active) — `etherlos/troika` and `etherlos/troika-three-text` 404.
+- `@react-three/postprocessing`'s repo is **`pmndrs/react-postprocessing`** (MIT, pushed 2026-10-21) and its peers **require React 19**; the rejection reason is bundle cost only.
+- `oframe/ogl`: no `LICENSE` file, `Unlicense` declared in `package.json`/npm, last publish 2025-01-27 → rejected for staleness.
+- `cmdk@1.1.1` last **published** 2025-03-14 (19 months); `@gsap/react@2.1.2` 2025-01-15 → prefer `gsap.context()`.
+- `framer-motion@14.9.0` exists (same version/repo as `motion`) → the upgrade is **not** a package rename.
+- Phase 1's `@custom-variant dark` recipe: AC now has **0 `dark:` utilities**, so it is optional, not required.
+- Do not quote the atlas's "459 doc-discovery rows" (or its 227 ≥18 subset) as "search-UX references" — the hand-checked subset is ~35.
+
+## Remaining work, in priority order (unchanged unless noted)
+
+1. **A1/A2/A4 to AC via AO** — the font-token bug, the search weighting, and a 12–24-row seed so design review isn't against an empty DB. (All file-level, each one-line fixes; AK deliberately did not patch AC's code.)
+2. **Visual/fps sign-off of the 10 lab experiments** — needs a human browser; preview served on `:8123`. `[UNVERIFIED]` stays on every visual claim until then.
+3. `next build` measurement on AC's app to convert the ±15 %-caveated esbuild floors into app-level numbers (needs AC's tree, so AO's call).
+4. If Phase 3 re-opens discovery: rebuild the pipeline **inside** `phase2/tooling/`, keep `raw.jsonl` in the pack, and re-run `verify_atlas.py` after regenerating.
+5. Optional depth: per-origin URLs for the 14 §E SOTD entries (one click each) and education-sector premium sites beyond Smithsonian.

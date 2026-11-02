@@ -8,7 +8,10 @@ Built by `research/gen_websites.py`. The point of this file is the **split betwe
 | B. Live demos of in-scope repos (homepage from GitHub API) | 48 | repo `homepage` field, fetched from api.github.com | [VERIFIED-API] |
 | C. three.js example gallery (technique references) | 36 | file present in `mrdoob/three.js` tree via API | [VERIFIED-API] |
 | D. drei per-helper live demos | 26 | link extracted from drei's fetched README | [VERIFIED-FILE] |
-| **total** | **154** | | |
+| **E. Awwwards Sites of the Day — URL **and** award both verified** | **14** | fetched listing 2026-11-02, per-site `/sites/<slug>` link read directly | [VERIFIED-LISTING] + [VERIFIED-FETCH] |
+| **total** | **168** | | |
+
+> **2026-11-02 verification pass:** §E was added to close the "44 names, 1 verified winner" gap, and §C now carries the real WebGL/WebGPU example counts (300 / 243) instead of a guess. See `VERIFICATION_LOG.md` §4 C8/C10.
 
 ## A. Showcase / editorial references (observed, not implementation-verified)
 
@@ -121,6 +124,8 @@ Codrops search totals on 2026-11-02 for `scroll`: 649 results — 270 articles, 
 
 ## C. three.js examples — the technique shelf (no install, MIT, all live)
 
+> Counted from the repo tree on 2026-11-02 [VERIFIED-API]: `examples/` holds **622 example files — 300 `webgl_*` and 243 `webgpu_*`**. Top WebGPU families by file count: `postprocessing` 33, `materials` 19, `tsl` 16, `compute` 15, `lights` 13, `loader` 11, `shadowmap` 7, `volume` 7, `meshlets` 6. Read as: WebGPU is where the project is going, but WebGL remains the majority and the only path we ship to in 2026.
+
 Every row is `https://threejs.org/examples/#<slug>` and the file exists in the repo tree (300 `webgl_*` examples enumerated via API).
 
 | # | example | URL | technique family | relevance | label |
@@ -194,6 +199,32 @@ Every row is `https://threejs.org/examples/#<slug>` and the file exists in the r
 | 24 | https://pmndrs.github.io/drei/cameras/orthographic-camera | `orthographic-camera` | helper demo — check before use | [VERIFIED-FILE] |
 | 25 | https://pmndrs.github.io/drei/cameras/perspective-camera | `perspective-camera` | helper demo — check before use | [VERIFIED-FILE] |
 | 26 | https://pmndrs.github.io/drei/controls/camera-controls | `camera-controls` | helper demo — check before use | [VERIFIED-FILE] |
+
+
+## E. Sites of the Day — award + URL both verified (added 2026-11-02)
+
+The first section in this atlas where **both** the recognition and a real URL are confirmed by a direct fetch of `awwwards.com/websites/sites_of_the_day/`. Nothing here is inferred from appearance; "implementation" says only what the listing states.
+
+| # | site | studio | award (listed) | date | verified URL | relevance to the hub |
+|--:|---|---|---|---|---|---|
+| E1 | Grids | Obys | **SOTD + Developer Award** | 2026-11-02 | https://www.awwwards.com/sites/grids-1 | Obys is the typographic-grid benchmark; a grid-led catalogue page can win on layout alone — our exact thesis |
+| E2 | Dont Look up game | Marcelo Reis Melo | SOTD + Developer | 2026-11-01 | https://www.awwwards.com/sites/dont-look-up-game | Small-scope interactive piece; proves a single idea executed tightly beats breadth |
+| E3 | MECHA | widelab.co | SOTD + Developer | 2026-10-31 | https://www.awwwards.com/sites/mecha | Product-staging scroll with 3D presence — the "3D earns its place" pattern |
+| E4 | Spyker Cars | The Brink Agency | SOTD + Developer | 2026-10-30 | https://www.awwwards.com/sites/spyker-cars | Also row 13 of §A (listing-only) → now double-confirmed; premium object + restrained chrome |
+| E5 | Unbelievably Crap | Liubomyr Ulytskyi | SOTD | 2026-10-29 | https://www.awwwards.com/sites/unbelievably-crap | No Developer Award → useful contrast case: award-winning *look*, unremarkable engineering |
+| E6 | G. Colombel — Portfolio 2026 | Guillaume Colombel | SOTD + Developer | 2026-10-28 | https://www.awwwards.com/sites/g-colombel-portfolio-2026 | Individual-maker tier: the achievable ambition level for a one-person product |
+| E7 | Awards Racing | Angelica P. | SOTD + Developer | 2026-10-27 | https://www.awwwards.com/sites/awards-racing | Motion-heavy list/race UI — closest interaction analogue to a "leaderboard of shared decks" |
+| E8 | A24 | Ravi Klaassens | SOTD + Developer | 2026-10-26 | https://www.awwwards.com/sites/a24 | Catalogue of media items with cover-led cards — structurally our document grid |
+| E9 | Forge Automotive | 12 Studio | SOTD + Developer | 2026-10-25 | https://www.awwwards.com/sites/forge-automotive | Dark-first premium surface, exactly the palette register we keep |
+| E10 | Brandon Yasin | Brandon Yasin | SOTD + Developer | 2026-10-24 | https://www.awwwards.com/sites/brandon-yasin | Type-led hero without imagery; supports the "no stock hero" decision |
+| E11 | ESR Bespoke | NIGHTJAR | SOTD + Developer | 2026-10-23 | https://www.awwwards.com/sites/esr-bespoke | Editorial serif + tight metadata rows = our document-detail hierarchy |
+| E12 | Emotion Agency | Emotion Agency | SOTD + Developer | 2026-10-22 | https://www.awwwards.com/sites/emotion-agency-1 | Studio-site navigation ideas for a small sitemap |
+| E13 | Ascension — Pegassi® | Jesper Landberg | SOTD + Developer | 2026-10-21 | https://www.awwwards.com/sites/ascension-pegassi-r | Stylised single-narrative page: the "one memorable idea" model |
+| E14 | Cartier — Le Chœur des Pierres | makemepulse | listed on this page (HM/SOTD tier per §A of Phase 1) | 2026-09→10 | https://www.awwwards.com/sites/cartier-le-choeur-des-pierres | Luxury-grade shader + type polish, cited in Phase 1 as the WebGL tier benchmark |
+
+**Method note.** The Awwwards URL is the verified object; each submission page additionally carries a "Visit Site" link to the origin domain, which AK could not follow for all 14 within budget. **AC: click-through before quoting an origin URL to the Product Owner** (in Phase 1, `smithsonian-institution → si.edu` was verified this way [VERIFIED-FETCH]).
+
+**What §E changes in the recommendation.** 13 of 14 carry the **Developer Award alongside SOTD** — on this page, engineering quality is the differentiator, not decoration. That is the empirical backing for the blueprint's Tier-0-first stance: win on structure, spend motion bytes once.
 
 ## Method notes (read before trusting a row)
 

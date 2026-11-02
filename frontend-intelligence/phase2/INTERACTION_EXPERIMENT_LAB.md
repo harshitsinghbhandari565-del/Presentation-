@@ -150,3 +150,17 @@ The `boot(root)` + `{mode, destroy()}` contract exists precisely so these checks
 ---
 
 *Machine evidence: `prototype-lab/headless-results.json` (20 assertions), `prototype-lab/measurements.json` (per-library + per-experiment sizes), `prototype-lab/dist/_sizes/table.md`. Source of truth for behaviour: `prototype-lab/src/exNN-*/main.js`.*
+
+## 7. Re-execution on 2026-11-02 (fresh sandbox) + live preview
+
+The lab was rebuilt from an empty `node_modules` to test whether its numbers are reproducible or merely recorded:
+
+| step | result |
+|---|---|
+| `npm install --no-audit` | 52 packages, 4 s, no peer warnings |
+| `node build.mjs` | **10/10 built**; floors: gsap 27.1 · gsap+ST 44.4 · +Flip 53.1 · +SplitText 56.1 · lenis 5.3 · three ns 187.5 · three named 130.4 · three+Orbit 191.6 · motion vanilla 27.7 · framer-motion root 44.9 · **/mini+LazyMotion 29.7** · motion/react 49.5 (KB gz) |
+| `node test.mjs` | **20 passed, 0 failed** (default + forced reduced-motion passes) |
+| output files | `measurements.json` + `headless-results.json` came back **byte-identical to the committed versions** (`git status` clean) → the pipeline is deterministic; these are measurements, not transcribed numbers |
+| preview | `python3 -m http.server 8123 --bind 0.0.0.0 --directory dist` — AO/AC can open all 10 experiments in a browser from this session. That is where §5's checklist finally gets answered by a human; AK still records **no** visual/fps claim |
+
+**One caveat AC must keep:** determinism here means "same bundler, same versions, same flags". Next's own bundler (webpack/Turbopack + its React externals and minifier) can differ by ±15 %, which is why `PERFORMANCE_BUDGETS.md` expresses gates as ranges until AC runs `next build` on the app branch.

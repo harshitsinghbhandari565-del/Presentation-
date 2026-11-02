@@ -748,3 +748,67 @@ These are the 35 repositories AK judged most relevant to this product **out of 7
 - **Evidence source:** README `25,847 B` + `package.json` fetched 2026-11-02 via `research/deep_eval.py` → `discovery/readmes/`, `discovery/pkgs/` [VERIFIED-FILE]
 - **Evaluation status:** ◆ inspected — dependency/README facts verified; runtime behaviour, a11y tree and visual result **not** executed in AK's environment [UNVERIFIED]
 
+
+---
+
+## 5. Supplementary evaluations — the five repos that were ▲ shortlisted and are now ◆ inspected
+
+Added by the **2026-11-02 verification pass** (`VERIFICATION_LOG.md` §4 C1) to close open item #4 of `GITHUB_RESEARCH_GAPS.md`. All metadata re-fetched live from `api.github.com` + `registry.npmjs.org` on 2026-11-02; `package.json` / README read through the contents API — so dependencies and peer ceilings below are `[VERIFIED-FILE]`, not prose from a description.
+
+### S1 · `troika-three-text` — upstream is **`protectwise/troika`** (not `etherlos/*`, which 404s)
+| field | value |
+|---|---|
+| repo facts | ★1,985 · pushed **2026-11-01** · MIT · not archived · not a fork · homepage empty, docs at `protectwise.github.io/troika` [VERIFIED-API] |
+| package facts | `troika-three-text@0.52.5`, published **2026-07-24**, npm licence **MIT** [VERIFIED-API] |
+| runtime deps | `bidi-js`, `troika-three-utils`, `troika-worker-utils`, `webgl-sdf-generator` [VERIFIED-FILE package.json] |
+| peer | `three >=0.125.0` — no React constraint at all, so it is orthogonal to the `react >=19 <19.4` R3F ceiling [VERIFIED-FILE] |
+| what it demonstrates | SDF-based text for Three.js: real vector-crisp type inside a scene, with worker-side layout + bidi/Arabic/Indic shaping — the thing `<Text>` from drei delegates to |
+| relevance to the hub | The **only** credible way to put readable type inside a 3D scene (e.g. a subject-orb label). Our recommendation stays "keep type in the DOM"; if AO approves 3D *and* wants labels in it, this is the package, and its licence is no longer an open question (Phase 1 U11 closed) |
+| risk | 4 deps incl. a worker + an SDF generator; text layout runs off-main-thread but glyph atlas uploads are a real GPU cost on low-end Android; RTL shaping is a size cost we don't need (Hindi/English content → fine) |
+| verdict | ⚠️ **conditional**: adopt only inside the Phase-5 3D scene, never for page type. MIT, active |
+
+### S2 · `@react-three/postprocessing` — upstream **`pmndrs/react-postprocessing`** (★1,498, MIT, pushed **2026-10-21**)
+| field | value |
+|---|---|
+| package | `@react-three/postprocessing@3.2.2`, published **2026-10-21**, MIT; deps `n8ao`, `maath` [VERIFIED-API] |
+| peers | `@react-three/fiber >=9.7.0` · `react ^19.0.0` · `three >= 0.156.0` · `postprocessing ^6.36.0` [VERIFIED-API] |
+| correction | Phase 1 skipped it for "no React 19 guarantee" — **the peer range explicitly requires React 19**, and the repo is active. The rejection stands on **cost**, not compatibility [VERIFICATION_LOG C2] |
+| relevance | Bloom/vignette/chromatic-aberration presets are the cheap route to "cinematic"; but every effect adds render passes, which is precisely what our low-power budget forbids |
+| verdict | ❌ **not installed**. If a glow is wanted, do it with one additive sprite or a CSS blur on the poster layer; measured floors in `prototype-lab/measurements.json` show the scene budget is already spent on three itself (130.4–187.5 KB gz) |
+
+### S3 · `oframe/ogl` — the licence question, answered properly
+| field | value |
+|---|---|
+| repo | ★4,745 · pushed **2025-04-13** · **API reports no SPDX licence** (`NONE` in the atlas) · not archived [VERIFIED-API] |
+| licence reality | The repo has **no `LICENSE` file** (contents API 404s on `/LICENSE`), but `package.json` and the npm registry both declare **`Unlicense`** [VERIFIED-FILE] |
+| package | `ogl@1.0.11`, published **2025-01-27** — **21 months stale**; zero runtime deps; exports `.` and `./src/*` [VERIFIED-API] |
+| what it demonstrates | A ~30 KB minimal WebGL abstraction (geometry/program/camera only, no scene graph) — the existence proof that "WebGL background" ≠ "import three" |
+| relevance | Our hero shader needs no abstraction at all (ex05 measured **6.6 KB js / 3.1 KB gz** with raw GLSL in `prototype-lab/src/ex05-shader-bg/`), so OGL buys us nothing we can't do in 60 lines |
+| verdict | ❌ rejected — **for staleness, not licensing**. Note for AO: an `Unlicense` package with no `LICENSE` file is a weaker legal position than MIT; do not vendor code from it |
+
+### S4 · `@tanstack/react-virtual` — the one perf tool we would actually add
+| field | value |
+|---|---|
+| repo | `TanStack/virtual` ★**7,180**, pushed **2026-11-01** (same-day activity), MIT, monorepo root `package.json` name `root` [VERIFIED-API/FILE] |
+| package | `@tanstack/react-virtual@3.14.25`, published **2026-11-01**, MIT, single dep `@tanstack/virtual-core`, peers `react ^16.8 ‖ ^17 ‖ ^18 ‖ ^19` [VERIFIED-API] |
+| what it demonstrates | Headless windowing: it renders only the rows in view and reports the spacer sizes; no DOM opinion, so it composes with our `<DocCard>` and with `content-visibility` |
+| relevance | **The answer to "what happens at 2,000 documents"** — the scaling question `audit/stack-audit.md` §3 raised. Grid rows of cards, and the mobile facet list, are both virtualisable |
+| verdict | 💡 **deferred, not rejected**: add it in the phase where the dataset passes ~200 records, *or* rely on pagination + `content-visibility: auto` first. Cheapest correct order: server pagination → virtualisation only for the facet list if it grows |
+
+### S5 · `cmdk` (repo `dip/cmdk`) — status corrected
+| field | value |
+|---|---|
+| repo | ★**13,062**, pushed **2025-10-29**, MIT, **not a fork** (the repo moved; `pacocoursey/cmdk`, which npm metadata still cites, now 404s) [VERIFIED-API] |
+| package | `cmdk@1.1.1` published **2025-03-14** — i.e. **19 months since a release**, not "active" as Phase 1 implied [VERIFIED-API / LOG C5] |
+| README claims (their words, unverified) | "Fast, unstyled command menu React component… you render items, it filters and sorts them automatically", composable API, bundlephobia badge |
+| what it demonstrates | The combobox/dialog composition our hand-rolled `CommandPalette` lacks (`aria-activedescendant`, roving focus, auto-filter/sort) — [VERIFIED-FILE] our palette implements only arrows/Enter/Esc |
+| relevance | Phase 3 candidate for the palette. Stability is acceptable for a component this small, but AC should treat it as frozen: **pin `1.1.1`**, expect no upstream fixes, and budget owning the fork |
+| verdict | ⚠️ **conditional** (unchanged from Phase 1 `frontend-components.md` §3): swap in Phase 3 with a11y tests, never during styling |
+
+### Net effect of the supplement
+
+| status | before | after |
+|---|--:|--:|
+| `◆ inspected (deep)` repos | 72 | **77** |
+| evaluation cards in this file | 35 | **40** |
+| open items in `GITHUB_RESEARCH_GAPS.md` § still-open | 5 | **2** (both browser-only) |

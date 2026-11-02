@@ -1,5 +1,7 @@
 # Stack Audit — What the Project Actually Is
 
+
+> **⚠️ SUPERSEDED IN PARTS (2026-11-02).** AC's branch has since gained Supabase catalog migrations, 18 routes (incl. `/admin/*`), a server-rendered landing, self-hosted fonts, a lockfile and a `data-theme` refactor. Read `../phase2/AC_BRANCH_DELTA.md` for the current baseline; the sections below remain accurate **as of 2026-11-01** and are preserved as history, not deleted.
 **Audited:** 2026-11-01 · **Commit:** `4307a6884527e22af27541cd76722867e5e6bb14` ("Initial upload of Harshit Presentation Hub") · **Branch audited:** `main` (default branch per `origin/HEAD`) — read-only inspection
 **Method:** direct file reads of the checkout. No assumptions from the mission brief.
 

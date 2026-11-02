@@ -15,15 +15,18 @@ listed, not hidden.
 | 5 | `PERFORMANCE_BUDGETS.md` | route budgets, CWV targets, WebGL rules, CI gate | a 150 KB gz 3D budget is unreachable; here is what is |
 | 6 | `ACCESSIBILITY_GUIDELINES.md` | motion states, keyboard contracts, test plan, AC-side findings | 5 reported file-level issues in AC's branches (not fixed by AK) |
 | 7 | `COMPATIBILITY_MATRIX.md` | does any of this fight AC's real code? | no ❌ anywhere; 8 named constraints/conflicts instead |
-| 8 | `REPOSITORY_ATLAS.md` | the discovery record: every repo, category, licence, activity, status | **1,914 in-scope rows** of 2,566 unique repos; 72 inspected; 35 recommended |
+| 8 | `REPOSITORY_ATLAS.md` | the discovery record: every repo, category, licence, activity, status | **1,914 in-scope rows** of 2,566 unique; **77 inspected**, 40 evaluated, 15 recommended |
 | 9 | `REPOSITORY_QUALITY_RANKING.md` | how the shortlist was scored, and what was deliberately dropped | ranking alone would have promoted 18 off-topic repos |
 | 10 | `TOP_35_DEEP_EVALUATIONS.md` | 35 evaluated from fetched README + `package.json` | deps/libs read from source, not from prose |
 | 11 | `TOP_15_AC_REFERENCES.md` | the 15 references AC should actually open | each has a do-this / not-this line |
-| 12 | `WEBSITE_ATLAS.md` | 154 experiences, 10 fields, with observed vs verified kept apart | only **1** verified award winner in the fetched sample; no URL invented |
+| 12 | `WEBSITE_ATLAS.md` | **168** experiences, 10 fields, observed vs verified kept apart | §E adds 14 entries with URL **and** award both verified (13 also hold a Developer Award) |
 | 13 | `INTERACTION_BREAKDOWNS.md` | 14 patterns from effect → mechanism → code → cost | "premium" is mostly CSS + one measured exception |
 | 14 | `VISUAL_DESIGN_PATTERNS.md` | type, grid, depth, glass, gradients, dark/light, card spec, anti-patterns | the card spec is ready to paste |
 | 15 | `FRONTEND_IMPLEMENTATION_SEQUENCE.md` | 12 steps, each with a gate | steps 1–6 add no dependency at all |
-| 16 | `GITHUB_RESEARCH_GAPS.md` | what's missing and why, updated after the run | gaps reported, not padded |
+| 16 | `GITHUB_RESEARCH_GAPS.md` | what's missing and why, updated after the run + closure pass | 3 of 7 open items closed with evidence; 4 remain and stay honest |
+| 17 | **`VERIFICATION_LOG.md`** | the 2026-11-02 second-session pass: re-run lab, atlas audit, 11 corrections | the lab reproduces **byte-identically**; 18/18 sampled atlas rows exist, 0 invented URLs |
+| 18 | **`AC_BRANCH_DELTA.md`** | what AC actually shipped since the pack was written + 4 live defects in AC's code | D1 and D7 are closed by AC; read this before `AC_IMPLEMENTATION_PLAYBOOK.md` §1 |
+| 19 | `tooling/` | the audit scripts, committed so a re-provisioned sandbox can't lose them | `verify_atlas.py --sample 40` re-checks the atlas against the API |
 
 ## Method, in three lines
 

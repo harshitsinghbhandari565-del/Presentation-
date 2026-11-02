@@ -141,3 +141,27 @@ AC pushed while Phase 2 was in flight: `arena/c9d0d599-presentation` moved `380a
 **No AK file was edited in response beyond this note:** the recommendations were written to be additive and are
 unaffected by auth hardening. If AO merges AC's branch first, re-read `package.json` before applying step 2 of
 `FRONTEND_IMPLEMENTATION_SEQUENCE.md` (the mini-import step), since framer-motion's version line is its precondition.
+
+---
+
+# Phase 2.1 milestone report to AO — 2026-11-02
+
+Second AK session. Scope was **verification, re-sync and gap closure**, not fresh re-research. Format follows the mission's required final-report structure.
+
+| # | item | answer |
+|---|---|---|
+| 1 | branch & commit | `arena/9d055deb-presentation` — prior tip `2f3c352`, this session's commit is the new tip (`git rev-parse HEAD`); nothing merged; `main` @ `4307a68`; `AC-Branch` untouched at `cac9c7f` |
+| 2 | distinct repositories catalogued | **2,566 unique / 1,914 in-scope**, every category over target (161/151/138/266/235/152/192/160/459 vs 45/40/30/35/40/35/20/25/30). Spot-audit: **18/18 sampled rows exist on GitHub, 0 invented URLs** |
+| 3 | deep evaluations | **77 repos inspected from source** (72 + 5 this session), **40 evaluation cards**, **15 `★ recommended` AC references** |
+| 4 | website experiences | **168** (154 + 14 new §E rows where both the URL and the SOTD/Developer award are read off a fetched listing); three.js gallery counted precisely: 622 examples = **300 WebGL / 243 WebGPU** |
+| 5 | prototype status | 10/10 built, **20/20 headless assertions**, **re-measured byte-identically on a clean install** → the numbers are reproducible, not transcribed. Served live on port `8123` for your visual sign-off. **No AK visual/fps claim** — the sandbox has no browser (`VERIFICATION_LOG.md` §2) |
+| 6 | strongest discoveries | (a) raw-GLSL animated background costs **3.1 KB gz** vs **192 KB** once three.js is inlined — the single most decision-relevant number in the pack; (b) `framer-motion/mini` + `LazyMotion` = **29.7 KB vs 44.9 KB** today, with **no new dependency**; (c) Lenis is **5.3 KB** — its risk is behaviour, never size; (d) GSAP with ScrollTrigger+Flip+SplitText = **56.1 KB gz** and **not MIT** |
+| 7 | recommended stack | **Tier 0 (nothing new) → Tier 1 (`lenis` gated, optional) → Tier 2 (`gsap` only if a pinned chapter is approved)**. 3D stays behind D3 with one gated scene max |
+| 8 | visual direction | unchanged and reinforced: editorial type-led dark-first "reading room with a projector"; premium from typography + states + one memorable motion idea; §E's 13-of-14 "SOTD + Developer Award" ratio is the empirical backing for structure-over-decoration |
+| 9 | top references for AC | `phase2/TOP_15_AC_REFERENCES.md` (15, each with do-this/not-this) + the 5 new supplement cards (troika `protectwise/troika`, `pmndrs/react-postprocessing`, `oframe/ogl`, `@tanstack/react-virtual`, `cmdk`) |
+| 10 | perf/a11y risks | still: hydration-then-fade on `page.tsx`-style client fetches (AC has since moved to server rendering — see 11), unbounded glass, `view()` pinned scenes on unsupported engines, and **any** WebGL on 4 GB-RAM Android; a11y: A1 below silently removes the editorial face — a typography-contrast issue as much as an a11y one |
+| 11 | **AC delta (new, most urgent)** | `phase2/AC_BRANCH_DELTA.md`: AC shipped Supabase catalog tables (**D1 closed**), `semester text` (**D7 closed as free text** — facets will show variants), 18 routes incl. a 7-page `/admin/*` surface, server-rendered landing (**R1 done**), lockfile, `!important` 15→4, fontsource fonts. Four defects to route to AC: **A1** `--font-editorial: var(--font-editorial)` self-reference (editorial face not applied), **A2** `to_tsvector('simple')` without `setweight` + featured-before-rank, **A3** `embed_url like 'https://docs.google.com/%'` ⇒ **Dropbox rows can never embed** (design must cover the no-preview case), **A4** `seed.sql` has **0 rows** ⇒ the empty state is the default screen |
+| 12 | unresolved | browser-only verification (fps/GPU/layout/AT/screenshots); app-level `next build` bundle numbers (±15 % caveat); education-sector website depth; `src/db/*` + `drizzle.config.json` keep-or-delete; D3/D4/D5/D8 still open |
+| 13 | **exact next action** | Route **A1, A2, A4** to AC as a 3-line fix batch (each is one edit; no design dependency), ask the PO for a 12–24-row seed, then **open `http://<preview>:8123` and visually sign off the 10 lab experiments** — that single act converts the pack's biggest `[UNVERIFIED]` block into evidence. Then answer D3 (is one 3D scene wanted at all?); everything else in Tier 0 needs no approval |
+
+**Pack integrity note:** the sandbox was re-provisioned mid-mission and destroyed `/home/user/research/` (discovery scripts + raw JSONL). The pack itself survived byte-identically and is now fully committed **including** the audit tooling (`phase2/tooling/`), so a future session cannot lose it that way.

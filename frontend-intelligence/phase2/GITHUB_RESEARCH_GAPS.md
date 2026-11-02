@@ -119,3 +119,34 @@ Deeper-inspection targets: **≥60 candidates → 72 shortlisted and inspected**
 5. **No browser ⇒ no visual/fps verification of anything**, including the 10 prototypes (see `INTERACTION_EXPERIMENT_LAB.md` §0).
 6. **`size-limit`/bundle-size CI precedent:** no qualified repo found in the corpus → the §7 proposal in `PERFORMANCE_BUDGETS.md` is AK's construction, not a copied pattern.
 7. **Search-quality claims about AC's SQL** are file-level observations (`to_tsvector('simple')`, no `setweight`) [VERIFIED-FILE]; the *impact* on our users' query set is unmeasured — AC must run the 20-query before/after.
+
+---
+
+# Closure pass — 2026-11-02 (verification session)
+
+The 7 items above were re-tested. Three are closed with evidence; four stay open and stay honest. `[VERIFICATION_LOG.md](./VERIFICATION_LOG.md) §4` holds the raw data.
+
+| # | item | state | what closed it (or why not) |
+|--:|---|---|---|
+| 1 | three.js `webgpu_*` never enumerated | ✅ **closed** | `examples/` tree via API: **622 files → 300 `webgl_*` / 243 `webgpu_*`**, families `postprocessing 33 · materials 19 · tsl 16 · compute 15 · lights 13 · loader 11 · shadowmap 7 · volume 7 · meshlets 6`. Written into `WEBSITE_ATLAS.md` §C and `VERIFICATION_LOG.md` C8 |
+| 2 | `Document discovery / search UX` over-tagged by rules (227) | ⚠️ **stays open, by design** | The atlas is machine-generated; the hand-checked subset is ~35. Kept as a caveat rather than silently re-cut, because re-cutting by hand would be a *judgement* layer on top of a *count*. Anyone quoting the 459-row section must quote the ~35 subset for UX claims |
+| 3 | `@react-three/postprocessing`, `ogl`, `troika-three-text`, `@tanstack/virtual`, lottie alternatives shortlisted but never fetched | ✅ **closed for the four named + `cmdk`** | `fetch_repo_cards.py` runs → 5 cards in `TOP_35_DEEP_EVALUATIONS.md` §5; atlas rows promoted to `◆ inspected (deep)` (72 → **77**). Two findings reverse prior wording: postprocessing's peers **require React 19** (so our rejection is about cost, not compatibility) and OGL's licence is `Unlicense` **declared in package.json only** (no LICENSE file). "Lottie alternatives" stay unpursued — Phase 2 already concluded code-first, and nothing new emerged to change that |
+| 4 | Awwwards depth: 44 names, 1 verified winner; education galleries under-covered | ✅ **materially improved** | `sites_of_the_day` fetched 2026-11-02 → **14 entries with both a real `/sites/<slug>` URL and a listed award (13 of them SOTD + Developer Award)**, added as `WEBSITE_ATLAS.md` §E; total website records **154 → 168**. Still not done: the *origin* domain behind each submission (needs one click each) and education-sector premium sites beyond the single Smithsonian record from Phase 1 |
+| 5 | No browser ⇒ no visual/fps verification | ⚠️ **open** | No chromium/playwright in the sandbox (`which` → nothing). Mitigation shipped: the lab is **served live on port 8123** so AO/AC get a real preview, and `test.mjs`/`build.mjs` were **re-run in a fresh sandbox with byte-identical output** (deterministic pipeline, 20/20 assertions) |
+| 6 | No CI bundle-size precedent found | ⚠️ **open** | The `size-limit` gate in `PERFORMANCE_BUDGETS.md` §7 remains AK's construction, labelled as such |
+| 7 | AC's SQL search-quality observation unmeasured | ⚠️ **open (AC's lane)** | File-level facts stand (`to_tsvector('simple')`, no `setweight`); the before/after query run is an AC task, not research |
+
+## Corrected running totals
+
+| measure | after Phase 2 run | after closure pass |
+|---|--:|--:|
+| unique repositories catalogued | 2,566 | **2,566** (unchanged; atlas rows re-counted = **1,914**, and 18/18 sampled rows verified to exist, 0 invented URLs) |
+| `◆ inspected` repos | 72 | **77** |
+| deep evaluation cards | 35 | **40** |
+| `★ recommended` AC references | 15 | 15 |
+| website experiences | 154 | **168** |
+| prototypes built / assertions | 10 / 20 | 10 / 20 — **re-measured, byte-identical** |
+
+## New tooling (so a future session cannot lose this again)
+
+`phase2/tooling/verify_atlas.py` (row existence + drift triage) and `phase2/tooling/fetch_repo_cards.py` (README + `package.json` + npm card generator) are now **inside the pack**, not in an ephemeral scratch directory. The original discovery corpus (`raw.jsonl`, `catalog.json`) was lost when the sandbox was re-provisioned — see `VERIFICATION_LOG.md` §1; regenerating it would mean re-crawling ~2,900 records, which this pass deliberately did not do.
