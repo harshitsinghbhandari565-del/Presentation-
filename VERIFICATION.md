@@ -87,3 +87,12 @@ Commit: `b1e73b0d7a178995e6135b3b47683a30f85c65a8`.
 - Production-server Playwright/Chromium E2E: 12/12. Axe: zero automated WCAG A/AA violations on public pages in both themes and logout recovery at 320px.
 - Initial Chromium launch failed due to missing sandbox NSPR/NSS libraries; restored locally and reran. One new E2E alert selector was ambiguous with Next route announcer; scoped and reran full suite. No app workaround for sandbox infrastructure.
 - No membership insert, Auth setting, schema, document record, Vercel env or deployment change. Hosted login/cookies/CRUD remain unverified; local results are not production verification.
+
+## Phase 3 re-verification on preservation commit 5a61d6d — 2026-11-02
+
+- Sandbox re-cloned at baseline; working tree preserved the hardened implementation and was committed as `5a61d6d` on `arena/c9d0d599-presentation`. Prior commits are absent from this clone.
+- `npm ci` passed; `npm run lint` passed; `npm run typecheck` passed; `npm run test:unit` **33/33**; `npm run test:db` **15/15**; `npm run build` passed; production-server E2E **12/12** including axe (public pages both themes + logout recovery).
+- Chromium 153.0.8010.0 provisioned no-save via `@sparticuz/chromium` + AL2023 NSPR/NSS libs in `/tmp`; sandbox provision only, not an app/dependency change.
+- Hosted Auth read-only: exact Site URL/redirect, signup disabled, email confirmation required, owner UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` email-confirmed; 1 Auth user, 0 administrators, target membership absent.
+- Data preserved read-only: 1/1/1/0; original document fingerprint `2b7db1a601cd43a0f6a9d88556b74033`; original URLs unchanged.
+- These are local/source + hosted-configuration verifications. Hosted login/logout/cookies, deployed CRUD, public propagation and direct hosted API RLS remain unverified pending Vercel env/deploy approval. Administrator membership remains uninserted pending the AO gate.

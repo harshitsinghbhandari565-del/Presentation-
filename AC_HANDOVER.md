@@ -1,10 +1,14 @@
 # AC handover — Backend Finalization
 
 Updated: 2026-11-02
-Branch: `arena/c9d0d599-presentation`
-Implementation commit: `b1e73b0d7a178995e6135b3b47683a30f85c65a8`
-Prior verified checkpoint: `380afc8` (hosted Auth/account verification and AO gate report)
-Handover refresh: committed immediately after the implementation commit.
+Branch: `arena/c9d0d599-presentation` (active)
+Verified preservation commit: `5a61d6d5b551bf685f565f689fcfd5590c78a26c`
+Prior referenced commits (`b1e73b0`, `380afc8`) are absent from this re-cloned sandbox; see reconciliation below.
+Handover refresh: committed immediately after the preservation commit.
+
+## Repository reconciliation (2026-11-02 resume)
+
+The sandbox was re-cloned at baseline `4307a68`. Prior session commits (`b1e73b0`, `380afc8`, `a0097c7`, `4f9495a`) were not in this clone, and origin no longer had `arena/c9d0d599-presentation` (remote refs: `AC-Branch`, `arena/019fbda9-presentation`, `arena/9d055deb-presentation`, `main`). The working tree preserved the full hardened implementation. AC stayed on the active local branch, re-verified all gates, and preserved the working tree as commit `5a61d6d`. No work was discarded; `5a61d6d` is the authoritative verified commit for this clone. AK's `knowledge/frontend-intelligence` was not present and was not touched.
 
 ## Current status
 
@@ -55,7 +59,7 @@ on conflict (user_id) do nothing;
 
 Verify the exact row and count afterward. Never grant from an email string. Do not add wildcard `*.vercel.app` redirects.
 
-## Implemented Auth hardening — commit b1e73b0
+## Implemented Auth hardening — preserved in commit 5a61d6d
 
 ### Public configuration boundary
 
@@ -95,9 +99,9 @@ Files: `src/lib/admin/authorization.ts`, `auth.ts`, admin login/access-denied pa
 - Access-denied is dynamic, rechecks session, and no longer statically claims an anonymous visitor is signed in. Copy says access is not currently confirmed, covering lookup failures honestly.
 - Server pages/actions still call `requireAdministrator()`; database RLS remains the second enforcement layer.
 
-## Local verification — 2026-11-02
+## Local verification — 2026-11-02 (re-run on commit 5a61d6d)
 
-Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Playwright 1.64.1, Chromium 153.0.8010.0 from `@sparticuz/chromium` with restored AL2023 NSPR/NSS libraries.
+Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Playwright 1.64.1, Chromium 153.0.8010.0 from the npm-hosted `@sparticuz/chromium` package (installed no-save) with AL2023 NSPR/NSS libraries extracted to `/tmp`. This is a sandbox browser provision, not an application change or a dependency addition; `package.json`/`package-lock.json` do not include it.
 
 | Gate | Result |
 | --- | --- |
@@ -113,12 +117,13 @@ Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Playwright 1.64.1, Chromi
 
 New unit tests: `supabase-config.test.ts`, `auth-cookies.test.ts`, `admin-authorization.test.ts`, `logout.test.ts`. E2E adds unconfigured access-denied redirect and logout recovery/cache/noindex/mobile/axe checks.
 
-Failures encountered and resolved:
+Failures encountered and resolved during the re-run:
 
-1. Chromium could not launch: missing `libnspr4.so`. Restored sandbox browser libraries from the Chromium package; no app change.
-2. New logout E2E matched both the page alert and Next route announcer. Scoped the selector to `p[role="alert"]`; full suite passed.
+1. Fresh sandbox had no browser and Chromium could not launch: missing `libnspr4.so`. Provisioned `@sparticuz/chromium` (no-save) and extracted its bundled AL2023 NSPR/NSS libraries to `/tmp`; no app change. The earlier logout-selector fix is already in the source and did not recur.
 
 Local production server: port 3000, bound to `0.0.0.0`, compatibility mode. This is not hosted verification.
+
+Data preservation re-checked read-only: 1 subject / 1 course / 1 document / 0 administrators; original document fingerprint `2b7db1a601cd43a0f6a9d88556b74033`; original Google/Dropbox URLs unchanged.
 
 ## Verified vs unverified
 

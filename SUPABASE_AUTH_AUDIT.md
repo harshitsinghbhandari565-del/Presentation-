@@ -18,7 +18,7 @@ The application already has a real administrator authentication and authorizatio
 - Database RLS and least-privilege grants as a second enforcement layer.
 - No service-role key is required by the application.
 
-Current status (2026-11-02, commit `b1e73b0`):
+Current status (2026-11-02, preservation commit `5a61d6d`; supersedes prior `b1e73b0` after sandbox re-clone):
 
 - Hosted Site URL and redirect allow list are verified correct; public signup is disabled; Email provider and email confirmation are enabled.
 - One owner-created Auth user exists and is email-confirmed: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. Administrator memberships remain 0.
