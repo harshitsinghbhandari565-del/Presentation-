@@ -45,12 +45,12 @@ Hosted status on 2026-11-01: target `nypojddjzzycicfinxbv` (eu-north-1) was owne
 1. Confirm the intended project and region in Supabase before any further changes. Do not recreate the project or reapply the initial migration/seed/grant remediation.
 2. The initial migration `supabase/migrations/202611010001_catalog.sql` and grant remediation `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` are already applied. Any future public table migration must include explicit least-privilege `REVOKE`/`GRANT` statements and verify effective privileges afterward; global Supabase default privileges were intentionally left unchanged.
 3. The seed `supabase/seed.sql` is already applied. It is idempotent and must not overwrite owner-edited metadata; do not use it to reset data.
-4. In Authentication → URL Configuration, set Site URL to `https://harshit-presentation-hub-preview.vercel.app` and add redirect URL `https://harshit-presentation-hub-preview.vercel.app/**`. In Authentication → Providers → Email, keep Email enabled but disable public signup. Then create the owner-controlled administrator user under Authentication → Users. Do not paste passwords into chat or commits. See `SUPABASE_AUTH_AUDIT.md`.
-5. Grant membership explicitly using the user's actual UUID from Authentication → Users, after confirming the UUID with the owner. Never grant membership from an email string supplied in chat:
+4. Hosted Auth URL configuration, signup disabling and owner account creation are already verified for `nypojddjzzycicfinxbv`: Site URL `https://harshit-presentation-hub-preview.vercel.app`, redirect `https://harshit-presentation-hub-preview.vercel.app/**`, Email enabled, public signup disabled, email confirmation required. Do not recreate the account or paste passwords into chat/commits. See `SUPABASE_AUTH_AUDIT.md`.
+5. Grant membership only after AO confirms the verified owner UUID with the Product Owner. The verified UUID is `978a7ac3-7385-4d3d-8b83-51855c8eb25a`; re-read account/membership state before the write. Never grant membership from an email string supplied in chat:
 
 ```sql
 insert into public.administrators (user_id)
-values ('<the-auth-user-uuid>')
+values ('978a7ac3-7385-4d3d-8b83-51855c8eb25a')
 on conflict (user_id) do nothing;
 ```
 
@@ -76,7 +76,8 @@ on conflict (user_id) do nothing;
 
 - **Admin shows setup:** Supabase env values are absent/invalid, or a secret key was rejected. This is fail-closed behavior.
 - **Anonymous write attempts fail with permission denied:** this is expected after the least-privilege grant remediation. Anonymous clients have SELECT only; authenticated non-admin writes are still blocked by RLS.
-- **Access denied after login:** the Auth user lacks a row in `public.administrators`.
+- **Access denied after login:** the Auth user lacks a confirmed row in `public.administrators`, or membership lookup failed closed. Check the AO/owner UUID gate and provider health.
+- **Sign-out was not confirmed:** provider revocation failed or configuration is unavailable. Use the retry action; the session may still be active. Do not treat the redirect as successful logout.
 - **Health 503 `not_configured`:** the retained health route currently checks only optional `DATABASE_URL`, not Supabase. This is expected in compatibility mode but is a pre-production mismatch after Supabase activation; fix the health boundary rather than adding a direct database secret unnecessarily.
 - **Empty sitemap:** set `NEXT_PUBLIC_SITE_URL` and rebuild.
 - **External document won’t open:** check the owner’s sharing permissions in a signed-out browser; the hub cannot bypass them.

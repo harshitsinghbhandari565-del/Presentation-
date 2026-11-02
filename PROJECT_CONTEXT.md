@@ -1,6 +1,6 @@
 # Project context
 
-Updated: 2026-11-01
+Updated: 2026-11-02
 
 ## Product
 
@@ -26,14 +26,14 @@ Harshit Presentation Hub is an educational resource discovery hub for students. 
 - Public routes: `/`, `/library`, `/resources/[slug]`, `/subjects`, `/subjects/[slug]`, `/about`. Legacy `/presentation/[id]` redirects to canonical resource pages.
 - Admin routes live under `/admin`; server pages and server actions recheck authenticated administrator membership. No service-role key is used by the app.
 - `supabase/migrations/202611010001_catalog.sql`, `supabase/seed.sql`, and `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` were applied to the confirmed hosted database through the connector transactional migration workflow. Hosted versions are `20261101134604` (`catalog_schema`), `20261101135344` (`original_resource_seed`), and `20261101153928` (`least_privilege_catalog_grants`). See `SUPABASE_AUDIT.md` and `SUPABASE_DATABASE_VERIFICATION.md`.
-- Phase 3 Auth audit is recorded in `SUPABASE_AUTH_AUDIT.md`. Owner dashboard configuration created one confirmed Auth user and disabled public signup. Hosted Site URL still has a trailing period that must be corrected, and administrator membership is pending explicit owner confirmation of Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. No administrator membership has been inserted yet.
+- Phase 3 Auth audit/hardening is recorded in `SUPABASE_AUTH_AUDIT.md`. Hosted Site URL/redirect/signup/email settings are verified; one email-confirmed owner Auth user exists. Administrator membership is pending AO confirmation of UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` with the Product Owner. Approved config/cookie/logout/authorization hardening is implemented locally at `b1e73b0`; no membership has been inserted.
 - Theme/projector preferences persist locally. Motion respects reduced-motion preferences.
 
 ## Current status
 
 Public experience, discovery, document detail, compatibility mode, responsive themes, SEO/error surfaces and admin source are implemented. Local lint, typecheck, unit tests, PostgreSQL policy/grant tests, production build and production-server browser/E2E checks pass. See `VERIFICATION.md` for exact scope.
 
-**Not production-complete:** Supabase project `nypojddjzzycicfinxbv` (eu-north-1) now has the reviewed schema, original resource, and verified least-privilege catalog grants. The original resource URLs were verified unchanged. The earlier excessive-default-privilege blocker is resolved for `subjects`, `courses` and `documents`; global Supabase default privileges were intentionally left unchanged, so future table migrations must set explicit grants. Phase 3 Auth setup is partially verified: one confirmed owner-created Auth user exists, public signup is disabled, and the redirect allow list is configured. Site URL needs a trailing-period correction and administrator membership is pending owner UUID confirmation. Administrators remain zero. The existing Vercel project still serves compatibility mode because Supabase variables are absent. Auth settings, administrator creation, Vercel environment variables and deployment configuration were intentionally not changed. See `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`; do not claim production readiness.
+**Not production-complete:** Supabase project `nypojddjzzycicfinxbv` (eu-north-1) has the reviewed schema, original resource, and verified least-privilege catalog grants; original URLs are unchanged. Global default privileges remain unchanged, so future table migrations must set explicit grants. Hosted Auth URL/signup/email settings and one email-confirmed owner account are verified. Administrators remain zero pending the AO–Product Owner UUID gate. Approved Auth hardening is locally verified at `b1e73b0`, but the existing Vercel project still serves compatibility-mode `94728bf` because Supabase variables are absent. No membership, Auth setting, Vercel env or deployment change was made. See `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`; do not claim production readiness.
 
 ## Continuity
 

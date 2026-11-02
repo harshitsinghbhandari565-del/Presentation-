@@ -52,3 +52,8 @@ The owner approved and the project applied `202611010002_least_privilege_catalog
 ## D15 — Administrator access is owner-created, UUID-authorized, and signup-disabled
 
 Phase 3 uses the existing Supabase Auth email/password login and `public.administrators` membership boundary. Public signup should be disabled while the Email provider remains enabled for administrator login. The owner creates their own Auth user in the Supabase dashboard; the application/chat never invents credentials. Administrator membership is granted only after the actual Auth UUID is read through the authorized Supabase workflow and confirmed with the owner. Email strings supplied by an unverified user are never an authorization source. Auth cookie/logout/config hardening must be verified before claiming production-ready administrator sessions.
+
+
+## D16 — Auth hardening preserves the existing SSR flow and gates membership through AO
+
+Approved Phase 3 hardening uses a shared public-key config guard, explicit production Secure/SameSite=Lax/host-only cookies, honest logout failure recovery, and centralized fail-closed UUID membership authorization. HttpOnly is not enabled while the browser client manages login cookies; a server-owned login/refresh flow would require separate design approval. Administrator membership for the verified owner UUID requires AO confirmation with the Product Owner before insertion, even though the owner confirmed the UUID in chat. Local hardening tests do not replace hosted login/cookie/CRUD verification.

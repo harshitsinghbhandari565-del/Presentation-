@@ -1,6 +1,6 @@
 # Development progress
 
-Updated: 2026-11-01
+Updated: 2026-11-02
 
 ## Completed and locally verified
 
@@ -22,12 +22,12 @@ Updated: 2026-11-01
 - Added setup/login/access-denied states, server-side administrator membership checks and protected server actions.
 - Added resource create/edit/archive/slug-confirmed permanent delete, category add/edit, metadata preview, admin search/filter/pagination and public-cache revalidation.
 - Added additive Supabase migration/seed with RLS, constraints, indexes, full-text search and facets.
-- PGlite tests verify migration/seed, role policies and least-privilege grants locally. The exact migration/seed and approved grant remediation are applied to the confirmed hosted Supabase project; see `SUPABASE_DATABASE_VERIFICATION.md`. Auth remains unconfigured.
+- PGlite tests verify migration/seed, role policies and least-privilege grants locally. The exact migration/seed and approved grant remediation are applied to the confirmed hosted Supabase project; see `SUPABASE_DATABASE_VERIFICATION.md`. Hosted Auth configuration and the owner account are verified; administrator membership remains pending the AO–Product Owner UUID gate.
 
 ### Phase 6 — quality
 - `npm run lint`, `npm run typecheck`: passed.
-- Unit tests: 14 passed. PostgreSQL/RLS/grant tests: 15 passed.
-- Playwright E2E: 11 passed against development and final local production server.
+- Unit tests: 33 passed. PostgreSQL/RLS/grant tests: 15 passed.
+- Playwright E2E: 12 passed against the final local production server, including logout recovery and admin redirect checks.
 - Axe: zero automated WCAG A/AA violations on landing/library/detail in both themes.
 - Production build: passed. Production dependency audit: zero vulnerabilities.
 - Production-server Chromium screenshots inspected at desktop/mobile in both themes; zero uncaught page errors in smoke check.
@@ -35,9 +35,9 @@ Updated: 2026-11-01
 
 ## Remaining external setup / verification
 
-1. Owner completes Supabase Auth URL configuration, disables public signup, creates their own Auth account, and confirms completion; then verify the actual Auth UUID and grant only that UUID membership.
-2. Address the production audit security/health findings and verify regression tests.
-3. Configure the existing Vercel production environment; decide isolated preview backend configuration before enabling preview writes.
+1. AO confirms Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` with the Product Owner; AC then re-reads state and inserts/verifies only that membership.
+2. Address remaining pre-production findings: honest Supabase health check and preview-backend isolation. Approved Auth config/cookie/logout/authorization hardening is complete locally.
+3. Obtain separate approval, then configure the existing Vercel production environment and decide isolated preview backend configuration before enabling preview writes.
 4. Deploy and verify hosted login/logout, CRUD/archive/delete, public propagation and API RLS.
 5. Owner verifies original Google/Dropbox sharing permissions; review backup/monitoring procedures.
 6. Run GitHub CI and broaden Safari/Firefox/physical-device/assistive-technology coverage; review moderate dev-only advisories without forced breaking downgrades.
@@ -45,7 +45,7 @@ Updated: 2026-11-01
 
 ## Current runtime
 
-Local production server (`next start`) is running on port 3000, bound to 0.0.0.0. A durable Vercel preview is available at `https://harshit-presentation-hub-preview.vercel.app`. Both use compatibility mode because Supabase env values are absent. The old E2B sandbox URL expired; the current raw E2B URL requires a traffic token. The Vercel URL was opened and verified externally.
+Local production server (`next start`) is running on port 3000, bound to 0.0.0.0, at implementation commit `b1e73b0`. The durable Vercel preview at `https://harshit-presentation-hub-preview.vercel.app` still serves `94728bf`. Both use compatibility mode because Supabase env values are absent. The old E2B sandbox URL expired; the current raw E2B URL requires a traffic token. The Vercel URL was opened and verified externally.
 
 
 ## Production Supabase audit — 2026-11-01
@@ -101,3 +101,12 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Identified owner-created Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`; membership is pending explicit owner UUID confirmation.
 - Advised owner to keep Confirm email enabled; the owner account is already confirmed.
 - No membership, Auth setting, Vercel environment variable, deployment, schema, or document record was changed.
+
+
+## Phase 3 Auth hardening and AO gate — 2026-11-02
+
+- Re-verified hosted Auth: exact Site URL (trailing-period defect resolved), exact redirect pattern, signup disabled, email confirmation required, one email-confirmed owner Auth user, zero administrator memberships.
+- Reported UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` and confirmation evidence to AO. Membership remains blocked until AO confirms the UUID with the Product Owner.
+- Implemented approved hardening in commit `b1e73b0`: shared public-key config guard, explicit secure/same-site/host-only cookie policy, honest logout failure recovery, centralized fail-closed administrator authorization, dynamic/no-store admin states.
+- Local verification: `npm ci`, `npm run check`, unit 33/33, database 15/15, production build, production-server E2E 12/12, axe clean on public pages and logout recovery.
+- No membership insert, Auth setting, schema, document record, Vercel env or deployment change. AK branch/frontend redesign untouched.

@@ -1,14 +1,14 @@
 # Verification record
 
-Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chromium (Playwright 1.64.1).
+Updated: 2026-11-02. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chromium (Playwright 1.64.1).
 
 ## Passed locally
 
 - `npm run lint` — passed.
 - `npm run typecheck` — passed.
-- `npm run test:unit` — 14 tests passed (URL safety, source preservation, search/filter/sort, URL state, validation, form conversion).
+- `npm run test:unit` — 33 tests passed (URL safety, source preservation, search/filter/sort, URL state, validation, form conversion, Supabase config guard, cookie policy, logout results, administrator authorization).
 - `npm run test:db` — 15 tests passed against PGlite's real PostgreSQL/WASM engine: migration, seed, public reads, anonymous/non-admin denial, administrator membership, draft invisibility, publication/archive/delete, constraints, FK protection, full-text search, idempotent seeding, and least-privilege grant regression tests.
-- `npm run test:e2e` — 11 tests passed against both the local development server and the final local production server (`next start`). Covers landing, search/filter/empty states, debounced focus, mobile filter disclosure, subject/detail/legacy routes, exact original URL, 404, opt-in preview, command dialog keyboard/focus, theme/projector persistence, 320/390/768px overflow, mobile navigation, reduced motion and honest unconfigured admin/health states.
+- `npm run test:e2e` — 12 tests passed against the final local production server (`next start`). Covers landing, search/filter/empty states, debounced focus, mobile filter disclosure, subject/detail/legacy routes, exact original URL, 404, opt-in preview, command dialog keyboard/focus, theme/projector persistence, 320/390/768px overflow, mobile navigation, reduced motion and honest unconfigured admin/health states.
 - Axe WCAG A/AA automated checks — zero violations on `/`, `/library` and the real resource detail in both dark and light themes. This is not a full accessibility certification.
 - `npm run build` — passed; local fonts, no build-time Google Fonts request.
 - `npm audit --omit=dev --audit-level=high` — zero production vulnerabilities.
@@ -76,3 +76,14 @@ Updated: 2026-11-01. Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Chro
 - Deployed production origin observed: `https://harshit-presentation-hub-preview.vercel.app`; deployed `/admin/login` still shows compatibility/setup mode because Supabase environment variables are absent.
 - Local compatibility-mode admin routes do not expose the admin dashboard; unconfigured admin access renders the setup state and protected routes redirect away from admin content.
 - Exact owner dashboard actions and UUID-only membership procedure are documented. Waiting for owner confirmation before account creation or administrator authorization.
+
+
+## Phase 3 Auth hardening verification — 2026-11-02
+
+Commit: `b1e73b0d7a178995e6135b3b47683a30f85c65a8`.
+
+- Hosted read-only verification: exact Site URL/redirect pattern, signup disabled, email confirmation required; owner UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` email-confirmed; 1 Auth user / 0 administrators; target membership absent.
+- `npm ci` passed. `npm run check` passed: lint, typecheck, unit 33/33, database/RLS/grant 15/15, production build.
+- Production-server Playwright/Chromium E2E: 12/12. Axe: zero automated WCAG A/AA violations on public pages in both themes and logout recovery at 320px.
+- Initial Chromium launch failed due to missing sandbox NSPR/NSS libraries; restored locally and reran. One new E2E alert selector was ambiguous with Next route announcer; scoped and reran full suite. No app workaround for sandbox infrastructure.
+- No membership insert, Auth setting, schema, document record, Vercel env or deployment change. Hosted login/cookies/CRUD remain unverified; local results are not production verification.

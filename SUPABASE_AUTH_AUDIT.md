@@ -18,17 +18,17 @@ The application already has a real administrator authentication and authorizatio
 - Database RLS and least-privilege grants as a second enforcement layer.
 - No service-role key is required by the application.
 
-However, hosted Auth is not yet configured for the deployed website:
+Current status (2026-11-02, commit `b1e73b0`):
 
-- Supabase Site URL is still `http://localhost:3000`.
-- Supabase redirect allow list is empty.
-- Public email/password signup is still enabled.
-- There are still 0 Auth users and 0 administrator memberships.
-- The deployed Vercel site still lacks Supabase environment variables and therefore remains in compatibility mode.
+- Hosted Site URL and redirect allow list are verified correct; public signup is disabled; Email provider and email confirmation are enabled.
+- One owner-created Auth user exists and is email-confirmed: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. Administrator memberships remain 0.
+- Approved browser-config, cookie, logout and authorization hardening is implemented and locally verified.
+- Membership insertion is blocked until AO confirms the UUID with the Product Owner.
+- The deployed Vercel site still lacks Supabase environment variables and remains in compatibility mode; env/deploy approval is separate.
 
-The next required action is owner-controlled Supabase dashboard configuration and owner-created Auth account creation. Do not create an administrator or grant membership until the owner confirms the account exists and the actual Auth UUID is verified through the authorized Supabase workflow.
+Do not create an administrator or grant membership until the AO/owner UUID gate is satisfied and the account is re-read immediately before the write.
 
-## Hosted Supabase Auth configuration observed
+## Initial hosted Supabase Auth configuration observed (2026-11-01; superseded by final verification below)
 
 Read-only connector inspection returned:
 
@@ -165,10 +165,10 @@ Current behavior:
 Assessment:
 
 - Correct basic password login flow.
-- The browser client currently reads environment variables directly instead of using the shared Supabase configuration guard.
+- At audit time, the browser client read environment variables directly instead of using the shared Supabase configuration guard. Fixed in `b1e73b0`: the browser client now uses `getSupabaseConfig()` and an explicit public-key allowlist.
 - Login is client-side, so Supabase SSR browser cookies are JavaScript-readable by default. A stronger future hardening step would move login/session writes fully server-side if HttpOnly session cookies are required.
 
-Safe fix, not yet applied:
+Applied fix (commit `b1e73b0`):
 
 - Route `src/lib/supabase/browser.ts` through `getSupabaseConfig()` so a misconfigured secret key cannot reach browser code.
 - Consider a server-action login flow only after explicit approval, because it changes the Auth flow.
@@ -177,7 +177,7 @@ Safe fix, not yet applied:
 
 File: `src/app/admin/actions.ts`
 
-Current behavior:
+Behavior at audit time (superseded by the applied fix below):
 
 ```ts
 export async function signOut() {
@@ -192,7 +192,7 @@ Assessment:
 - Logout errors are ignored.
 - If Supabase sign-out fails, the user is still redirected as if logout succeeded.
 
-Safe fix, not yet applied:
+Applied fix (commit `b1e73b0`):
 
 - Inspect the `signOut()` error.
 - On failure, redirect to a login/error state that honestly reports logout failure.
@@ -212,10 +212,9 @@ Current behavior:
 Assessment:
 
 - This matches the Supabase SSR pattern.
-- Cookie options are currently inherited from Supabase SSR defaults.
-- The installed `@supabase/ssr` default cookie options include `sameSite: "lax"`, `httpOnly: false`, and a long max-age. `secure` is not explicitly set by the application.
+- At audit time, cookie options were inherited from Supabase SSR defaults (`sameSite: "lax"`, `httpOnly: false`, long max-age, no explicit `secure`). Fixed in `b1e73b0` with a shared explicit cookie policy.
 
-Safe fix, not yet applied:
+Applied fix (commit `b1e73b0`):
 
 - Explicitly set production cookie options consistently across browser/server/proxy clients, especially `secure: true` on the HTTPS production origin.
 - Do not blindly set `httpOnly: true` while the browser client still manages login cookies; that can break the current client-side login flow. HttpOnly requires a deliberate server-side session-writing design.
@@ -236,7 +235,7 @@ Assessment:
 
 - Correct separation: proxy refreshes session; pages/actions authorize.
 - The proxy should not be treated as the authorization boundary.
-- The static `/admin/access-denied` page was observed with Next prerender cache headers in local compatibility mode. It contains no user-specific data, but admin cache behavior should be rechecked after hosted Auth activation.
+- The static `/admin/access-denied` page was observed with Next prerender cache headers in local compatibility mode. Fixed in `b1e73b0`: access-denied/login/logout-error are dynamic and admin responses are no-store; hosted cache behavior still requires deployed verification.
 
 ### Administrator authorization
 
@@ -252,7 +251,7 @@ Current behavior:
 
 Assessment:
 
-- Correct fail-closed authorization design.
+- Correct fail-closed authorization design, now centralized in `src/lib/admin/authorization.ts` with exact UUID membership matching and synthetic unit tests for anonymous/non-admin/admin/error paths.
 - Administrator access is not granted by email string.
 - Membership is based on the authenticated Auth UUID.
 - Database RLS independently restricts administrator membership reads and catalog writes.
@@ -294,8 +293,8 @@ After the owner confirms dashboard configuration and account creation:
    - Public signup is disabled.
    - Email provider remains enabled.
 2. Read `auth.users` through the authorized Supabase connector.
-3. Identify the owner-created account and confirm its actual UUID with the owner.
-4. Insert only that UUID into `public.administrators`.
+3. Identify the owner-created account and confirm its actual UUID with the owner. The latest instruction additionally requires AO to confirm the UUID with the Product Owner before insertion.
+4. After the AO gate, re-read the account/membership state and insert only that UUID into `public.administrators`.
 5. Verify membership count and exact UUID.
 6. Verify unauthenticated admin access is denied.
 7. Verify authenticated non-admin access is denied.
@@ -349,3 +348,18 @@ No credentials or API keys were requested or retrieved. No Auth setting or membe
 ## Current blocker
 
 The Product Owner confirmed the UUID in chat, but the latest instruction requires a separate AO confirmation with the Product Owner before membership insertion. That AO gate remains open. Continue approved local hardening/tests only; do not insert membership, configure Vercel, or deploy without the required approvals.
+
+
+## Applied hardening verification — 2026-11-02
+
+Commit `b1e73b0d7a178995e6135b3b47683a30f85c65a8` implements the approved local hardening:
+
+- Shared browser/server/proxy config guard and public-key allowlist.
+- Shared cookie options: production `Secure`, `SameSite=Lax`, `Path=/`, host-only; `HttpOnly=false` intentionally while browser-managed login remains; provider expiry preserved.
+- Honest logout failure recovery at `/admin/logout-error`.
+- Centralized fail-closed administrator authorization with exact UUID membership matching.
+- Dynamic/no-store admin login/access-denied/logout-error states.
+
+Local gates: `npm ci`, `npm run check` (lint, typecheck, 33 unit tests, 15 database tests, production build), and production-server Playwright E2E 12/12 with axe checks. Initial sandbox Chromium NSPR/NSS library failure was resolved locally; one ambiguous E2E alert selector was scoped. No application workaround was used for sandbox infrastructure.
+
+These results verify source/local behavior only. Hosted login, hosted cookies, deployed CRUD and production readiness remain unverified until membership, Vercel env/deploy and hosted checks are completed under their respective approvals.

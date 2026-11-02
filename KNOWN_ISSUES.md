@@ -1,11 +1,11 @@
 # Known issues and blockers
 
-Updated: 2026-11-01. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact local test results are in `VERIFICATION.md`.
+Updated: 2026-11-02. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact local test results are in `VERIFICATION.md`.
 
 ## External blockers (not resolved by code)
 
-- **Supabase partially configured:** project `nypojddjzzycicfinxbv` has the reviewed schema, original resource and approved least-privilege catalog grants applied and verified. Auth users/administrators are still zero. Hosted Auth, cookies, admin CRUD and deployed API/RLS integration remain unverified. The earlier excessive catalog-table privilege blocker is resolved; global Supabase default privileges remain unchanged, so future public table migrations must set explicit grants. See `SUPABASE_DATABASE_VERIFICATION.md`.
-- **No administrator identity:** owner must configure Supabase Auth URLs, disable public signup, create the Auth user, and explicitly grant membership by verified UUID. The app intentionally has no default password, public signup shortcut or service-role key. Phase 3 audit and exact dashboard steps are in `SUPABASE_AUTH_AUDIT.md`.
+- **Supabase partially activated:** project `nypojddjzzycicfinxbv` has the reviewed schema, original resource and approved least-privilege catalog grants applied and verified. Hosted Auth URL/signup/email settings and one email-confirmed owner account are verified; administrators remain zero. Hosted login, cookies, admin CRUD and deployed API/RLS integration remain unverified because Vercel Supabase variables/deployment are approval-gated. Global Supabase default privileges remain unchanged, so future public table migrations must set explicit grants. See `SUPABASE_DATABASE_VERIFICATION.md`.
+- **Administrator membership gated:** owner Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is verified and email-confirmed, but AO must confirm it with the Product Owner before AC inserts membership. The app intentionally has no default password, public signup shortcut or service-role key. See `SUPABASE_AUTH_AUDIT.md` and `AO_HANDOVER.md`.
 - **Vercel preview deployment:** project `harshit-presentation-hub-preview` now exists and serves the branch. It is a preview/staging URL on the hobby plan, not a custom production domain. Supabase/admin remain unconfigured.
 - **Production origin:** `NEXT_PUBLIC_SITE_URL` is configured in the existing Vercel project for the public preview origin. A custom domain is optional and not configured. Preview metadata currently shares the production origin; review during activation.
 - **External permissions unverified:** sandbox network restrictions prevented fetching the original Google/Dropbox destinations. Owner must confirm intentional public sharing; the app cannot guarantee ongoing availability.
@@ -13,7 +13,7 @@ Updated: 2026-11-01. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 ## Production audit findings
 
-See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`. Before production sign-off: disable unnecessary public Auth signup (it does not grant admin access), set the real Auth Site URL and redirect allow list, harden browser config/session cookies and logout errors, and make health check the actual Supabase catalog rather than only optional `DATABASE_URL`. Decide preview database isolation before enabling writable previews. Keep future public table migrations least-privilege because global Supabase default privileges were intentionally not changed. No secret is currently configured in a public variable.
+See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`. Public signup is disabled and Auth URL/redirect settings are verified. Browser config, cookie policy, logout failure handling and administrator authorization hardening are implemented and locally verified at `b1e73b0`. Before production sign-off: complete the AO membership gate, make health check the actual Supabase catalog rather than only optional `DATABASE_URL`, decide preview database isolation, configure/deploy under approval, and verify hosted behavior. Keep future public table migrations least-privilege. HttpOnly/server-owned login, MFA challenge flow and CSP/HSTS remain future work. No secret is configured in a public variable.
 
 ## Product limitations kept visible
 

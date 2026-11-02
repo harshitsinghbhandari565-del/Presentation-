@@ -1,216 +1,150 @@
-# AC handover — backend finalization
+# AC handover — Backend Finalization
 
 Updated: 2026-11-02
-Workstream: AC — backend finalization
 Branch: `arena/c9d0d599-presentation`
-Latest commit inspected before handover creation: `af2f4997c0577975f2a346f115be42a5e50ed032`
-Latest resynchronized HEAD: `4f9495a4d6bc5cbc3c7c1cbad49564e2b94cce43`
-Current phase: Phase 3 — Supabase Auth and secure administrator setup
-Current status: **hosted Auth/account verified; approved hardening in progress; membership awaits AO–Product Owner confirmation**
+Implementation commit: `b1e73b0d7a178995e6135b3b47683a30f85c65a8`
+Prior verified checkpoint: `380afc8` (hosted Auth/account verification and AO gate report)
+Handover refresh: committed immediately after the implementation commit.
 
-## Inspection summary
+## Current status
 
-AC inspected the latest available repository state on `arena/c9d0d599-presentation` and fetched remote refs. The working tree was clean before handover creation. Local HEAD was `af2f499`, which was ahead of `origin/arena/c9d0d599-presentation` by two commits at inspection time.
+Approved Auth hardening and regression tests are complete and locally verified. **Do not insert administrator membership until AO confirms the UUID with the Product Owner.** Vercel environment configuration, preview-backend isolation, and deployment remain separately approval-gated. The deployed Vercel site still serves compatibility-mode commit `94728bf`; the new hardening is not deployed.
 
-Required files inspected:
+AK's `knowledge/frontend-intelligence` branch was not touched. No frontend redesign was performed.
 
-- `AO_HANDOVER.md`: missing before this milestone; created now.
-- `AC_HANDOVER.md`: missing before this milestone; created now.
-- `PROJECT_CONTEXT.md`: read.
-- `PROGRESS.md`: read.
-- `SUPABASE_AUTH_AUDIT.md`: read.
+## Hosted Supabase state — verified read-only
 
-No AK branch was touched. No frontend redesign work was performed.
+Project: `nypojddjzzycicfinxbv`, region `eu-north-1`, status `ACTIVE_HEALTHY`, PostgreSQL `17.11.0.011`.
 
-## Backend state
+### Applied migrations (do not reapply)
 
-### Supabase
-
-Project reference: `nypojddjzzycicfinxbv`
-Region: `eu-north-1`
-PostgreSQL: 17.11.0.011 at last verification
-
-Applied hosted migrations:
-
-| Hosted version | Name | Repository source |
+| Hosted version | Name | Source |
 | --- | --- | --- |
 | `20261101134604` | `catalog_schema` | `supabase/migrations/202611010001_catalog.sql` |
 | `20261101135344` | `original_resource_seed` | `supabase/seed.sql` |
 | `20261101153928` | `least_privilege_catalog_grants` | `supabase/migrations/202611010002_least_privilege_catalog_grants.sql` |
 
-Verified database security state:
+Database evidence: `SUPABASE_DATABASE_VERIFICATION.md`. Catalog tables: `anon` SELECT only; `authenticated` SELECT/INSERT/UPDATE/DELETE; no TRUNCATE/REFERENCES/TRIGGER/MAINTAIN. `administrators`: authenticated own-row SELECT via RLS; anon none. Counts remain 1 subject / 1 course / 1 document / 0 administrators. Original Google/Dropbox URLs unchanged. Global Supabase default privileges were intentionally not changed; future public-table migrations must include explicit least-privilege grants.
 
-- 4 application tables: `administrators`, `subjects`, `courses`, `documents`.
-- RLS enabled on all 4 tables.
-- 7 RLS policies.
-- Catalog table grants:
-  - `anon`: SELECT only.
-  - `authenticated`: SELECT/INSERT/UPDATE/DELETE.
-  - Neither role has TRUNCATE, REFERENCES, TRIGGER, or MAINTAIN on catalog tables.
-- `administrators` remains restricted: authenticated SELECT only, limited by RLS to the caller's own membership row.
-- Global Supabase default privileges were intentionally not changed. Future public table migrations must include explicit least-privilege grants.
+### Auth configuration
 
-Verified data state at last database verification:
-
-- 1 subject: English.
-- 1 course: Class 12.
-- 1 document: `english-lost-spring-mcqs`.
-- 0 administrators.
-- 0 Auth users.
-- Original Google Slides, presentation, embed, and Dropbox backup URLs unchanged.
-- Original repository JSON unchanged.
-
-### Supabase Auth
-
-Verified hosted Auth state on 2026-11-02 after owner confirmation:
-
-- Public signup: disabled (`disable_signup: true`).
-- Email provider: enabled (`external_email_enabled: true`).
+- Site URL: `https://harshit-presentation-hub-preview.vercel.app` — exact, trailing-period defect resolved.
 - Redirect allow list: `https://harshit-presentation-hub-preview.vercel.app/**`.
-- Email confirmation required: `mailer_autoconfirm: false`.
-- Unverified email sign-ins: disabled (`mailer_allow_unverified_email_sign_ins: false`).
-- Phone/OAuth/anonymous users: disabled.
-- Refresh token rotation: enabled.
-- Custom SMTP: not configured.
-- Auth users: 1.
-- Administrator memberships: 0.
-- Owner-created Auth UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
-- The owner-created Auth user's email is confirmed.
+- `disable_signup: true`; `external_email_enabled: true`.
+- `mailer_autoconfirm: false`; `mailer_allow_unverified_email_sign_ins: false`.
+- Refresh token rotation enabled; reuse interval 10 seconds; JWT expiry 3600 seconds.
+- Phone/OAuth/SAML/anonymous providers disabled. TOTP MFA project-level enroll/verify enabled, but the app has no MFA challenge flow; do not enroll the administrator yet.
 
-The earlier trailing-period Site URL mismatch is resolved. The latest read-only verification also confirmed `email_confirmed_at = 2026-11-01T23:51:46.943756+00:00`, provider `email`, no deletion/ban, and no last sign-in yet.
+### Owner account and membership gate
 
-Confirm email guidance:
+- Auth users: **1**; administrator memberships: **0**.
+- UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+- Provider: email; `email_confirmed_at: 2026-11-01T23:51:46.943756+00:00`.
+- `deleted_at: null`; `banned_until: null`; `last_sign_in_at: null`.
+- Target UUID has no administrator membership.
 
-- Keep **Confirm email** enabled.
-- The owner-created account is already confirmed, so this setting does not block the owner.
-- Do not enable unverified email sign-ins.
+The Product Owner confirmed the UUID in chat, but the latest instruction requires AO to confirm it with the Product Owner before insertion. **That gate is still open.**
 
-Required coordination before membership:
-
-1. The Product Owner has confirmed the UUID in chat.
-2. AO must additionally confirm UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` with the Product Owner through the agreed workflow and record that confirmation.
-3. AC must re-read the account and membership state before inserting only that UUID.
-
-Do not insert membership until the separate AO gate is satisfied.
-
-### Vercel
-
-Project: `harshit-presentation-hub-preview`
-Project ID: `prj_r1xElM95Mvip4jILWhgX3yWlympi`
-Current production deployment: `dpl_3GwDkTvZR7DbkGGUg5hjSEJMnK52`
-Current production deployment commit: `94728bf`
-Public production alias: `https://harshit-presentation-hub-preview.vercel.app`
-
-Current environment:
-
-- `NEXT_PUBLIC_SITE_URL` is configured.
-- Supabase environment variables are absent.
-- The deployed site remains in compatibility mode.
-- Git automatic deployments are disabled.
-
-Do not change Vercel environment variables or deploy without explicit approval.
-
-## Approved backend hardening still to implement
-
-After owner confirmation and UUID-confirmed membership setup, complete the approved Auth hardening work:
-
-1. **Browser client key validation**
-   - Route `src/lib/supabase/browser.ts` through the shared `getSupabaseConfig()` guard.
-   - Prevent secret/service-role keys from reaching browser-capable code.
-
-2. **Cookie security**
-   - Make production cookie options explicit and consistent across browser/server/proxy clients.
-   - Use `secure: true` for the HTTPS production origin.
-   - Preserve compatibility with the existing Supabase SSR session flow.
-   - Do not blindly set `httpOnly: true` while the browser client still writes login cookies; HttpOnly requires a deliberate server-side session-writing design.
-
-3. **Logout error handling**
-   - Inspect `signOut()` errors.
-   - Do not redirect as if logout succeeded when the provider reports failure.
-   - Surface an honest failure state.
-
-4. **Authorization tests**
-   - Unauthenticated visitors cannot access admin routes.
-   - Authenticated non-admin users are denied.
-   - Administrator membership is checked server-side by Auth UUID.
-   - Server actions recheck administrator authorization.
-   - Database RLS remains a second enforcement layer.
-
-5. **Hosted verification after later approval**
-   - Login.
-   - Logout.
-   - Session persistence/refresh.
-   - Catalog reads.
-   - Admin CRUD/archive/delete.
-   - Public propagation.
-   - Cookie flags and cache behavior.
-
-## Membership procedure after owner confirmation
-
-1. Re-read hosted Auth configuration.
-2. Verify:
-   - Site URL is the deployed HTTPS origin.
-   - Redirect allow list contains the exact deployed origin pattern.
-   - Public signup is disabled.
-   - Email provider remains enabled.
-3. Read `auth.users` through authorized Supabase access.
-4. Identify the owner-created account.
-5. Confirm the exact Auth UUID with the owner.
-6. Only after confirmation, run a targeted membership insert:
+After AO confirmation, re-read the account and membership state, then run only:
 
 ```sql
 insert into public.administrators (user_id)
-values ('<confirmed-auth-user-uuid>')
+values ('978a7ac3-7385-4d3d-8b83-51855c8eb25a')
 on conflict (user_id) do nothing;
 ```
 
-7. Verify the membership row and count.
-8. Document the result.
+Verify the exact row and count afterward. Never grant from an email string. Do not add wildcard `*.vercel.app` redirects.
 
-Never grant administrator access based only on an email supplied in chat.
+## Implemented Auth hardening — commit b1e73b0
 
-## Vercel environment procedure after separate approval
+### Public configuration boundary
 
-Only after explicit approval:
+Files: `src/lib/supabase/config.ts`, `browser.ts`.
 
-- Add `NEXT_PUBLIC_SUPABASE_URL=https://nypojddjzzycicfinxbv.supabase.co`.
-- Add `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` using only the public/publishable/anon key.
-- Preserve `NEXT_PUBLIC_SITE_URL`.
-- Never add a service-role/secret key to `NEXT_PUBLIC_*` or browser code.
-- Decide preview backend isolation before enabling writable preview deployments.
-- Deploy only after separate deployment approval.
+- Browser client uses `getSupabaseConfig()` instead of reading env directly.
+- Requires a clean HTTPS origin and a public key.
+- Allowlist accepts `sb_publishable_…` and legacy anon JWTs; rejects secret/service-role/authenticated/role-less/malformed keys.
+- JWT check is a role/format guard, not signature verification; Supabase validates tokens server-side.
+- No key or provider error payload is logged.
+
+### Cookie policy
+
+Files: `src/lib/supabase/cookies.ts`, `browser.ts`, `server.ts`, `src/proxy.ts`.
+
+- Shared options: `Path=/`, `SameSite=Lax`, host-only (no `Domain`).
+- Production: `Secure=true`. Development: `Secure=false` so local HTTP login remains usable.
+- `HttpOnly=false` intentionally: the current browser client writes login cookies. HttpOnly requires a deliberate server-owned login/refresh flow and separate approval.
+- Provider expiry/refresh semantics are preserved; no fixed `maxAge` override.
+- Proxy applies SSR cache headers and admin responses are `private, no-cache, no-store, must-revalidate, max-age=0` with CDN no-store.
+
+### Logout
+
+Files: `src/lib/admin/logout.ts`, `src/app/admin/actions.ts`, `src/app/admin/logout-error/page.tsx`.
+
+- `revokeSession()` returns true only when the provider confirms revocation.
+- Provider errors, thrown failures, or missing configuration redirect to `/admin/logout-error`.
+- Recovery page states the session may still be active and offers retry; it exposes no private data and is noindex/no-store.
+
+### Administrator authorization
+
+Files: `src/lib/admin/authorization.ts`, `auth.ts`, admin login/access-denied pages.
+
+- `resolveAdministratorAccess()` requires Auth-verified user plus exact UUID membership match.
+- Auth/membership errors fail closed; mismatched membership cannot authorize.
+- Login redirects verified administrators to `/admin`, verified non-admins to `/admin/access-denied`.
+- Access-denied is dynamic, rechecks session, and no longer statically claims an anonymous visitor is signed in. Copy says access is not currently confirmed, covering lookup failures honestly.
+- Server pages/actions still call `requireAdministrator()`; database RLS remains the second enforcement layer.
+
+## Local verification — 2026-11-02
+
+Environment: Node 22.22.3, npm 10.9.8, Next.js 16.4.3, Playwright 1.64.1, Chromium 153.0.8010.0 from `@sparticuz/chromium` with restored AL2023 NSPR/NSS libraries.
+
+| Gate | Result |
+| --- | --- |
+| `npm ci` | passed |
+| `npm run lint` | passed |
+| `npm run typecheck` | passed |
+| `npm run test:unit` | **33/33** |
+| `npm run test:db` | **15/15** |
+| `npm run build` | passed |
+| `npm run check` | passed |
+| Production-server E2E | **12/12** |
+| Axe | zero automated WCAG A/AA violations on public pages in both themes and logout recovery at 320px |
+
+New unit tests: `supabase-config.test.ts`, `auth-cookies.test.ts`, `admin-authorization.test.ts`, `logout.test.ts`. E2E adds unconfigured access-denied redirect and logout recovery/cache/noindex/mobile/axe checks.
+
+Failures encountered and resolved:
+
+1. Chromium could not launch: missing `libnspr4.so`. Restored sandbox browser libraries from the Chromium package; no app change.
+2. New logout E2E matched both the page alert and Next route announcer. Scoped the selector to `p[role="alert"]`; full suite passed.
+
+Local production server: port 3000, bound to `0.0.0.0`, compatibility mode. This is not hosted verification.
 
 ## Verified vs unverified
 
 Verified:
 
-- Hosted schema, seed, and least-privilege catalog grants.
-- Original document/URL preservation.
-- Local unit/database policy tests.
-- Local production build and browser/E2E checks in compatibility mode.
-- Auth implementation audit.
-- Deployed Vercel compatibility-mode admin setup page.
+- Hosted Auth URL/signup/email-confirmation settings and owner account confirmation.
+- Hosted schema/seed/least-privilege grants and local RLS/policy regression tests.
+- Local Auth hardening behavior, unit tests, production build, and local production browser checks.
 
-Unverified:
+Not verified / not done:
 
-- Hosted Auth login/logout/session behavior.
-- Real administrator account authorization.
-- Hosted admin CRUD persistence.
-- Deployed Supabase-backed public catalog propagation.
-- Production cookie flags under hosted Auth.
-- External Google/Dropbox sharing permissions from the owner's perspective.
-- Vercel Supabase environment configuration.
+- Administrator membership insertion (AO gate open).
+- Vercel Supabase environment variables, deployment, hosted login/logout, hosted cookie flags, session persistence, deployed CRUD/archive/delete, public propagation, direct hosted API RLS.
+- Preview-backend isolation decision.
+- Health route still checks only optional `DATABASE_URL`, not Supabase catalog readiness.
+- GitHub CI run, Safari/Firefox/physical-device/assistive-technology sign-off, external document sharing permissions, backups/monitoring.
+- HttpOnly/server-owned login, MFA challenge flow, CSP/HSTS, password-policy/CAPTCHA enhancements.
 
-## Blocker
+## Next actions
 
-Membership is blocked by the AO–Product Owner confirmation gate for Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. Hosted URL configuration and account email confirmation are verified. AC may continue approved local Auth hardening/tests, but must not insert membership, change Vercel variables, or deploy without the respective approvals.
+1. AO confirms UUID with Product Owner; AC then inserts/verifies the single membership row.
+2. Obtain separate approval for Vercel env values and preview isolation; use only public/publishable Supabase values, never service-role.
+3. Deploy approved commit and verify the full hosted workflow on the exact Vercel origin.
+4. Address health-check boundary and remaining pre-production findings before production sign-off.
+5. Keep both handovers, `SUPABASE_AUTH_AUDIT.md`, `PROGRESS.md`, `VERIFICATION.md`, `KNOWN_ISSUES.md`, and related continuity docs current after each milestone.
 
-## Resume checkpoint — 2026-11-02
+## Restrictions
 
-- Actual branch/HEAD: `arena/c9d0d599-presentation` / `a0097c7c19a12c48c9f2b70877edb919e5645ba2`; clean and equal to fetched remote before edits.
-- Required handovers and Auth audit read.
-- Hosted Site URL/redirect/signup/email settings verified; target account email confirmation verified from `auth.users`, not assumed.
-- UUID and confirmation evidence reported to AO in `AO_HANDOVER.md`; membership remains 0.
-- Approved backend hardening is proceeding independently of the membership gate. AK's branch and frontend research are untouched; no frontend redesign.
-- Dependencies/browser artifacts were absent in the resumed sandbox; clean `npm ci` and fresh local verification are required before reporting test results.
-- Next: implement shared browser key validation, explicit compatible cookie security, honest logout failure handling, and authorization regression tests; then update this checkpoint with exact commit/test results.
+No secrets in chat/logs/commits. No administrator creation or membership without the required owner/AO workflow. No Vercel env/deploy, schema, or document-record changes without approval. No AK branch changes or frontend redesign. Preserve existing architecture, original URLs, and all prior work.
