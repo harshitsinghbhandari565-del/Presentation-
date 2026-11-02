@@ -10,12 +10,13 @@
 
 This is a **research-only** deliverable. No application code was modified. Everything lives under `frontend-intelligence/`.
 
-Two documents are load-bearing:
+Three documents are load-bearing:
 
 | Document | Read if you are |
 |---|---|
 | [`AC_IMPLEMENTATION_PLAYBOOK.md`](./AC_IMPLEMENTATION_PLAYBOOK.md) | **AC.** The only file you strictly need. Stack, section architecture, animation plan, recipes, sequence, budgets. |
 | [`AO_HANDOVER.md`](./AO_HANDOVER.md) | **AO.** Status, findings, decisions needing approval, risks. |
+| [`phase2/APPROVED_DESIGN_IMPLEMENTATION_SPEC.md`](./phase2/APPROVED_DESIGN_IMPLEMENTATION_SPEC.md) | **AC, implementing the approved design.** The PO-approved direction (Geist + Newsreader · pinned storytelling + one optional 3D scene · GLSL ambient with CSS fallback) turned into rules, budgets and a 4-PR sequence. Paired with [`phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md`](./phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md), which is what AO audits — 36 rows, each labelled measured / proposed-target / unverified. |
 
 Everything else is supporting evidence and deeper reference.
 

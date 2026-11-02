@@ -176,7 +176,28 @@ AK went one step further than static analysis: **AC's committed tree was extract
 | shared runtime / CSS / fonts | 128.8 KB gz · 12.8 KB gz · 91.7 KB in 2 self-hosted woff2 with adjusted fallback metrics |
 | is the pack's "client-fetched landing page" criticism still true? | **no** — `/` prerenders (ISR, `revalidate: 1m`) with the `<h1>` in the initial HTML and **no `<img>`** on the page |
 | is AC's reduced-motion handling adequate? | **better than assumed** — `scroll-behavior: auto`, `.01ms` durations, hover transforms disabled on `reduce`, plus a `hover: none` block (globals.css:359-360). Only the non-reduced `smooth` + Lenis coexistence remains |
-| what is provably missing in the built HTML | `aria-live` result announcements (0 occurrences) and skeleton states; and the 7-file `/admin` surface has no design-system coverage |
+| what is provably missing in the built HTML | ~~`aria-live` result announcements (0 occurrences)~~ — **corrected the same day, do not route the old line to AC**: `/library` does announce (`LibraryControls.tsx` has `role="status" aria-live="polite"` + `aria-busy`), the ⌘K palette is a full combobox. What *is* missing: skeleton states and a root `loading.tsx`. Also unowned: the 7-file `/admin` surface has no design-system coverage |
 | does 3D fit? | not as first load (its chunk alone is 192.2 KB gz = the whole remaining headroom ×3); only as a gated dynamic import, at the cost of ~1.5–3 s extra download on slow 4G |
 
 **Revised next action for AO (supersedes the previous line 13):** tell AC to take the `framer-motion/mini` + `LazyMotion` swap first (measured −15.2 KB, no new dependency, restores most of the headroom), then A2 (search weighting) + a 12–24-row seed, then the two built-HTML gaps above — and hold the D3 (3D) answer until after the mini swap, because with 74 KB of real headroom instead of 59 KB the gating design gets easier. Then open the lab preview on port `8123` for the visual sign-off only a human can give.
+
+## Addendum — approved frontend design specification + acceptance checklist (2026-11-02)
+
+PO's three approvals are now written down as an implementable specification and an auditable checklist,
+both grounded in AC's **current** tree rather than in the pack's assumptions.
+
+| deliverable | what AO has to do with it |
+|---|---|
+| `phase2/APPROVED_DESIGN_IMPLEMENTATION_SPEC.md` | Read §0–§4 (budget, typography, motion, ambient, gated 3D) and answer the **6 open decisions in §9**: (1) `.visual-caption` serif at 15px — keep as the one exception or bump to 17–18px; (2) motion package end-state (keep `framer-motion@12.43.0` root / narrow to `mini`+`LazyMotion` / later move to `motion@14.9.0`) — **the GSAP question stays closed until the licence review is done**; (3) Lenis in or out; (4) does the visible "Load the 3D scene" control ship, or only the automatic gate; (5) light-mode shader treatment; (6) data before polish. §7 lists what AK deliberately excluded (3D text, R3F, `ogl`, postprocessing, virtualisation) so nobody re-opens it casually |
+| `phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md` | The 36-row verdict sheet: **9 rows already pass on the app, 3 measured-fail, 16 open targets, 4 proven only in AK's lab, 4 blocked as `[UNVERIFIED]`**. §G holds the commands; the last table names who signs each layer |
+| `prototype-lab/src/ex11-approved-spec/` | All four approved layers in one page, on AC's real tokens, **22/22 headless assertions** and **6.1 KB gz with zero vendor code**. This is the page the human sign-off should happen on: `http://<preview>:8123/ex11-approved-spec/index.html`, then `?motion=reduce`, then `?fallback=1` |
+
+**Two facts AO should not inherit from older documents:**
+1. **AC's active implementation branch is `arena/c9d0d599-presentation` at `71d6fb9`; `AC-Branch@cac9c7f` is stale.** The spec was written against `71d6fb9` (server-component landing page with `revalidate = 60`, `#how-it-works` `.how-section` three-step block, `MotionConfig reducedMotion="user"`, CSS radial ambient + masked grid). Re-read `git ls-remote` and name the sha in any review note.
+2. **Decision-numbering collision:** AC's `DECISIONS.md` already uses D1–D7 for different things (extend, metadata-only links, catalog/compat mode, Supabase, fail-closed admin, archive-first, URL validation). AK's design decisions are **D-AK1…D-AK4** for exactly this reason. Keep the prefixes in any merged project record.
+
+**AK's posture on the next step:** ready to review AC's implementation diff the moment AO supplies the
+commit — read-only, row-by-row against checklist A→F, with §G re-run inside `/home/user/scratch/` against
+AC's tree. AK does not edit AC's branch, does not merge, and cannot certify anything visual from this
+sandbox: **no browser binary, no GPU, no Lighthouse, no AT, and the Playwright CDN is off the allowlist**,
+so every `[UNVERIFIED]` row needs one human pass on the preview or on AC's dev server to close.

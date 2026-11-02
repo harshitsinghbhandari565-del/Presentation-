@@ -1,4 +1,4 @@
-# Interaction experiment lab — 10 prototypes, built and headlessly executed
+# Interaction experiment lab — 11 prototypes, built and headlessly executed
 
 Location: `frontend-intelligence/prototype-lab/` (isolated; no app code, no app `package.json`, nothing installed into the application).
 Built: 2026-11-02. Toolchain: node 22.22.3, esbuild 0.25.12, node `zlib`/`brotli`.
@@ -9,8 +9,8 @@ Built: 2026-11-02. Toolchain: node 22.22.3, esbuild 0.25.12, node `zlib`/`brotli
 
 | claim | status | how |
 |---|---|---|
-| All 10 experiments compile and bundle | **[VERIFIED]** | `node build.mjs` → 10/10 built, 0 build errors |
-| All 10 run without throwing, in default **and** forced reduced-motion mode | **[VERIFIED]** | `node test.mjs` → **20 passed, 0 failed** (jsdom 26.1.0) |
+| All 11 experiments compile and bundle | **[VERIFIED]** | `node build.mjs` → 11/11 built, 0 build errors |
+| All 11 run without throwing, in default **and** forced reduced-motion mode | **[VERIFIED]** | `node test.mjs` → **22 passed, 0 failed** (jsdom 26.1.0) |
 | Fallback paths (no WebGL, `?fallback=1`, narrow viewport, reduced motion) reach a readable final DOM | **[VERIFIED]** | same harness; assertions on final DOM + reported `mode` |
 | Bundle sizes (minified / gzip / brotli) per experiment and per library | **[MEASURED]** | esbuild + zlib, vendors inlined so numbers are the real added cost |
 | Frame rate, jank, GPU time, memory, paint cost, visual appearance, touch feel | **[UNVERIFIED]** | **no browser binary and no GPU in AK's sandbox** — procedure for AO is in §5 |
@@ -26,7 +26,7 @@ That split is the honest state of the lab. Everything below marked *measured* ca
 cd frontend-intelligence/prototype-lab
 npm install                      # 3 packages of note: three@0.187.0 gsap@3.15.0 lenis@1.3.27 motion@14.9.0 (+esbuild, jsdom)
 node build.mjs                   # → dist/ (each experiment self-contained) + dist/_sizes/table.md
-node test.mjs                    # → headless pass/fail for 10 experiments × 2 motion modes
+node test.mjs                    # → headless pass/fail for 11 experiments × 2 motion modes
 python3 -m http.server 8123 --bind 0.0.0.0 --directory dist    # open http://localhost:8123/
 ```
 
@@ -55,6 +55,7 @@ URL overrides work too, for reproducible Playwright runs: `?motion=reduce`, `?fa
 | 08 | animated subject/course nav (Motion `animate`) | 187.6 KB | **66.6** | 1.1 | motion | same conclusion as 07 — the library is the cost, not the effect |
 | 09 | View Transitions + Lenis bridge | 93.6 KB | **35.1** | 1.3 | lenis + gsap | Lenis is only **5.3 KB gz**; the 35 KB is ScrollTrigger |
 | 10 | mobile-first variant (carousel + bottom sheet) | **4.5 KB** | **2.0** | 3.4 | none | mobile-first is *cheaper*, not just smaller |
+| 11 | **the PO-approved design, assembled** — Geist/Newsreader roles, CSS-pinned story, GLSL ambient + CSS fallback, gated 3D slot | **13.9 KB** | **6.1** | 6.8 | none | the whole approved direction costs less than *one* GSAP feature (44.4 KB) |
 
 **Read this table as one sentence:** the effects AC wants for "premium" are almost free in CSS/`@property`/View Transitions and expensive only when a library is used to deliver what CSS can already do — with the single exception of real 3D, where ~190 KB gz is the floor no matter how small the scene is.
 
@@ -168,3 +169,11 @@ The lab was rebuilt from an empty `node_modules` to test whether its numbers are
 ## 8. The lab's sizes, charged against the real app (2026-11-02)
 
 AC's landing page measures **240.9 KB gz First Load JS** (`AC_APP_MEASURED.md` §1), so every floor in §2b now has a headroom figure attached: mini-swap −15.2 KB (creates room), Lenis +5.3 KB (free), GSAP+ST +44.4 KB (only after the mini swap), full GSAP set +56.1 KB (at the ceiling), and ex06's 192.2 KB particle chunk acceptable **only** as a dynamic import outside first load. The lab's numbers stopped being abstractions the day the app build was measured.
+
+**ex11 is the row that matters for the approved design (`APPROVED_DESIGN_IMPLEMENTATION_SPEC.md`).**
+Its 6.1 KB gz is *not* a component price — it is the whole reference page (harness, ambient layer,
+gates, fallbacks, pinned-story markup, the 3D slot) built with zero vendor code. The ambient shader on
+its own is row 05: **3.1 KB** `js_gz` in `measurements.json` (the §2 column for row 05 was recorded
+against an earlier bundle and reads 2.9 KB; both are "a few KB", and neither is a rounding argument AC
+needs). Charged against the app's measured 240.9 KB landing payload the approved feature set fits with
+room to spare — the risk was never bytes, it is discipline about how many of these layers ship at once.

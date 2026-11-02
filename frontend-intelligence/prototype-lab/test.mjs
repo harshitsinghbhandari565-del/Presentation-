@@ -76,6 +76,17 @@ const EXPS = {
     asserts: [d => d.querySelectorAll(".slide").length === 4, (d, a) => a.open === false && d.querySelector(".sheet").hidden === true,
       d => d.querySelector("[data-sheet]").getAttribute("aria-expanded") === "false"],
   },
+  "ex11-approved-spec": {
+    label: "approved spec — Geist/Newsreader roles, CSS pin, GLSL ambient with CSS fallback, gated 3D slot",
+    asserts: [
+      d => !!d.querySelector("h1.ak-title em"),
+      d => d.querySelectorAll(".pin-step").length === 3,
+      d => d.querySelector(".story").dataset.pin === "off",
+      d => d.querySelector("[data-ambient]").hasAttribute("data-fallback"),
+      (d, a) => a.ambient === "css" && a.scene.mounted === false,
+      d => d.querySelector("[data-gate]").textContent.trim().length > 4,
+    ],
+  },
 };
 
 const REDUCED = {

@@ -11,9 +11,9 @@
   "assistive-technology output"
  ],
  "harness_limitation": "jsdom has no canvas/getContext, so every GL experiment is verified on its documented fallback path only; those 'Not implemented' notices are recorded per experiment as harnessNotes.",
- "pass": 20,
+ "pass": 22,
  "fail": 0,
- "line": "20 passed, 0 failed across 2 passes (default + forced reduced-motion) — headless DOM execution in jsdom 26.1.0. Fallback paths only; no WebGL, no layout, no timing evidence.",
+ "line": "22 passed, 0 failed across 2 passes (default + forced reduced-motion) — headless DOM execution in jsdom 26.1.0. Fallback paths only; no WebGL, no layout, no timing evidence.",
  "results": [
   {
    "pass": "default",
@@ -119,6 +119,19 @@
    "harnessNotes": []
   },
   {
+   "pass": "default",
+   "name": "ex11-approved-spec",
+   "label": "approved spec — Geist/Newsreader roles, CSS pin, GLSL ambient with CSS fallback, gated 3D slot",
+   "ok": true,
+   "why": "ok (+4 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
    "pass": "reduced",
    "name": "ex01-hero-typography",
    "label": "type-led hero — CSS variant and GSAP variant of the same markup",
@@ -216,6 +229,15 @@
    "pass": "reduced",
    "name": "ex10-mobile-variant",
    "label": "mobile variant — snap carousel, bottom sheet closed by default, ARIA wired",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex11-approved-spec",
+   "label": "approved spec — Geist/Newsreader roles, CSS pin, GLSL ambient with CSS fallback, gated 3D slot",
    "ok": true,
    "why": "ok",
    "info": {},

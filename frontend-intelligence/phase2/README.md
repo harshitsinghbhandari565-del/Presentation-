@@ -6,10 +6,12 @@ listed, not hidden.
 
 ## Read in this order
 
+> **If you are here for the approved design (AO, 2026-11-02): read 21 → 22 → 20 → 2.** Rows 1–19 are the evidence those three documents cite.
+
 | # | file | what it answers | headline |
 |--:|---|---|---|
 | 1 | **`AO_FINAL_FRONTEND_BLUEPRINT.md`** | the product blueprint: landing, discovery, detail, design system, responsive architecture, what to install | Tier 0 delivers ~85 % of the brief for **0 KB**; three PO dials decide the rest |
-| 2 | **`INTERACTION_EXPERIMENT_LAB.md`** | the 10 prototypes, their real sizes, what passed headlessly, what no browser could prove | **10/10 build, 20/20 headless assertions**; raw GLSL background **2.9 KB** vs three.js **192 KB** |
+| 2 | **`INTERACTION_EXPERIMENT_LAB.md`** | the 11 prototypes, their real sizes, what passed headlessly, what no browser could prove | **11/11 build, 22/22 headless assertions**; raw GLSL background **3.1 KB** vs three.js **192 KB** |
 | 3 | `RECOMMENDED_STACK.md` | what to add, what to avoid, what's already there | the cheapest win is `framer-motion/mini`: **−15.2 KB gz, no new dependency** |
 | 4 | `TECHNOLOGY_COMPARISON.md` | the nine comparisons with measured numbers | GSAP is 44.4 KB **and not MIT**; Lenis is 5.3 KB and the risk is behaviour, not size |
 | 5 | `PERFORMANCE_BUDGETS.md` | route budgets, CWV targets, WebGL rules, CI gate | a 150 KB gz 3D budget is unreachable; here is what is |
@@ -27,6 +29,9 @@ listed, not hidden.
 | 17 | **`VERIFICATION_LOG.md`** | the 2026-11-02 second-session pass: re-run lab, atlas audit, 11 corrections | the lab reproduces **byte-identically**; 18/18 sampled atlas rows exist, 0 invented URLs |
 | 18 | **`AC_BRANCH_DELTA.md`** | what AC actually shipped since the pack was written + 4 live defects in AC's code | D1 and D7 are closed by AC; read this before `AC_IMPLEMENTATION_PLAYBOOK.md` §1 |
 | 19 | `tooling/` | the audit scripts, committed so a re-provisioned sandbox can't lose them | `verify_atlas.py --sample 40` re-checks the atlas against the API |
+| 20 | **`AC_APP_MEASURED.md`** | AC's own branch, installed + built outside the repo: real per-route sizes, built font cascade, and AK's corrected claims | landing **First Load JS 240.9 KB gz**; fonts 91.7 KB; **3** seed rows / **1** compatibility record |
+| 21 | **`APPROVED_DESIGN_IMPLEMENTATION_SPEC.md`** | the PO-approved design turned into instructions AC can implement: D-AK1 typography, D-AK2 motion, D-AK3 ambient, D-AK4 gated 3D, budget, sequence, open decisions | every clause is measured, preserved from the app, or marked `[PROPOSED]` — no third invention |
+| 22 | **`APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md`** | the 36 rows AO audits that design against, with the exact commands and the honest buckets | **9 pass today · 3 measured-fail · 16 open targets · 4 lab-only · 4 unverified-blocked** |
 
 ## Method, in three lines
 

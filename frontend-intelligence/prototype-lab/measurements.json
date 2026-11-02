@@ -199,6 +199,15 @@
    "js_br": 1740,
    "css": 3471,
    "libs": {}
+  },
+  {
+   "name": "ex11-approved-spec",
+   "title": "Ex11 · Approved spec — Geist/Newsreader roles, CSS-pinned storytelling, GLSL ambient, gated 3D",
+   "js": 14233,
+   "js_gz": 6240,
+   "js_br": 5457,
+   "css": 7003,
+   "libs": {}
   }
  ]
 }

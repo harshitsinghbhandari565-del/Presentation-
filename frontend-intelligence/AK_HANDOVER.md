@@ -189,3 +189,55 @@ To close the last "estimated" caveat, AK extracted AC's exact tree **outside** t
 * **Two of AK's own same-day calls were wrong and are corrected in place**: A1 (the `--font-editorial` self-reference is *not* disabling the face — next/font's unlayered class wins; downgraded to fragility) and A4 (`seed.sql` has **3** inserts, not 0; my first grep pattern was bad). Lesson for the next session: **if a claim can be settled by building, build — do not reason from a grep.**
 * Method that worked and is repeatable in ~90 s: `curl codeload.github.com/<owner>/<repo>/tar.gz/refs/heads/<branch>` → extract to scratch → `npm ci` → `npx next build` → sum `gzip` of the assets each prerendered `/_next/...` route HTML references. No browser needed for sizes.
 * Still impossible here: Lighthouse/LCP/INP/CLS, fps, GPU, screenshots (no browser binary, no Vercel network).
+
+
+## Addendum — the approved frontend design specification (2026-11-02, later the same day)
+
+AO relayed PO's three approvals (typography Geist + Newsreader · motion pinned storytelling with one
+optional 3D scene · ambient GLSL background with a CSS fallback) and asked AK to turn them into a
+specification plus an acceptance checklist, then to be ready to review AC's implementation diff.
+
+**Delivered (all inside `frontend-intelligence/`, nothing else):**
+
+| File | What it is |
+|---|---|
+| `phase2/APPROVED_DESIGN_IMPLEMENTATION_SPEC.md` | D-AK1…D-AK4: rules, tokens, budgets, the 4-PR sequence for AC, the out-of-scope list, and the 6 items still needing AO/PO sign-off. Numbering is **D-AK** because AC's own `DECISIONS.md` already uses D1–D7 for different decisions — the two lists must not be merged |
+| `phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md` | 36 rows in 6 groups (A design language · B motion · C ambient + 3D · D performance · E accessibility · F real data), each labelled `[MEASURED]` / `[PROPOSED-TARGET]` / `[UNVERIFIED]`, plus §G = the exact commands that settle every measured row, and a sign-off table naming who approves what |
+| `prototype-lab/src/ex11-approved-spec/` | A runnable reference for all four layers at once on AC's real tokens: fixed editorial token, raw-WebGL2 ambient (context-loss + restore-refusal + reduced-motion + theme-reactive uniforms reading `--accent`/`--bg`), CSS-only pinned 3-step story (`animation-timeline` + `position:sticky` + `@supports`), and a **gated** 3D slot with `sceneGate()` printing its own reason. **11/11 build, 22/22 headless assertions** (default + forced reduced-motion), 6.1 KB gz with zero vendor code |
+| Updated | `AC_APP_MEASURED.md` (font-loader detail + §4 corrections 5–6), `INTERACTION_EXPERIMENT_LAB.md` (row 11, §8, counts 10→11 / 20→22), `VERIFICATION_LOG.md` (C13, C14, scorecard rows, "what changed" list), `phase2/README.md` (rows 20–22 — note: row 20 for `AC_APP_MEASURED.md` was described in the previous handover but had never actually been added; it is now), pack `README.md` (third load-bearing row) |
+
+**Design positions AK took, and why they are safe to review:**
+
+1. **Motion is CSS-first, not GSAP-first.** No new GSAP line is recommended anywhere in the pack pending
+   the licence review; the pinned story is `@supports (animation-timeline: view())` + `position: sticky`,
+   whose fallback is the app's already-shipped stacked list. If the licence review later lands, the pack
+   already carries the arithmetic (+44.4 KB gz for gsap+ScrollTrigger against 59 KB of measured slack).
+2. **The 3D scene's deliverable is the gate, not the geometry.** 0 KB on first load, dynamic import,
+   `ssr:false`, one canvas per page, blocked on reduced-motion / touch / narrow / low-power / saveData /
+   **`projector-mode`** (an existing app concept AC already uses to suppress hover transforms — reusing
+   it is free), plus a visible "Load the 3D scene" control so PO/AO can demo it without a device farm.
+3. **The ambient layer must obey the app's lighting, not invent its own** — the shader samples
+   `--accent`/`--bg` and matches `.ambient-background`'s `80% 25%` hotspot and 920 px band, because the
+   app has 0 `dark:` utilities and theme switching is `[data-theme]` token reassignment.
+4. **The design is affordable.** Measured landing First Load JS is 240.9 KB gz against a 300 KB budget;
+   the approved feature set costs +3.1 KB (shader) and −15.2 KB (the `framer-motion/mini` swap, which the
+   spec asks AC to *evaluate*, not adopt blindly). Nothing in the approved direction needs a new dependency.
+5. **3D text was formally dropped** in favour of DOM metadata (atlas cost scales with the catalogue, breaks
+   selection/AT/Devanagari) — and with **3** seed rows / **1** compatibility record today `[MEASURED]`,
+   the spec says plainly that data precedes polish.
+
+**AK's honesty ledger for this pass** (two of AK's own claims died during it, both recorded in place):
+- the "live regions for result counts remain unimplemented" claim was **wrong in scope** → C13.
+- the "ship the roman Newsreader file" recommendation was **withdrawn** after reading all 6 editorial
+  rules → C14; instead the spec hands PO one real decision (`.visual-caption` sets serif at 15px, under
+  the spec's own 18px floor).
+
+**Still impossible here, unchanged:** any visual/rendering sign-off. There is no browser binary, no GPU,
+no Lighthouse and no AT in this sandbox, and the Playwright CDN is off the network allowlist, so ex11's
+`[UNVERIFIED]` rows stay `[UNVERIFIED]` no matter how green the headless suite is. AO/AC open
+`http://127.0.0.1:8123/ex11-approved-spec/index.html` (then `?motion=reduce` and `?fallback=1`) — that is
+the only way those rows close.
+
+**AK's next action:** wait for AO to supply AC's implementation commit, then review that diff row-by-row
+against A→F, re-running §G inside `/home/user/scratch/` against AC's tree. AK does not edit AC's branch,
+does not merge, and does not touch `package.json`, config, DB, Supabase, CI or secrets.
