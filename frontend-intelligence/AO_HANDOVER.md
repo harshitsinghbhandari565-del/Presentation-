@@ -121,3 +121,23 @@ URLs) · `phase2/INTERACTION_EXPERIMENT_LAB.md` + `prototype-lab/` (code, build,
 
 ## P2.4 AK's next action pending AO's answer
 Nothing self-initiated. If AO approves Tier 0/1, AK's next act is to (a) add the 12-step gates as Playwright bodies AC can paste, and (b) re-run the lab's size table against **Next's** bundler in AC's app (the ±15 % unknown in `PERFORMANCE_BUDGETS.md` §8) — both still research-only, no app dependency added.
+
+
+---
+
+# Currency re-check at AK's commit time (2026-11-02)
+
+AC pushed while Phase 2 was in flight: `arena/c9d0d599-presentation` moved `380afc8 → b1e73b0 → cac9c7f`
+(**"Harden Supabase Auth config, cookies, logout and administrator checks"** + handover/verification refresh).
+
+| thing Phase 2 relies on | status after AC's new commits |
+|---|---|
+| deps `next 16.4.3`, `react 19.2.6`, `framer-motion ^12.43.0`, tailwind 4.1.17 | **unchanged** → `COMPATIBILITY_MATRIX.md` and the −15.2 KB `framer-motion/mini` finding still hold [VERIFIED-FILE @ cac9c7f] |
+| `git grep gsap\|lenis\|three` → 0 hits | still 0 → no motion library has been added |
+| the 5 reported file-level findings (`ACCESSIBILITY_GUIDELINES.md` §8) | **all still present**: `--font-editorial: var(--font-editorial)`, `html{scroll-behavior:smooth}`, `newsreader-latin-wght-italic` in `layout.tsx` |
+| AC's own `KNOWN_ISSUES.md` | explains the font move ("build-time Google Fonts failure → local font packages"), so the italic-only file may be deliberate for accent use — the **`@theme` self-reference is the unambiguous bug**; AC to confirm intent |
+| new surface AK had not seen | `src/app/admin/access-denied/page.tsx`, `src/app/admin/actions.ts` → the admin surface exists now; Phase 2's blueprint covers public routes only. Any admin motion work should reuse the same tokens, and the fail-closed membership gate (D5) must not be softened by a transition |
+
+**No AK file was edited in response beyond this note:** the recommendations were written to be additive and are
+unaffected by auth hardening. If AO merges AC's branch first, re-read `package.json` before applying step 2 of
+`FRONTEND_IMPLEMENTATION_SEQUENCE.md` (the mini-import step), since framer-motion's version line is its precondition.
