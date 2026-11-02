@@ -224,11 +224,10 @@ pack's guardrail that motion must never obstruct finding a resource:
 | Card hover: `translateY(-5px)` + border + shadow at `.2s`, with `.cover-paper` rotating `-3deg / translateY(12px)` | adopt, unchanged | already the app's `.resource-card:hover` `[MEASURED]`; keep the paper tilt — it is the one playful gesture the design owns. Do **not** add `will-change`; it is unnecessary at one transform and it costs memory per card |
 | Cursor-following spotlight / tilt inside cards | **reject for the app** | `ex07` is 67.5 KB gz *because of* the `motion` vendor import for its `?tilt=motion` variant; the CSS-only build of the same card is **~4 KB** `[MEASURED]`. Lesson: ship the CSS version, and even that only on `.resource-card`, never on a dense results grid where it competes with the links |
 | Animated nav pill | adopt the technique, not the dependency | `ex08` = 66.6 KB gz, of which ~all is `motion`; the app's active state is already `.mobile-navigation > a.active` + `--accent-soft` `[MEASURED]`. A CSS-animated indicator on the desktop nav is the 0-dependency version |
-
 | Page transitions | hold | View Transitions need the `next/experimental/view-transition` route + React 19.3; AC has React 19.2.6 → **unavailable**; re-check when AC upgrades |
 | Search / results feedback | adopt what exists, add what is missing | **correction while writing this spec:** `LibraryControls.tsx` already ships `<p role="status" aria-live="polite"><strong>{total}</strong> resources for <q>…</q></p>` with `aria-busy` on the results region and a proper combobox in the ⌘K palette `[MEASURED]`. AK's earlier note ("live regions remain unimplemented") was inferred from the prerendered landing HTML and was wrong — see `AC_APP_MEASURED.md` §4. The real gap: **no skeletons and no root `loading.tsx`**, so a pending search is a spinner + `opacity:.65` |
 | Magnetic buttons / split-text scramble / horizontal scroll / scroll-jacking | reject | none help a student find a PDF; `ex04` keeps the *pin* shape only |
-| `@studio-freight/lenis`-style smooth scroll | optional | §2; never while `scroll-behavior: smooth` exists |
+| `lenis@1.3.27` smooth scroll | optional, needs AO | §2; **+5.3 KB gz** `[MEASURED]`, and it requires deleting `html{scroll-behavior:smooth}` (the app has it at `globals.css:2` `[MEASURED]`) in the same PR — two smooth-scroll systems on one page is the one way this library actually breaks the experience |
 
 ## 6. Performance + accessibility budgets (the numbers the checklist audits)
 
