@@ -1,7 +1,7 @@
 # Phase 2 — deep repository, website, technology and prototype research (AK)
 
 Branch `arena/9d055deb-presentation`. Phase 1's 31-file pack is **unchanged and still valid** for the stack audit;
-this folder is the Phase 2 layer on top of it. Where Phase 1 estimated, Phase 2 measured — and the corrections are
+this folder is the Phase 2 layer on top of it. Where Phase 1 estimated, Phase 2 measured (and Phase 2.1 measured the app itself) — and the corrections are
 listed, not hidden.
 
 ## Read in this order

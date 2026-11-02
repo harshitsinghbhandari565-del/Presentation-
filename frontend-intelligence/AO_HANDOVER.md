@@ -165,3 +165,18 @@ Second AK session. Scope was **verification, re-sync and gap closure**, not fres
 | 13 | **exact next action** | Route **A1, A2, A4** to AC as a 3-line fix batch (each is one edit; no design dependency), ask the PO for a 12–24-row seed, then **open `http://<preview>:8123` and visually sign off the 10 lab experiments** — that single act converts the pack's biggest `[UNVERIFIED]` block into evidence. Then answer D3 (is one 3D scene wanted at all?); everything else in Tier 0 needs no approval |
 
 **Pack integrity note:** the sandbox was re-provisioned mid-mission and destroyed `/home/user/research/` (discovery scripts + raw JSONL). The pack itself survived byte-identically and is now fully committed **including** the audit tooling (`phase2/tooling/`), so a future session cannot lose it that way.
+
+## Addendum — measured app baseline (2026-11-02, same day)
+
+AK went one step further than static analysis: **AC's committed tree was extracted to a scratch directory and built** (`npm ci` + `npx next build`, exit 0). Nothing in the repo or AC's branch was touched. Numbers are in `phase2/AC_APP_MEASURED.md`; corrections to AK's own earlier severity calls are in §4 of that file.
+
+| what AO can now say, with a measurement behind it | value |
+|---|---|
+| landing page First Load JS | **240.9 KB gz** (budget ≤ 300 KB → **59 KB slack**) |
+| shared runtime / CSS / fonts | 128.8 KB gz · 12.8 KB gz · 91.7 KB in 2 self-hosted woff2 with adjusted fallback metrics |
+| is the pack's "client-fetched landing page" criticism still true? | **no** — `/` prerenders (ISR, `revalidate: 1m`) with the `<h1>` in the initial HTML and **no `<img>`** on the page |
+| is AC's reduced-motion handling adequate? | **better than assumed** — `scroll-behavior: auto`, `.01ms` durations, hover transforms disabled on `reduce`, plus a `hover: none` block (globals.css:359-360). Only the non-reduced `smooth` + Lenis coexistence remains |
+| what is provably missing in the built HTML | `aria-live` result announcements (0 occurrences) and skeleton states; and the 7-file `/admin` surface has no design-system coverage |
+| does 3D fit? | not as first load (its chunk alone is 192.2 KB gz = the whole remaining headroom ×3); only as a gated dynamic import, at the cost of ~1.5–3 s extra download on slow 4G |
+
+**Revised next action for AO (supersedes the previous line 13):** tell AC to take the `framer-motion/mini` + `LazyMotion` swap first (measured −15.2 KB, no new dependency, restores most of the headroom), then A2 (search weighting) + a 12–24-row seed, then the two built-HTML gaps above — and hold the D3 (3D) answer until after the mini swap, because with 74 KB of real headroom instead of 59 KB the gating design gets easier. Then open the lab preview on port `8123` for the visual sign-off only a human can give.

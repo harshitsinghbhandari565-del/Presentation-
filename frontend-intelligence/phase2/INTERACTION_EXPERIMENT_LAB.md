@@ -164,3 +164,7 @@ The lab was rebuilt from an empty `node_modules` to test whether its numbers are
 | preview | `python3 -m http.server 8123 --bind 0.0.0.0 --directory dist` — AO/AC can open all 10 experiments in a browser from this session. That is where §5's checklist finally gets answered by a human; AK still records **no** visual/fps claim |
 
 **One caveat AC must keep:** determinism here means "same bundler, same versions, same flags". Next's own bundler (webpack/Turbopack + its React externals and minifier) can differ by ±15 %, which is why `PERFORMANCE_BUDGETS.md` expresses gates as ranges until AC runs `next build` on the app branch.
+
+## 8. The lab's sizes, charged against the real app (2026-11-02)
+
+AC's landing page measures **240.9 KB gz First Load JS** (`AC_APP_MEASURED.md` §1), so every floor in §2b now has a headroom figure attached: mini-swap −15.2 KB (creates room), Lenis +5.3 KB (free), GSAP+ST +44.4 KB (only after the mini swap), full GSAP set +56.1 KB (at the ceiling), and ex06's 192.2 KB particle chunk acceptable **only** as a dynamic import outside first load. The lab's numbers stopped being abstractions the day the app build was measured.

@@ -179,3 +179,13 @@ unaffected by auth hardening. If AO merges AC's branch first, re-read `package.j
 3. `next build` measurement on AC's app to convert the ±15 %-caveated esbuild floors into app-level numbers (needs AC's tree, so AO's call).
 4. If Phase 3 re-opens discovery: rebuild the pipeline **inside** `phase2/tooling/`, keep `raw.jsonl` in the pack, and re-run `verify_atlas.py` after regenerating.
 5. Optional depth: per-origin URLs for the 14 §E SOTD entries (one click each) and education-sector premium sites beyond Smithsonian.
+
+## Addendum (later the same day) — the app was actually built
+
+To close the last "estimated" caveat, AK extracted AC's exact tree **outside** the repo (`codeload` tarball → `/home/user/scratch/Presentation--AC-Branch`), ran `npm ci` (424 pkgs / 16 s) and `npx next build` (Next 16.4.3 Turbopack, **exit 0**, 11 pages, 10.6 s compile), then measured the output. Repo, AC's branch and every app file remained untouched.
+
+* New deliverable: **`phase2/AC_APP_MEASURED.md`** — per-route First Load JS (**landing 240.9 KB gz**, `/resources/[slug]` 238.1, `/subjects` 231.1, legacy `/presentation/[slug]` 167.2; shared runtime 128.8; CSS 12.8; fonts 91.7 KB in 2 woff2), route graph, built-CSS font cascade.
+* That number turns the pack's `<300 KB` guidance into **59 KB of slack**, which reorders AC's priorities (mini-swap first, GSAP only after it, 3D only as a dynamic import).
+* **Two of AK's own same-day calls were wrong and are corrected in place**: A1 (the `--font-editorial` self-reference is *not* disabling the face — next/font's unlayered class wins; downgraded to fragility) and A4 (`seed.sql` has **3** inserts, not 0; my first grep pattern was bad). Lesson for the next session: **if a claim can be settled by building, build — do not reason from a grep.**
+* Method that worked and is repeatable in ~90 s: `curl codeload.github.com/<owner>/<repo>/tar.gz/refs/heads/<branch>` → extract to scratch → `npm ci` → `npx next build` → sum `gzip` of the assets each prerendered `/_next/...` route HTML references. No browser needed for sizes.
+* Still impossible here: Lighthouse/LCP/INP/CLS, fps, GPU, screenshots (no browser binary, no Vercel network).

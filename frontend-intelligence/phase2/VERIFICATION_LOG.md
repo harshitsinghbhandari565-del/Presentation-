@@ -60,6 +60,7 @@ These are the ones that change a recommendation or a licence statement. `[VERIFI
 | C9 | `GITHUB_RESEARCH_GAPS.md` / open item #3: "WebGPU example enumeration not done" | Done — the numbers in C8 (`examples/*.html` via the API tree, `webgpu_*` filtered) | Gap #3 closed |
 | C10 | Open item #5: "Awwwards SOTD archive depth — 44 names, only 1 verified award winner" | Fetched `awwwards.com/websites/sites_of_the_day/` 2026-11-02: **14 entries with per-site URLs, SOTD dates (2026-10-21 → 11-02) and 13 of them also holding a Developer Award** (Grids/Obys, Dont Look up game, MECHA/widelab, Spyker Cars/The Brink, G. Colombel Portfolio 2026, A24/Ravi Klaassens, Forge Automotive/12 Studio, ESR Bespoke/NIGHTJAR, Ascension—Pegassi/Jesper Landberg, Cartier—Le Chœur des Pierres/makemepulse, …) | WEBSITE_ATLAS gains **§E**, the first section with both a live URL *and* a confirmed award; `Spyker Cars` (previously row 13, listing-only) is now double-confirmed |
 
+| C12 | Every Phase 1/2 bundle figure carried the caveat "esbuild ±15 % vs Next's bundler"; the app's own First Load JS was never known | **Caveat closed.** AK extracted AC's tree (`codeload`), ran `npm ci` (424 pkgs, 16 s) + `npx next build` (Next 16.4.3 Turbopack, **exit 0**, 11 pages, 10.6 s compile) in an isolated scratch dir and measured **landing First Load JS = 240.9 KB gz**, shared runtime 128.8 KB gz, CSS 12.8 KB gz, fonts 91.7 KB / 2 files. Full table + per-route numbers in `AC_APP_MEASURED.md` |
 | C11 | — | **New section: `AC_BRANCH_DELTA.md`.** A read-only re-sync against `origin/AC-Branch` @ `cac9c7f` found that AC has moved far beyond the pack's baseline: Supabase catalog migrations (`administrators · subjects · courses · documents`), 18 route files incl. an `/admin/*` surface, server-rendered landing, self-hosted fontsource fonts, lockfile, `!important` 15 → 4, and **`src/db/schema.ts` still `export {}`** (dead Drizzle path). It also found four live defects in AC's committed code — a self-referential `--font-editorial` token that silently disables Newsreader, `to_tsvector('simple')` with no `setweight` plus "featured-first" ordering, an `embed_url like 'https://docs.google.com/%'` constraint that makes Dropbox embedding impossible by policy, and **`seed.sql` with zero rows** | Phase 1's audit §1 and the playbook's opening premise are now explicitly superseded; `audit/stack-audit.md` carries a pointer banner |
 
 ## 5. Re-verification scorecard
@@ -72,7 +73,8 @@ These are the ones that change a recommendation or a licence statement. `[VERIFI
 | 100+ website experiences (154) | ✅ holds; **+14 rows upgraded** from listing-only to URL+award verified (§E) |
 | 10 prototypes implemented, sizes measured | ✅ **re-measured from a clean install, byte-identical** |
 | Prototype visual sign-off | ⚠️ still open — impossible headlessly; preview is served on `:8123` for AO/AC |
-| Performance budgets / compatibility / stack recommendations | ✅ numbers reproduce; C2/C5/C6/C7 refine four lines |
+| Performance budgets / compatibility / stack recommendations | ✅ numbers reproduce; C2/C5/C6/C7 refine four lines; **C12 replaces the "<300 KB" wish with a measured 240.9 KB landing page (59 KB of slack)** |
+| Two of AK's own same-day severity calls (A1, A4) | ✗ **wrong, corrected in-place** after the build made them checkable — see `AC_APP_MEASURED.md` §4 |
 | "No AC file, app config, lockfile, Supabase, CI or secret touched" | ✅ `git status` clean before this edit; only `frontend-intelligence/**` has ever been modified on this branch |
 
 ## 6. What this pass did *not* change
