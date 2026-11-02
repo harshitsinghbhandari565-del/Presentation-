@@ -28,8 +28,8 @@ tell these apart at a glance, so every row carries its label.
 | # | Acceptance criterion | Label | How it is proven | State today |
 |---|---|---|---|---|
 | A1 | `--font-sans` and `--font-editorial` resolve through *their own* declaration, not through a self-reference that next/font happens to win | `[MEASURED]` fail → `[PROPOSED-TARGET]` fix | build + read the compiled `@theme` output: the `var()` must name a *different* custom property | `globals.css` `@theme` self-references both (`AC_APP_MEASURED.md` §2, delta A1) |
-| A2 | Editorial face stays an emphasis-only device: 6 selector groups today (`em`, `.sheet-middle > span`, `.visual-caption`, `.step-number`, `.filter-note p`, `.detail-aside-note p`) `[MEASURED]`; all 13 `<em>` occurrences sit inside `h1`/`h2`/`h3` | `[MEASURED]` | `grep -o '[^}]*--font-editorial[^}]*}' src/app/globals.css` + `grep -rc '<em' src/app` | **passes**, with one documented exception: `.visual-caption` renders the serif at 15px, under the 18px floor |
-| A2b | That exception is *decided*, not inherited: PO keeps it or bumps it to 17–18px; no new editorial use below 18px is added | `[PROPOSED-TARGET]` | review note on the PR | open (AO/PO call) |
+| A2 | Editorial face stays an emphasis-only device: 6 selector groups today (`em`, `.sheet-middle > span`, `.visual-caption`, `.step-number`, `.filter-note p`, `.detail-aside-note p`) `[MEASURED]`; all 13 `<em>` occurrences sit inside `h1`/`h2`/`h3` | `[MEASURED]` | `grep -o '[^}]*--font-editorial[^}]*}' src/app/globals.css` + `grep -rc '<em' src/app` | **passes**, with one documented exception: `.visual-caption` renders the serif at 15px, under the 18px floor  **→ audit: ❌ FAIL pending PO.** AC's diff adds `h1,h2{font-family:var(--font-editorial)}`, i.e. every h1/h2 is Newsreader and `.optional-shelf h3` opts back in; the emphasis-only rule no longer holds (D-5 in the review). The 15px caption exception is unchanged |
+| A2b | That exception is *decided*, not inherited: PO keeps it or bumps it to 17–18px; no new editorial use below 18px is added | `[PROPOSED-TARGET]` | review note on the PR | open (AO/PO call) | **→ audit: 👁 still open** — the 15px serif caption is untouched by `681800f`; PO decides it together with D-5 |
 | A3 | Italic-only is written down as the design (comment beside `@theme`) instead of looking like a missing file; every editorial rule declares `font-style: italic` | `[MEASURED]` | `layout.tsx:10` passes `style:"italic"` and 5 of 6 rules declare `font-style: italic`; bare `em` relies on the UA default | passes by behaviour, fails as documentation — one comment + one declaration |
 | A4 | New rules consume `--step-*`; the existing px ladder (≈120 declarations across 3 `@media` blocks) is **not** rewritten in the same PR | `[PROPOSED-TARGET]` | `git diff --stat` on `globals.css` + `grep -E "font-size:[^;]*[0-9.]+vw" src/app/globals.css` → raw `vw` only inside `clamp()` | 0 tokens today; hero `clamp(48px,5.2vw,73px)` desktop / `clamp(47px,11.8vw,65px)` at ≤480 `[MEASURED]` |
 | A5 | Light theme legibility: ambient wash re-tuned for `#f8f9fc`, not the dark alpha ×2 | `[UNVERIFIED]` | screenshot pair per theme, PO sign-off | not runnable here |
@@ -41,7 +41,7 @@ tell these apart at a glance, so every row carries its label.
 | B1 | Pinned storytelling on the existing `.how-section`: sticky `.how-intro`, `view()` timeline on `.how-step`, wrapped in `@supports (animation-timeline: view())`, **no** new runtime dependency | `[PROPOSED-TARGET]` | diff review + `git diff main...HEAD -- package.json` must be empty | motion layer is entirely ahead of AK's spec: 0 `animation-timeline`, 0 motion tokens `[MEASURED]` |
 | B1b | Only one motion system touches the steps: the per-step `<Reveal delay={index*0.05}>` is removed or neutralised inside the pinned section | `[MEASURED]` prerequisite + `[PROPOSED-TARGET]` | read the PR diff for `.how-steps` markup | today every step is wrapped in `Reveal` `[MEASURED]` |
 | B2 | Reduced motion → section degrades to a stacked list, identical DOM order, no transform | `[MEASURED]` + `[PROPOSED-TARGET]` | `?motion=reduce` in the lab; app already has `@media (prefers-reduced-motion: reduce)` at `globals.css:359` | CSS block exists; must be extended to new keyframes |
-| B3 | Framer-motion stays the single motion library, and the `/mini` + `LazyMotion` swap is *evaluated* (not silently skipped) | `[PROPOSED-TARGET]` −15.2 KB gz | lab table §2b; re-measure on AC's build with the same script as §D | AC ships root `framer-motion@12.43.0` (44.9 KB gz) `[MEASURED]` |
+| B3 | Framer-motion stays the single motion library, and the `/mini` + `LazyMotion` swap is *evaluated* (not silently skipped) | `[PROPOSED-TARGET]` −15.2 KB gz | lab table §2b; re-measure on AC's build with the same script as §D | AC ships root `framer-motion@12.43.0` (44.9 KB gz) `[MEASURED]` | **→ audit `681800f`: ✅ PASS (superseded).** AC evaluated `/mini` and found it exports only `useAnimate` (AK measured 3.1 KB gz), so the −15.2 KB line was never reachable; they removed the library instead (−41.5 KB) and moved reveals to CSS. Correction C15 in `VERIFICATION_LOG.md` |
 | B4 | **No new GSAP line in `package.json` until the licence review is closed** | `[MEASURED]` constraint | `git diff` on `package.json`; GSAP+ScrollTrigger = +44.4 KB gz `[MEASURED]` | passes today: no gsap dependency `[MEASURED]` |
 | B5 | Every scroll/hover animation is `transform`/`opacity` (+`color`/`border-color`) only | `[MEASURED]` + `[UNVERIFIED]` | `grep -nE "transition: [^;]*(width|height|top|left|margin|filter)" src/app/globals.css`; paint cost needs a real trace | today: card hover animates `transform`/`border-color`/`box-shadow` at `.2s` `[MEASURED]` |
 | B6 | Lenis only if §2's removal condition is met: `html{scroll-behavior:smooth}` deleted in the same PR | `[PROPOSED-TARGET]` | diff review | `globals.css:2` sets it `[MEASURED]` |
@@ -67,7 +67,7 @@ tell these apart at a glance, so every row carries its label.
 | D1 | Landing First Load JS ≤ 300 KB gz | `[MEASURED]` baseline, `[PROPOSED-TARGET]` after | `npx next build` then sum gzip of the assets `/` references (`AC_APP_MEASURED.md` §1) | **240.9 KB** → 59 KB headroom `[MEASURED]` |
 | D2 | Approved additions stay inside the headroom: ambient ≤8 KB, mini-swap ≤0 KB, 3D chunk 0 KB on first load; total after ≤ 300 KB | `[PROPOSED-TARGET]` | same measurement, before/after numbers in the PR description | n/a |
 | D3 | No new dependency line without an AO-approved entry here first | `[MEASURED]` | `git diff main...HEAD -- package.json package-lock.json` must be empty for design PRs | passes at `71d6fb9` |
-| D4 | Landing: 0 `<img>`, 0 external requests, ≤2 font files, `display:swap` with metric-adjusted fallbacks, and the approved layers add no blocking request | `[MEASURED]` | prerendered HTML `grep -o "<img"` → 0; built CSS `size-adjust: 89.08%` + ascent/descent overrides | passes `[MEASURED]`; CLS impact `[UNVERIFIED]` |
+| D4 | Landing: 0 `<img>`, 0 external requests, ≤2 font files, `display:swap` with metric-adjusted fallbacks, and the approved layers add no blocking request | `[MEASURED]` | prerendered HTML `grep -o "<img"` → 0; built CSS `size-adjust: 89.08%` + ascent/descent overrides | passes `[MEASURED]`; CLS impact `[UNVERIFIED]` | **→ audit: ✅ PASS with the file-count line amended** — 0 `<img>`, 0 external requests, **3** woff2 files (148.4 KB) all preloaded, `size-adjust` 106.28 % / 104.8 %; CLS still `[UNVERIFIED]` |
 | D5 | LCP ≤ 2.5 s p75 on 4G, INP ≤ 200 ms p75, CLS ≤ 0.1, long frames ≤ 1 per scroll chapter | `[UNVERIFIED]` | Lighthouse CI + Playwright trace + RUM | not runnable in this sandbox — must be run by AC/AO |
 
 ## E. Accessibility
@@ -76,7 +76,7 @@ tell these apart at a glance, so every row carries its label.
 |---|---|---|---|---|
 | E1 | `<MotionConfig reducedMotion="user">` retained; new CSS motion has its own reduced guard | `[MEASURED]` | `grep -n "reducedMotion" src/app/layout.tsx`; `@media` block extended in the same PR | passes `[MEASURED]` |
 | E2 | Skip link + focus-visible ring + ≥44 px targets on every new control | `[MEASURED]` partial | skip link exists on `/`; `.button{min-height:44px}` exists `[MEASURED]`; new controls must inherit | passes today |
-| E3 | Pinning must not change DOM order or `Tab` order. Steps are `<article>`s in `<div class="how-steps">` today `[MEASURED]` — promoting them to `<ol>/<li>` is welcome, reordering them is not; the numeric rail stays decorative | `[PROPOSED-TARGET]` | markup diff of the PR | n/a |
+| E3 | Pinning must not change DOM order or `Tab` order. Steps are `<article>`s in `<div class="how-steps">` today `[MEASURED]` — promoting them to `<ol>/<li>` is welcome, reordering them is not; the numeric rail stays decorative | `[PROPOSED-TARGET]` | markup diff of the PR | n/a || **→ audit: ✅ PASS with a blessed deviation.** DOM order unchanged; the rail is now a real `<nav aria-label="How it works chapters">` with `aria-current="step"` and a *tested* no-focus-trap guarantee — better than "decorative" (C18). Cosmetic nit: `aria-current` is hardcoded to step 1 on load |
 | E4 | Results region announces its count with `role="status" aria-live="polite"` + `aria-busy` on the region | `[MEASURED]` **pass** | read `src/components/library/LibraryControls.tsx`, not only the prerendered `/` HTML | **already implemented.** This row corrects AK's earlier claim from the same day (`AC_APP_MEASURED.md` §4 row 5); the ⌘K palette is a full combobox (`aria-activedescendant`, `role="listbox"`, `role="alert"`) `[MEASURED]` |
 | E4b | Loading *shape*: skeleton blocks matching the grid, plus a root `loading.tsx` — a pending search today is a spinner + `opacity:.65` | `[MEASURED]` fail → `[PROPOSED-TARGET]` | `ls src/app/loading.tsx` → absent; `grep -ri "skeleton" src/` → 0 hits | fails; the a11y item the design work must not skip |
 | E5 | `forced-colors: active`, 200 % zoom, 320 px width, and keyboard-only walk of the pinned section | `[UNVERIFIED]` | manual AT/zoom pass (procedure in spec §5 of the lab doc) | ex11 has the CSS block `[MEASURED]` in source only |
@@ -140,3 +140,28 @@ cd frontend-intelligence/prototype-lab && npm install && node build.mjs && node 
 | Ambient shader | AO (perf) + PO (look) | ≤ 8 KB gz delta, kill switches demonstrated, light-mode pair |
 | Optional 3D scene | PO (is it wanted?) + AO (gate) | first-load chunk list unchanged, gate reasons shown |
 | Motion library end-state | **blocked on the GSAP licence review** | AO's ruling; until then B3 is evaluate-only |
+
+
+---
+
+## Audit result — implementation commit `681800f` (2026-11-02)
+
+Full evidence: **`AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`**. AK's verdicts, one row per checklist line:
+
+| group | verdicts | the open ones |
+|---|---|---|
+| A design language | ✅ A1, A3 · ◐ A4 · ❌ A2 · 👁 A2b, A5 | PO ruling on serif headings (D-5); light-mode wash needs eyes |
+| B motion | ✅ B1, B2, B3, B4 · ◐ B5 · — B6 · ❌ B1b | double-animated `.how-step` + dead `animation-delay` stagger (D-7) |
+| C ambient + 3D | ✅ C2, C3, C4, C6, C7, C8 · ◐ C1, C5, C9 | grid covered by the opaque canvas (D-3); hardcoded uniforms (D-13); no `failIfMajor` (D-11); post-init context loss leaves dead UI (D-4) |
+| D performance | ✅ D1, D2 · ◐ D3, D4*, D5 | AO to ratify the `three`/`@types/three` lines; Lighthouse still unrun |
+| E accessibility | ✅ E1, E2, E3, E4 · ◐ E4b · ❌👁 E5 | no root `loading.tsx`; no `forced-colors` block anywhere; `data-pending` opacity puts muted text at 4.15:1 (D-8) |
+| F real data | ◐ F1, F2 · ❌ F3 | fixtures never reach a browser; RPC omits the fields the fallback searches (D-1) and bypasses the GIN (D-2) |
+
+**Tally: 22 ✅ · 4 ❌ · 9 ◐ · 3 👁 · 1 —.** The four ❌ rows cost ≈ 40 lines between them and all cluster in
+the migration and the two decorative layers. **Recommendation to AO: ACCEPT WITH CONDITIONS** — conditions
+are review actions 1–5 of §8 (do not apply `202611020001_search_ranking.sql` until D-1/D-2 land, fix the
+ambient layering, add the shelf `onFallback`, then the PO ruling on D-5).
+
+Two rows AK now considers *moot as written*, kept for the record rather than deleted: **B3** (the library
+is gone, so "narrow the import" has no subject) and **D4**'s "≤2 font files" (superseded by the roman
+Newsreader decision in A3 — the pack's budget line, not AC's build, is what changed).

@@ -32,7 +32,7 @@ listed, not hidden.
 | 20 | **`AC_APP_MEASURED.md`** | AC's own branch, installed + built outside the repo: real per-route sizes, built font cascade, and AK's corrected claims | landing **First Load JS 240.9 KB gz**; fonts 91.7 KB; **3** seed rows / **1** compatibility record |
 | 21 | **`APPROVED_DESIGN_IMPLEMENTATION_SPEC.md`** | the PO-approved design turned into instructions AC can implement: D-AK1 typography, D-AK2 motion, D-AK3 ambient, D-AK4 gated 3D, budget, sequence, open decisions | every clause is measured, preserved from the app, or marked `[PROPOSED]` — no third invention |
 | 22 | **`APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md`** | the 36 rows AO audits that design against, with the exact commands and the honest buckets | **9 pass today · 3 measured-fail · 16 open targets · 4 lab-only · 4 unverified-blocked** |
-
+| 23 | **`AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`** | AK's audit of AC's implementation commit `681800f` — four discrepancy audits, 36 checklist verdicts, 14 defects, the migration verdict | **ACCEPT WITH CONDITIONS**; landing JS measured **186.6 KB gz** (was 240.9), ranking RPC measured **281 ms @ 4,016 rows vs 1.9 ms** indexed |
 ## Method, in three lines
 
 - **Discovery:** 50 GitHub topic feeds + 18 maintainer-org listings + ~158 paced searches (`/home/user/research/discover.py`, `gapfill.py`), resumable, API-only; **2,926 raw records → 2,566 unique → 1,914 in-scope** after dedupe + scope rules.

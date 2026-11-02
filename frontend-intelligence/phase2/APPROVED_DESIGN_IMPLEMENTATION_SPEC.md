@@ -196,6 +196,18 @@ blocked if: prefers-reduced-motion · forced fallback flag · pointer:coarse · 
 ```
 `[PROPOSED]` (the predicates are ex02/ex11's `sceneGate()`; each one is an existing, testable signal.)
 
+> **[SUPERSEDED by the implementation audit, 2026-11-02 — C16.]** That list was written for a scene that
+> *auto-loads and animates continuously*. AC's shelf is different in the only way that matters: it is
+> **demand-rendered** (it draws on `resize` and on drag, never on a `requestAnimationFrame` loop), so there
+> is no continuous motion to protect reduced-motion users from and no sustained GPU cost to protect weak
+> hardware from. The gates that survive are **explicit intent + no usable WebGL + projector-mode**, and one
+> that my original list was missing: **`failIfMajor`**, because software WebGL is exactly the case where a
+> "weak device" heuristic earns its keep. `pointer:coarse` / `innerWidth` / `deviceMemory` /
+> `hardwareConcurrency` / `saveData` are **dropped** (they would deny a static object to people who asked
+> for it, while adding untestable branches); `saveData` becomes a disclosure on the button ("≈129 KB")
+> rather than a block. `ex11`'s `sceneGate()` is revised to match, and AC's shipped behaviour is the
+> reference — see `AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md` §3.2.
+
 - Delivery: `next/dynamic(() => import(...), { ssr: false })` mounted only after the trigger is in
   view *and* the main thread is idle. Zero bytes on first load — the 192.2 KB `[MEASURED]` chunk is
   fetched on demand, or not at all.
@@ -234,10 +246,11 @@ pack's guardrail that motion must never obstruct finding a resource:
 | # | budget | status |
 |---|---|---|
 | P1 | Landing First Load JS ≤ **300 KB** gz; currently 240.9 → **≤59 KB** for everything in this spec | `[MEASURED]` baseline |
-| P2 | The approved features alone must land at ≤ 300 KB: `framer-motion/mini` + `LazyMotion` is **−15.2 KB** `[PROPOSED]`; raw-GLSL ambient **+3.1 KB**; 3D chunk **0 KB** on first load | `[MEASURED]` per-item, `[PROPOSED]` combination |
+| P2 | The approved features alone must land at ≤ 300 KB: ~~`framer-motion/mini` + `LazyMotion` is **−15.2 KB**~~ **[CORRECTED 2026-11-02, C15: `framer-motion/mini@12.43.0` exports only `useAnimate` — measured 3.1 KB gz — so the −15.2 KB trim was never reachable through that subpath; the 29.7 KB figure belongs to `LazyMotion+domAnimation+m+useScroll` on the *main* entry. AC's actual move, deleting the library, removed 41.5 KB]**; raw-GLSL ambient **+3.1 KB target / 1.5 KB delivered**; 3D chunk **0 KB** on first load ✅ delivered | `[MEASURED]` per-item, `[MEASURED-AK]` correction |
 | P3 | No new runtime dependency without an AO-approved line in `package.json`. Approved set = **none new** | rule |
 | P4 | First load ≤ 1 canvas, ≤ 1 font swap, 0 external requests, 0 `<img>` on the landing page (it has 0 today) | `[MEASURED]` baseline |
 | P5 | Every animation: `transform`/`opacity` only; no `width`/`top`/`filter` on the scroll path | rule |
+| P6 | **[ADDED by audit]** font files: this spec said "≤ 2 files"; the shipped state is **3 woff2 / 148.4 KB raw, all preloaded, all with `size-adjust` fallbacks** — accepted, and the budget line amended accordingly (roman Newsreader is load-bearing once headings use it) | `[MEASURED-AK]` |
 | A1 | Reduced motion honoured in **all three** places: `<MotionConfig reducedMotion="user">` (exists), the CSS `@media` block (exists — extend it to the new keyframes), the shader/scene gates (new) | `[MEASURED]` 2/3 exist |
 | A2 | Any new interactive control: keyboard-operable, visible focus ring, ≥44 px target, name from DOM text (no icon-only) | rule |
 | A3 | Pinning must not change reading order or `Tab` order; steps stay `<li>` in a `<ol>` | rule |
@@ -274,11 +287,33 @@ open. PR3/PR4 are the only ones that touch rendering.
 ## 9. Open decisions (AO/PO sign-off required before merge, not before PR1–PR2)
 
 1. Non-italic Newsreader file: ship it, or keep the serif italic-only (§1).
-2. Motion package end-state: keep `framer-motion@12.43.0`, narrow to `mini`+`LazyMotion`, or move to
-   `motion@14.9.0` — the last one waits on the licence review (§2).
+2. Motion package end-state: ~~keep `framer-motion@12.43.0`, narrow to `mini`+`LazyMotion`, or move to
+   `motion@14.9.0`~~ — **resolved by AC's implementation: the library is removed outright** and the reveal
+   motion is CSS scroll-driven (0 KB, no licence question left to answer). `motion@14.9.0` stays off the
+   table until the licence review exists.
 3. Lenis in or out (§2).
 4. The visible "Load the 3D scene" control: ship it or rely on the automatic gate alone (§4).
 5. Light-mode shader wash tuning: `u_lightmode` uniform vs a second preset (§3.8).
 6. Data before polish: 3 seed rows / 1 compatibility record cannot show a card grid, a 3-step rail or
    an empty state. AK recommends the mock-data compatibility mode **first**, or the design review will
    be judging a page with one item on it (`AC_APP_MEASURED.md` §5).
+
+
+---
+
+## 10. Audit outcome — 2026-11-02 (`AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`)
+
+The design was implemented in `681800f` on `arena/c9d0d599-presentation` (parent `71d6fb9`, 34 files,
++1,038/−104). AK re-measured AC's build independently. Delivered vs specified:
+
+| spec line | specified | delivered | verdict |
+|---|---|---|---|
+| §0 budget P1 | ≤ 300 KB landing JS | **186.6 KB gz** JS-only (187.0 by AC's own script); **200.4 KB** including CSS, vs 240.9 before → **−40.5 KB** | ✅ |
+| §2 motion | mini-swap −15.2 KB | library deleted, −41.5 KB, CSS reveals behind `@supports` + `no-preference` + `min-width:768px` | ✅ (better; see C15) |
+| §2 hero parallax | keep, CSS-only | **dropped**, and the code comment still promises it | ❌ D-9 |
+| §3 ambient | ≤ 8 KB gz, decorative, pausable, CSS fallback | **1.5 KB gz** chunk; 920 px band; IO/visibility/projector/reduced-motion all wired; DPR 1.25 + ~20 fps throttle | ✅ except the layering bug (grid is covered → D-3) |
+| §4 3D | 0 KB first load, gated, DOM metadata, dispose | 128.3 KB chunk, **0 routes reference it**; click-to-load; DOM labels; full `dispose()`; poster fallback | ✅ except post-init context loss leaves dead UI (D-4) |
+| §6 P4 | ≤ 2 font files | 3 files / 148.4 KB, preloaded, `size-adjust` 106.28 % + 104.8 % | ◐ budget amended (P6) |
+| §1 headings | Geist headings, Newsreader emphasis | **`h1,h2` are Newsreader everywhere** (+ `.optional-shelf h3` opts back in) | ◐ PO ruling (D-5) |
+| §5 tokens | `--step-*`, `--motion-*`, `--ease-*` | type/leading/tracking tokens shipped as `--text-*` (adopt AC's names); **0 motion tokens** | ◐ D-6 |
+| §8 PR1 data | ≥ 12 records | 16 fixtures, but only in the PGlite path; compat mode still 1 record | ◐ F1 |

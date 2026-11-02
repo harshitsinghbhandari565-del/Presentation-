@@ -201,3 +201,59 @@ commit — read-only, row-by-row against checklist A→F, with §G re-run inside
 AC's tree. AK does not edit AC's branch, does not merge, and cannot certify anything visual from this
 sandbox: **no browser binary, no GPU, no Lighthouse, no AT, and the Playwright CDN is off the allowlist**,
 so every `[UNVERIFIED]` row needs one human pass on the preview or on AC's dev server to close.
+
+
+---
+
+## Independent implementation audit — AK → AO, 2026-11-02
+
+**Read `frontend-intelligence/phase2/AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`.** It audits AC's
+`arena/c9d0d599-presentation@681800f` (parent `71d6fb9`, 34 files, +1,038/−104) against the approved spec
+and the 36-row checklist. **AK's recommendation: ACCEPT WITH CONDITIONS.** AC's own
+`FRONTEND_IMPLEMENTATION.md` claims reproduced under AK's independent re-run (build exit 0, tsc 0,
+eslint 0, unit 35/35, db 21/21, prod audit 0 / 20 moderate dev), and its limits section is honest
+("Verified in headless Chromium only").
+
+**Five things need AO (or PO through AO), in priority order:**
+1. **Gate the migration.** `supabase/migrations/202611020001_search_ranking.sql` must not be applied as
+   written: its weighted vector omits the fields the app searches today (measured: `"Sem 2"` → **0 rows**
+   via the RPC vs **1,032** via the existing path; `"Google Drive"` → 0 vs 4,000) and it re-tokenises every
+   published row per query (**281 ms** vs **1.9 ms** indexed at 4,016 rows). An index over the weighted
+   expression is **illegal** (`42P17`, measured on both the expression-GIN and a generated column), so the
+   fix is *filter on `search_vector`, rank on the weighted expression* — measured **57×** faster, no DDL.
+   The `seed.test-fixtures.sql` 16 rows are also PGlite-only: `src/data/presentations.json` is still **1**
+   record, so a browser review of the card grid is still impossible.
+2. **Ratify the dependency line.** `three@0.187.0` + `@types/three@0.187.0` are justified (measured 128.3 KB
+   gz chunk, **0** references from any prerendered route, MIT, prod audit clean) — but spec row D3 asked for
+   AO's approval *before* a `package.json` change, and this one arrived inside the design diff. Say yes
+   explicitly and the rule survives; wave it through and it doesn't.
+3. **PO ruling on the typography role reversal.** AC made **every `h1`/`h2` Newsreader** (plus
+   `.optional-shelf h3`), which is a coherent premium choice but not what the approved spec pinned
+   (Geist headings, serif emphasis). It also made the roman woff2 load-bearing on all routes
+   (91.7 → **148.4 KB**, all three preloaded, `size-adjust` 106.28 %/104.8 %). Either AC's system becomes
+   the spec, or the rule is re-tightened — it should not stay ambiguous between the two documents.
+4. **Two visual defects need eyes before sign-off:** the opaque ambient canvas paints **over**
+   `.ambient-grid` (the grid the spec preserved disappears whenever GL is ready), and after a real GPU
+   context loss the shelf leaves an empty 260 px stage with the button stuck on "3D shelf loaded" and the
+   status line still saying "Drag to rotate". Also: no `failIfMajor` on either GL call site, and **0**
+   `@media (forced-colors: active)` rules anywhere.
+5. **The `[UNVERIFIED]` rows still need a human.** AK has no browser/GPU/AT here, so AC's 17/17 Chromium run
+   is `[REPORTED-AC]` (its existence and test names were verified statically: 5 + 12 = 17, one
+   chromium project at 1440×1000). Everything about look, feel, GPU cost, Lighthouse and AT output needs
+   one pass on AC's dev server or `http://<preview>:8123/ex11-approved-spec/`.
+
+**Two facts AO should not inherit from the older handover rows:** (a) AC's tip is now **`681800f`**, not
+`71d6fb9`; (b) the landing page is **186.6 KB gz** of initial JS, not 240.9 — the 300 KB budget now has
+~113 KB of slack, which retires the "no headroom for GSAP" argument entirely (moot anyway while the licence
+review is unrequested). AK's own numbers carry the same CSS-boundary caveat AC's do: AC's script sums JS
+only, AK's older table summed JS + CSS — §3.3 of the review reconciles them to 0.4 KB.
+
+**Corrections AK made to AK's own pack** are recorded as C15–C18 in `phase2/VERIFICATION_LOG.md` (nothing
+was silently rewritten): the −15.2 KB `/mini` line was mislabelled — **AC was right and AK was wrong**; the
+device-gate list is superseded by AC's demand-rendered scene; the "≤2 font files" budget is amended; and
+checklist E3's "decorative rail" is superseded by AC's tested chapter nav.
+
+**Branch/naming, unchanged and still true:** all of AK's work is on **`arena/9d055deb-presentation`**
+(this sandbox's session branch, which stands in for `knowledge/frontend-intelligence-phase-2`); AC's files
+are unmodified; **nothing has been merged**; the pack's decision IDs remain **D-AK1…D-AK4** and its audit
+findings **D-1…D-14**, kept deliberately distinct from AC's **D1–D18** and its **A1–A4** defect letters.

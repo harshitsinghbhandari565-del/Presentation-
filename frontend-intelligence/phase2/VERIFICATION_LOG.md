@@ -65,6 +65,11 @@ These are the ones that change a recommendation or a licence statement. `[VERIFI
 | C13 | AK's own `AC_APP_MEASURED.md` §2 row "**R7/R8 remain unimplemented** (live regions for result counts)", based on `aria-live` count 0 in the prerendered landing HTML | **wrong scope, corrected the same day.** `src/components/library/LibraryControls.tsx` already ships `<p role="status" aria-live="polite"><strong>{total}</strong> resources for <q>…</q></p>` inside an `aria-busy` region, the ⌘K palette is a complete combobox (`aria-activedescendant` + `role="listbox"`/`option` + `role="alert"`), and `loading.tsx` on `/library` + `/admin` already announce. Genuine gaps: skeletons, and no root `loading.tsx` | **Method lesson recorded for the next session: a prerendered route's HTML cannot prove the absence of a live region that renders inside a client component or a Suspense fallback. Read the components before declaring an a11y item unimplemented.** Found while writing `APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md` row E4 |
 | C14 | AK's suggestion (written into the spec draft) that AC "should ship the roman Newsreader file because only the italic one loads" | **withdrawn before publication.** Reading all 6 editorial selector groups in the built CSS shows every one of them *wants* italic (5 declare `font-style: italic`; the 13 `<em>` sites are all inside `h1/h2/h3`). Italic-only is a coherent design, not a missing asset — so the deliverable becomes a comment in `globals.css`, not a +30 KB third woff2 | Checked the actual rule set rather than the asset list; the spec keeps the one exception it found (`.visual-caption`, serif at 15px) as an AO/PO call instead of "fixing" it |
 
+| C15 | `RECOMMENDED_STACK.md` / the spec's budget line **P2** / checklist row B3: "switch to `framer-motion/mini` + `LazyMotion(domAnimation)` to save **−15.2 KB**", sourced from `prototype-lab/build.mjs` | The 29.7 KB row is real but **mislabelled**: the probe imported `LazyMotion, domAnimation, m, useScroll` from the **main** `framer-motion` entry while naming it "framer-motion/mini". Downloading `framer-motion@12.43.0` from the registry: `dist/es/mini.mjs` is exactly `export { useAnimateMini as useAnimate }` — `/mini` has no `LazyMotion`, no `m`, no `useScroll`. Measured entry shapes: `/mini` 3.1 KB gz · `/dom/mini` 3.0 KB · AC's removed usage 43.1 KB · main-entry `LazyMotion` shape 29.7 KB | The −15.2 KB recommendation was **not implementable as written**. AC read the same file, found it, and beat it by deleting the library (−41.5 KB landing JS). Spec P2 and checklist B3 carry the correction; nobody should re-propose the `/mini` swap |
+| C16 | The spec's §4 3D gate list (`pointer:coarse`, `innerWidth < 1024`, `deviceMemory ≤ 4`, `hardwareConcurrency ≤ 2`, `saveData`, reduced-motion) as a *requirement* | AC's shelf is **demand-rendered**: `mountShelf` draws on `resize` + drag only, has no `requestAnimationFrame` loop, `touch-action: pan-y`, and full `dispose()`. Under those conditions the device gates protect nothing and would deny a static object to people who asked for it. One real gate was **missing from my list**: `failIfMajor` (neither GL call site sets it → software WebGL still animates) | Gates superseded → **explicit intent + no usable WebGL + projector-mode + `failIfMajor`**. `ex11`'s `sceneGate()` should be revised to match AC's implementation; `saveData` becomes a size disclosure, not a block. Recorded in spec §4 and review §3.2 |
+| C17 | Two of AK's own budget/style lines: "≤ 2 font files" (spec P4 / checklist D4) and "adopt `--step-*` tokens" (spec §1, checklist A4) | AC shipped **3 woff2 files / 148.4 KB, all preloaded, both fallbacks metric-adjusted** (106.28 % geist, 104.8 % editorial) — which is the *correct* answer once roman Newsreader is load-bearing; and shipped the scale as `--text-display/-h1/-h2/-h3/-body/-meta` + `--leading-*`/`--tracking-*`, consumed by 8 rule groups, with the px ladder left intact | **The pack's lines change, not AC's build.** Font budget amended (D4 marked pass-with-amendment, P6 added); `--text-*` becomes the pack's recommended naming for Next + `@theme` apps. Genuine remaining gap on AC's side: **0 `--motion-*`/`--ease-*` tokens** (defect D-6) |
+| C18 | Checklist E3: "the numeric rail stays decorative" (i.e. no interactive chapter index) | AC built `StoryIndex.tsx` as a real `<nav aria-label="How it works chapters">` of in-page anchors with `aria-current="step"`, `scroll-margin-top`, 44 px targets, and an **E2E test that the pin does not trap focus** | Deviation **accepted as an improvement**; the spec's "decorative" instruction is superseded where it would have removed working navigation. Two notes kept: `aria-current` is hardcoded to step 1 on load (cosmetic), and the pinned `.how-step` is animated twice (wrapper `.reveal` + step rule → defect D-7) |
+
 ## 5. Re-verification scorecard
 
 | Deliverable-level claim | Status after this pass |
@@ -89,5 +94,35 @@ Phase 1's pack, Phase 2's blueprint, ranking, sequence, interaction lab and desi
 `APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md`, `prototype-lab/src/ex11-approved-spec/` (+ its `test.mjs`
 registration, `measurements.json`, `headless-results.json`), the `INTERACTION_EXPERIMENT_LAB.md` row 11
 and §8 note, `AC_APP_MEASURED.md` (font loader detail + §4 rows 5–6 corrections), `phase2/README.md`
-(rows 20–22 + the reading pointer), and both handovers. **No app file, no `package.json`, no config, no
+(rows 20–23 + the reading pointer), and both handovers. **No app file, no `package.json`, no config, no
 DB, no CI, no secret was touched; nothing was merged.**
+
+
+## 7. Independent audit of AC's implementation commit — 2026-11-02
+
+Deliverable: **`AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`** (240 lines) against AC's
+`arena/c9d0d599-presentation@681800f894b2cf17021bb540e177a68c05e8f72e` (parent `71d6fb9` verified via
+`api.github.com`; 34 files, +1,038/−104). Recommendation to AO: **ACCEPT WITH CONDITIONS**.
+
+What made this pass different from every earlier one: AK **executed AC's tree**, not just read it.
+`/home/user/scratch/acbuild` (a copy outside the repo) got `npm ci` + `npx next build` (exit 0), then
+`tsc --noEmit` 0 · `eslint .` 0 · `npm run test:unit` **35/35** · `npm run test:db` **21/21** ·
+`npm audit --omit=dev --audit-level=high` **0** · full audit **20 moderate** — every one of AC's claimed
+gate numbers reproduced. AC's Chromium E2E (17/17) is **not** reproducible here (no browser binary; the
+Playwright CDN is off the allowlist), so it is labelled `[REPORTED-AC]`; its *existence and names* were
+verified statically (5 tests in `frontend.spec.ts` + 12 in `public.spec.ts` = 17, single chromium project
+at 1440×1000).
+
+Four PGlite probes of AK's own (`/home/user/scratch/probe/`) applied AC's real migrations + both seeds,
+added **4,000 synthetic published rows**, and measured the ranking RPC against the existing GIN path:
+**281 ms vs 1.9 ms** for the same term (95 ms even when nothing matches), `create index … using gin
+((setweight(…)))` and a `generated always as (setweight(…)) stored` column both rejected with `42P17`,
+the field set silently **drops semester / document_type / platform / subject** ("Sem 2" → 0 rows via the
+RPC, 1,032 via the fallback), paging NULLs clamp rather than leak (`page_size => null` → 48), injection-
+shaped and unbalanced-quote inputs return 0 with the table intact, and `set role anon` confirms the
+security-invoker + RLS posture (draft fixture never visible). **Method lesson for the pack: a green
+`test:db` suite proves the SQL is valid, not that it is *selective* — a corpus of 16 rows cannot show a
+missing field in a tsvector. Scale the fixtures before trusting a ranking migration.**
+
+Lab re-verified after the sandbox re-provision: `npm install` (52 pkgs, 2 s) → `build.mjs` **11/11** →
+`test.mjs` **22/22** (default + forced reduced-motion), preview still served on `:8123`.

@@ -238,6 +238,56 @@ no Lighthouse and no AT in this sandbox, and the Playwright CDN is off the netwo
 `http://127.0.0.1:8123/ex11-approved-spec/index.html` (then `?motion=reduce` and `?fallback=1`) — that is
 the only way those rows close.
 
-**AK's next action:** wait for AO to supply AC's implementation commit, then review that diff row-by-row
-against A→F, re-running §G inside `/home/user/scratch/` against AC's tree. AK does not edit AC's branch,
-does not merge, and does not touch `package.json`, config, DB, Supabase, CI or secrets.
+**AK's next action (as written before the audit):** ~~wait for AO to supply AC's implementation commit~~ —
+**that action is now complete**, see the section below. AK still does not edit AC's branch, does not merge,
+and does not touch `package.json`, config, DB, Supabase, CI or secrets.
+
+
+---
+
+## 9. AK's independent audit of AC's implementation — 2026-11-02
+
+**Branch AK worked on:** `arena/9d055deb-presentation` (this sandbox binds the session to it; AK's pack
+lives only there — every commit since `4307a68` touches `frontend-intelligence/**` and nothing else).
+
+**Audited:** `arena/c9d0d599-presentation@681800f894b2cf17021bb540e177a68c05e8f72e` (parent `71d6fb9`
+confirmed against `api.github.com`, 34 files, +1,038/−104). Deliverable:
+**`phase2/AC_IMPLEMENTATION_INDEPENDENT_REVIEW.md`**. Recommendation to AO: **ACCEPT WITH CONDITIONS.**
+
+How AK worked: AC's tree was fetched as a **codeload tarball of the exact sha** and built in
+`/home/user/scratch/acbuild` (never in the repo). AK re-ran AC's own gates and they all reproduced
+(tsc 0 · eslint 0 · unit **35/35** · db **21/21** · `next build` exit 0 · prod audit 0 · full audit
+20 moderate), re-measured the bundle independently (**186.6 KB gz** landing JS vs AC's 187.0 — the 12.2 KB
+gap between AC's "before" and AK's older 240.9 KB is CSS inclusion, arithmetic shown in §3.3), and wrote
+**four PGlite probes** that applied AC's real migrations, grew the table to **4,016 published rows**, and
+measured the ranking RPC: **281 ms** per call vs **1.9 ms** for the existing GIN path, an index over the
+weighted expression rejected with **`42P17`**, and the field set silently **dropping semester /
+document_type / platform / subject** ("Sem 2" → 0 rows via the RPC, 1,032 via the fallback). That is the
+one finding that could escalate: **do not apply `202611020001_search_ranking.sql` until D-1/D-2 land.**
+
+Corrections AK made to AK's own documents (C15–C18 in `phase2/VERIFICATION_LOG.md`, amended in place in the
+spec/checklist rather than deleted):
+- **C15** the "`framer-motion/mini` −15.2 KB" line was **mislabelled** (that subpath exports only
+  `useAnimate`, 3.1 KB); AC found this by reading the file and beat the recommendation by removing the
+  library. `RECOMMENDED_STACK.md`'s motion row should now say: *prefer CSS scroll-driven reveals; if a JS
+  motion runtime is ever needed, the LazyMotion path costs 29.7 KB on the main entry, not via `/mini`.*
+- **C16** AK's device gates for the 3D scene are **superseded by AC's simpler, better-reasoned gate**
+  (explicit intent + no-usable-WebGL + projector-mode **+ `failIfMajor`**, which AK had missed). `ex11`'s
+  `sceneGate()` should be revised to match AC's implementation.
+- **C17** the pack's "≤2 font files" budget is amended (3 preloaded, metric-adjusted files is right once
+  roman Newsreader is load-bearing), and the pack adopts AC's **`--text-*`** token naming instead of
+  `--step-*`.
+- **C18** checklist E3's "rail stays decorative" is superseded by AC's tested chapter `<nav>`; AK's
+  "don't animate a step twice" warning, meanwhile, **did** catch a real defect (D-7).
+
+Fourteen defects filed (1 HIGH-latent, 4 MEDIUM, 8 LOW, 2 INFO) with file-level evidence and a fix sized
+in lines, plus eight items credited explicitly — transform-only reveals, demand-rendered 3D with full
+`dispose()`, DPR 1.25 + ~20 fps throttle, geometry-matched skeletons, 44 px card CTAs, and an E2E assertion
+that no `three` script is requested on first load.
+
+**AK's next actions, in order:** (1) hand this review to AO and hold; (2) if AO asks, re-run anything in
+`/home/user/scratch/acbuild` — it is a throwaway copy, `npm ci` + `npx next build` reproduce all numbers;
+(3) apply C15–C18 to `RECOMMENDED_STACK.md`/`INTERACTION_EXPERIMENT_LAB.md`/`ex11` only when AO confirms the
+audit is accepted, so the pack changes once, not speculatively; (4) `prototype-lab` was re-verified green
+after this sandbox was re-provisioned (`npm install` → `build.mjs` **11/11** → `test.mjs` **22/22**), preview
+served on `:8123`. **Nothing in AC's tree, `main`, or any config/DB/secret was modified; nothing merged.**
