@@ -17,7 +17,7 @@ At the time of inspection, `AO_HANDOVER.md` and `AC_HANDOVER.md` did not exist i
 
 Phase 3 — Supabase Auth and secure administrator setup.
 
-Status: **owner confirmation received; blocked by Site URL correction and owner UUID confirmation**.
+Status: **hosted Auth and account confirmation verified; membership blocked by AO–Product Owner UUID confirmation gate**.
 
 No Supabase Auth setting, administrator account, administrator membership, Vercel environment variable, deployment, database schema, or document record was changed during the latest AC inspection.
 
@@ -40,40 +40,40 @@ No Supabase Auth setting, administrator account, administrator membership, Verce
   - Email provider is enabled.
   - Redirect allow list contains `https://harshit-presentation-hub-preview.vercel.app/**`.
   - The owner-created Auth user's email is confirmed.
-  - Site URL has an unexpected trailing period and must be corrected.
+  - Site URL exactly matches `https://harshit-presentation-hub-preview.vercel.app`; the earlier trailing-period mismatch is resolved.
 - Vercel project `harshit-presentation-hub-preview` still serves compatibility mode because Supabase environment variables are absent.
 
-## Exact action currently required from the owner
+## Verified account report to AO — 2026-11-02
 
-Owner confirmed that Supabase URL configuration, public signup disabling, and administrator Auth account creation were completed. AC then verified the hosted state through authorized Supabase access.
+AC resumed from clean branch `arena/c9d0d599-presentation`, commit `a0097c7c19a12c48c9f2b70877edb919e5645ba2`, matching its fetched remote. Read `AO_HANDOVER.md`, `AC_HANDOVER.md`, and `SUPABASE_AUTH_AUDIT.md` before changes.
 
-Verified:
+Authorized read-only Supabase verification confirmed:
 
-- Public signup is disabled.
-- Email provider remains enabled.
-- Redirect allow list contains `https://harshit-presentation-hub-preview.vercel.app/**`.
-- One Auth user exists and its email is already confirmed.
-- Administrator memberships remain 0.
-- The owner-created Auth UUID is `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+- Project: `nypojddjzzycicfinxbv`, `eu-north-1`, `ACTIVE_HEALTHY`.
+- Site URL: `https://harshit-presentation-hub-preview.vercel.app` — exact match, no trailing period.
+- Redirect allow list: `https://harshit-presentation-hub-preview.vercel.app/**`.
+- Public signup: disabled; Email provider: enabled.
+- Email confirmation: required (`mailer_autoconfirm: false`); unverified email sign-ins: disabled.
+- Auth UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+- Email confirmed: **yes**, at `2026-11-01T23:51:46.943756+00:00`.
+- Provider: email; deleted_at: null; banned_until: null.
+- Last sign-in: null; hosted application login is not yet verified.
+- Auth users: 1; administrator memberships: 0; target UUID has no membership.
 
-Unexpected difference:
+The Product Owner has confirmed this UUID in chat. The latest instruction additionally requires AO to confirm the UUID with the Product Owner before AC inserts membership. **That separate AO gate remains open.** Owner confirmation alone is not being treated as a substitute for the requested AO workflow.
 
-- Hosted Site URL is currently `https://harshit-presentation-hub-preview.vercel.app.` with a trailing period. It must be exactly `https://harshit-presentation-hub-preview.vercel.app` without the trailing period.
+No membership insert, Auth configuration change, account creation, Vercel environment change, or deployment was performed. No password or API key was requested or retrieved.
 
-Required owner action:
+## Current action required
 
-1. In Supabase **Authentication → URL Configuration**, remove the trailing period from Site URL.
-2. Keep **Confirm email** enabled. The owner-created account is already confirmed, so this does not block the owner.
-3. Confirm to AC that UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is the owner-created administrator account.
-
-Do not grant administrator membership until the Site URL is corrected and the owner confirms the UUID.
+AO must confirm UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` with the Product Owner through the agreed coordination workflow and record that confirmation. AC will continue approved local Auth hardening/tests meanwhile, but will not grant membership until that gate is satisfied. Vercel environment configuration and deployment still require separate approval.
 
 ## AC next steps after owner confirmation
 
-1. Verify hosted Auth configuration through authorized Supabase access.
-2. Read the actual Auth user record and obtain the real Auth UUID.
-3. Confirm that exact UUID with the owner before granting membership.
-4. Insert only the confirmed UUID into `public.administrators`.
+1. Hosted Auth configuration and the actual Auth UUID/email-confirmation status are verified.
+2. Wait for AO to confirm the UUID with the Product Owner and record the approval.
+3. Re-read the target account and membership state immediately before the write.
+4. Insert only the AO/owner-confirmed UUID into `public.administrators`.
 5. Complete approved Auth hardening:
    - browser client key validation,
    - cookie security,

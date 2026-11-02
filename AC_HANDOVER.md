@@ -6,7 +6,7 @@ Branch: `arena/c9d0d599-presentation`
 Latest commit inspected before handover creation: `af2f4997c0577975f2a346f115be42a5e50ed032`
 Latest resynchronized HEAD: `4f9495a4d6bc5cbc3c7c1cbad49564e2b94cce43`
 Current phase: Phase 3 — Supabase Auth and secure administrator setup
-Current status: **owner confirmation received; waiting for Site URL correction and owner UUID confirmation**
+Current status: **hosted Auth/account verified; approved hardening in progress; membership awaits AO–Product Owner confirmation**
 
 ## Inspection summary
 
@@ -77,10 +77,7 @@ Verified hosted Auth state on 2026-11-02 after owner confirmation:
 - Owner-created Auth UUID: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
 - The owner-created Auth user's email is confirmed.
 
-Unexpected difference:
-
-- Hosted Site URL is `https://harshit-presentation-hub-preview.vercel.app.` with a trailing period.
-- Required exact Site URL: `https://harshit-presentation-hub-preview.vercel.app`.
+The earlier trailing-period Site URL mismatch is resolved. The latest read-only verification also confirmed `email_confirmed_at = 2026-11-01T23:51:46.943756+00:00`, provider `email`, no deletion/ban, and no last sign-in yet.
 
 Confirm email guidance:
 
@@ -88,12 +85,13 @@ Confirm email guidance:
 - The owner-created account is already confirmed, so this setting does not block the owner.
 - Do not enable unverified email sign-ins.
 
-Required owner action before membership:
+Required coordination before membership:
 
-1. Remove the trailing period from Supabase Site URL.
-2. Explicitly confirm that UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is the owner-created administrator account.
+1. The Product Owner has confirmed the UUID in chat.
+2. AO must additionally confirm UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` with the Product Owner through the agreed workflow and record that confirmation.
+3. AC must re-read the account and membership state before inserting only that UUID.
 
-Do not proceed to membership authorization until both are complete.
+Do not insert membership until the separate AO gate is satisfied.
 
 ### Vercel
 
@@ -205,4 +203,14 @@ Unverified:
 
 ## Blocker
 
-AC is blocked by two owner-controlled items: correcting the trailing period in Supabase Site URL and explicitly confirming Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. AC should stop and wait before membership insertion or production configuration.
+Membership is blocked by the AO–Product Owner confirmation gate for Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. Hosted URL configuration and account email confirmation are verified. AC may continue approved local Auth hardening/tests, but must not insert membership, change Vercel variables, or deploy without the respective approvals.
+
+## Resume checkpoint — 2026-11-02
+
+- Actual branch/HEAD: `arena/c9d0d599-presentation` / `a0097c7c19a12c48c9f2b70877edb919e5645ba2`; clean and equal to fetched remote before edits.
+- Required handovers and Auth audit read.
+- Hosted Site URL/redirect/signup/email settings verified; target account email confirmation verified from `auth.users`, not assumed.
+- UUID and confirmation evidence reported to AO in `AO_HANDOVER.md`; membership remains 0.
+- Approved backend hardening is proceeding independently of the membership gate. AK's branch and frontend research are untouched; no frontend redesign.
+- Dependencies/browser artifacts were absent in the resumed sandbox; clean `npm ci` and fresh local verification are required before reporting test results.
+- Next: implement shared browser key validation, explicit compatible cookie security, honest logout failure handling, and authorization regression tests; then update this checkpoint with exact commit/test results.

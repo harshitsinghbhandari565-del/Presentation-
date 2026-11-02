@@ -332,6 +332,20 @@ Confirm email setting:
 - The owner-created account is already confirmed, so this setting does not block the owner.
 - Do not enable unverified email sign-ins.
 
+## Final owner dashboard verification — 2026-11-02
+
+Authorized read-only checks now confirm:
+
+- Exact Site URL: `https://harshit-presentation-hub-preview.vercel.app` (trailing-period mismatch resolved).
+- Redirect allow list: `https://harshit-presentation-hub-preview.vercel.app/**`.
+- `disable_signup: true`; `external_email_enabled: true`.
+- `mailer_autoconfirm: false`; `mailer_allow_unverified_email_sign_ins: false`.
+- UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` exists, uses the email provider, and has `email_confirmed_at = 2026-11-01T23:51:46.943756+00:00`.
+- The account is not deleted or banned. `last_sign_in_at` is null, so application login remains unverified.
+- Auth user count is 1; administrator count is 0; the target has no membership.
+
+No credentials or API keys were requested or retrieved. No Auth setting or membership was changed by AC.
+
 ## Current blocker
 
-Waiting for the owner to correct the Site URL trailing period and explicitly confirm Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. No administrator membership should be inserted before both are complete.
+The Product Owner confirmed the UUID in chat, but the latest instruction requires a separate AO confirmation with the Product Owner before membership insertion. That AO gate remains open. Continue approved local hardening/tests only; do not insert membership, configure Vercel, or deploy without the required approvals.
