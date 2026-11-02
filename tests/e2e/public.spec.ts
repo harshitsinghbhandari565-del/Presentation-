@@ -148,4 +148,22 @@ test("unconfigured services fail honestly; admin does not offer fake persistence
   await expect(page.getByRole("heading", {name:"A secure home for your collection."})).toBeVisible();
   await expect(page.getByRole("button", {name:"Save resource"})).toHaveCount(0);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content",/noindex/);
+  await page.goto("/admin/access-denied");
+  await expect(page).toHaveURL(/\/admin\/login$/);
+});
+
+test("unconfirmed logout shows an honest recovery state without private data or public caching", async ({ page, request }) => {
+  const response = await request.get("/admin/logout-error");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["cache-control"]).toContain("no-store");
+  await page.goto("/admin/logout-error");
+  await expect(page.getByRole("heading", { name: "Sign-out was not confirmed." })).toBeVisible();
+  await expect(page.locator('p[role="alert"]')).toContainText("Your session may still be active");
+  await expect(page.getByRole("button", { name: "Retry sign out" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save resource" })).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
 });

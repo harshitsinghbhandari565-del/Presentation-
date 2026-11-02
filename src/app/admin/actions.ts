@@ -5,6 +5,7 @@ import { requireAdministrator } from "@/lib/admin/auth";
 import { databasePayload } from "@/lib/admin/repository";
 import { categorySchema, formDataToDocumentInput } from "@/lib/document-validation";
 import { getServerClient } from "@/lib/supabase/server";
+import { revokeSession } from "@/lib/admin/logout";
 
 export interface ActionState { error?: string; fields?: Record<string, string>; success?: string; resourceId?: string; deleted?: boolean; }
 function revalidateCatalog(slug?: string) {
@@ -71,7 +72,6 @@ export async function saveCategory(kind: "subjects" | "courses", _state: ActionS
   } catch { return { error: "The category could not be saved." }; }
 }
 export async function signOut() {
-  const client = await getServerClient();
-  if (client) await client.auth.signOut();
-  redirect("/admin/login");
+  const revoked = await revokeSession(await getServerClient());
+  redirect(revoked ? "/admin/login" : "/admin/logout-error");
 }
