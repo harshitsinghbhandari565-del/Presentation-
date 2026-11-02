@@ -1,0 +1,8 @@
+.stage{position:relative;height:380px;border:1px solid var(--border);border-radius:var(--radius);
+  background:radial-gradient(120% 80% at 50% 120%,rgba(165,170,255,.14),transparent 60%);overflow:hidden;
+  touch-action:none;cursor:grab}
+.stage[data-drag="1"]{cursor:grabbing}
+.stage canvas{width:100% !important;height:100% !important}
+.css3d{position:absolute;inset:0;display:grid;place-items:center;perspective:900px;transform-style:preserve-3d}
+.css3d span{position:absolute;width:200px;height:260px;border:1px solid var(--border-strong);border-radius:10px;
+  background:linear-gradient(160deg,var(--surface-raised),var(--surface));box-shadow:0 30px 60px rgba(0,0,0,.35)}

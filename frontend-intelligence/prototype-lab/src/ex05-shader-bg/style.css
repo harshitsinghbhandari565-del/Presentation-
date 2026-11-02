@@ -1,0 +1,13 @@
+body{padding:0;min-height:220vh}
+.gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1}
+.fallback{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(70% 55% at 22% 18%, rgba(122,128,255,.28), transparent 60%),
+  radial-gradient(60% 50% at 82% 78%, rgba(145,216,189,.16), transparent 62%),
+  linear-gradient(180deg,#090b10,#0d1017 60%,#090b10)}
+h1,p.note{margin-left:clamp(16px,4vw,40px);margin-right:clamp(16px,4vw,40px)}
+h1{padding-top:clamp(16px,4vw,40px)}
+.overlay{position:relative;display:grid;place-items:center;min-height:100vh;padding:24px}
+.panel{max-width:52ch;background:color-mix(in oklab,var(--surface) 82%,transparent);border:1px solid var(--border);
+  border-radius:20px;padding:clamp(20px,4vw,34px);backdrop-filter:blur(18px) saturate(160%);box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-family:var(--font-display);font-size:26px;font-weight:500}
+.panel p{margin:0;color:var(--text-secondary)}

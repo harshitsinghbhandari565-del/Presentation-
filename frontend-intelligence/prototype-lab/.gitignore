@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.log
+.npm-cache/
+vendor-sizes/
+.test-build/

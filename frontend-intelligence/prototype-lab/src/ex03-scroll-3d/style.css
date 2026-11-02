@@ -1,0 +1,5 @@
+.tunnel-wrap{position:relative}
+.tunnel{position:sticky;top:0;height:90vh;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(90% 70% at 50% 40%,rgba(165,170,255,.10),transparent 70%)}
+.tunnel canvas{width:100% !important;height:100% !important}
+.after{padding:40px 0 0;max-width:66ch}

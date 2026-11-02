@@ -105,3 +105,25 @@ Full detail: [`audit/stack-audit.md`](./audit/stack-audit.md).
 ## 6. Legal / usage discipline
 
 Inspiration ≠ permission. Most cloned or demo repositories found during research carry **no license file** (`NONE`/`NOASSERTION` in GitHub metadata) and are therefore **reference-only — read, do not copy**. Each catalog row states its license verbatim from the API. GSAP is free-but-not-open-source (`Standard "No Charge"`); this is fine for our use but must be recorded. Details in `github-repositories/repository-catalog.md` § License discipline.
+
+
+---
+
+## Phase 2 added on top of this pack (2026-11-02)
+
+Phase 1 (the 31 files listed above) stays exactly as it was: it is the stack audit, and its conclusions about the
+*main* branch are still true of *main*. Phase 2 — deep repository discovery, 150 website references, nine technology
+comparisons, and **ten built prototypes with measured bundle sizes** — lives in
+**[`phase2/`](./phase2/README.md)**, starting with `phase2/AO_FINAL_FRONTEND_BLUEPRINT.md`.
+
+Three corrections Phase 2 forces on Phase 1 (kept visible, not quietly edited):
+
+| Phase 1 said | Phase 2 measured | effect |
+|---|---|---|
+| "three.js ≈ 168 KB, budget 3D ≤ 150 KB gz" | **187.5 KB gz** namespace / 130.4 KB gz named imports | the Phase-1 number mixed minified bytes with gzip; a 3D budget needs the named-import discipline |
+| "Lenis ≈ 12 KB gz" | **5.3 KB gz** | Lenis is cheap in bytes and expensive in behaviour — the recommendation changed accordingly |
+| "add GSAP if needed" | 44.4 KB gz **and `license: Standard 'no charge'`** in npm metadata [VERIFIED-LICENSE] | adds a legal review step before any AC PR |
+
+Phase 2 also replaces the audit's *repository baseline*: the app today is AC's `arena/c9d0d599-presentation` branch
+(Supabase + Drizzle catalog, `revalidate=60` RSC landing, Playwright + axe CI), not the 1-record JSON `main` this
+pack originally described. `phase2/GITHUB_RESEARCH_GAPS.md` documents both the original findings and the corrections.

@@ -1,0 +1,15 @@
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 20px}
+.row button{font:inherit;font-size:13px;color:var(--text);background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;min-height:44px;cursor:pointer}
+.row button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.view{min-height:230px}
+.card-v{border:1px solid var(--border);border-radius:var(--radius);padding:22px;background:var(--surface);box-shadow:var(--shadow);max-width:640px}
+.card-v h3{margin:0 0 8px;font-family:var(--font-display);font-weight:500;font-size:clamp(19px,3vw,27px);line-height:1.15;letter-spacing:-.015em}
+.card-v p{margin:0;color:var(--text-secondary);font-size:14px}
+.card-v.detail{border-color:color-mix(in oklab,var(--accent) 40%,var(--border))}
+.long{padding-top:40px;color:var(--text-muted)}
+::view-transition-old(doc-0),::view-transition-new(doc-0){animation-timing-function:cubic-bezier(.22,1,.36,1);animation-duration:420ms}
+html[data-clip="1"]::view-transition-new(root){animation:clip-in 460ms cubic-bezier(.22,1,.36,1) both}
+html[data-clip="1"]::view-transition-old(root){animation:none}
+@keyframes clip-in{from{clip-path:circle(0 at var(--vt-x,50%) var(--vt-y,50%))}to{clip-path:circle(150vmax at var(--vt-x,50%) var(--vt-y,50%))}}
+::view-transition{pointer-events:none}

@@ -81,3 +81,37 @@ Also: high-star generic WebGL hits (`img2threejs`, `pascalorg/editor`, `git-city
 - The one-line product truth: this is a 26-file, 1-record, single-purpose classroom hub, so premium must come from **typography, states, speed and one memorable motion idea** — not from a 3D engine bolted onto an empty catalogue.
 
 *End of AK handover. No further AK action is pending unless AO requests items from §4.*
+
+
+---
+
+# Phase 2 continuation notes (2026-11-02) — for the next AK session
+
+**State:** Phase 2 complete and committed on `arena/9d055deb-presentation`. Phase 1's R-1…R-9 above remain valid; the
+corrections are in `../README.md` ("Phase 2 added on top") and `phase2/GITHUB_RESEARCH_GAPS.md` (post-run status).
+
+## Executed, so do not re-run
+- `python3 /home/user/research/{discover,gapfill,catalog,deep_eval,gen_atlas,gen_demos}.py` → `discovery/{raw.jsonl(2,926 rows),catalog.json(2,566 unique/1,914 in-scope),deep_evals.json(72),chain.log}`; atlas regenerated with ◆/★ marks.
+- `prototype-lab`: `npm install` (three 0.187.0, gsap 3.15.0, lenis 1.3.27, motion 14.9.0, framer-motion 12.43.0, esbuild 0.25.12, jsdom 26.1.0) → `node build.mjs` (10/10 built + vendor floors) → `node test.mjs` (**20 passed, 0 failed**) → `python3 -m http.server 8123 --bind 0.0.0.0 --directory dist` for AO's preview.
+- Deliverables written in `frontend-intelligence/phase2/`: README, AO_FINAL_FRONTEND_BLUEPRINT, INTERACTION_EXPERIMENT_LAB, RECOMMENDED_STACK, TECHNOLOGY_COMPARISON, PERFORMANCE_BUDGETS, ACCESSIBILITY_GUIDELINES, COMPATIBILITY_MATRIX, REPOSITORY_ATLAS, REPOSITORY_QUALITY_RANKING, TOP_35_DEEP_EVALUATIONS, TOP_15_AC_REFERENCES, WEBSITE_ATLAS, INTERACTION_BREAKDOWNS, VISUAL_DESIGN_PATTERNS, FRONTEND_IMPLEMENTATION_SEQUENCE, GITHUB_RESEARCH_GAPS (updated).
+
+## Traps for the next session (each cost AK a retry)
+1. **Never patch Node globals to fake a browser for these bundles** — jsdom's webidl layer recurses ("Maximum call stack"). Correct pattern: build a second **IIFE + `globalName:"__LAB"` + `footer:"globalThis.__LAB=__LAB;"`** target and `window.eval` it *inside* jsdom (`build.mjs` + `test.mjs`).
+2. **`"use strict"` + `window.eval`** ⇒ a `var` does not become a window property; publish explicitly or the harness sees no exports.
+3. **jsdom has no `getContext`** → GL experiments can only be verified on their fallback path; the "Not implemented" notices are filtered into `harnessNotes`, which is honest but must never be reported as a WebGL pass.
+4. **`devicePixelRatio`/`deviceMemory` absence ≠ low power** — `navigator.deviceMemory || 4` made every desktop look weak; use `?? 8` and gate on the API's presence (fixed in `src/_shared/lab.js`).
+5. **`@theme` / Tailwind token names** are AC's, not AK's: any token suggestion must extend `--motion-*`/`--ease-*`/`--move-*` from `019fbda9`, not invent a parallel set.
+6. **esbuild probe for React libs needs `external:["react","react-dom","react/jsx-runtime"]`** or the size row is react, not the library (that bug produced 0 KB rows first, then a react-inflated one).
+
+## Still open, in priority order
+1. Next-bundler verification of the 130.4 KB three.js figure (±15 % unknown) — needs AC's app, so it is AO's call.
+2. FPS / GPU / memory / visual sign-off of all 10 experiments — impossible in this sandbox (`INTERACTION_EXPERIMENT_LAB.md` §5 lists the exact runs).
+3. WebGPU example enumeration in three.js (`webgpu_*` filter fix in `gen_demos.py`) — 10 minutes, no new sources needed.
+4. `@react-three/postprocessing`, `ogl`, `troika-three-text`, `@tanstack/virtual` — ▲ shortlisted, never inspected.
+5. Awwwards SOTD archive depth (44 names, 1 verified winner) and any education-sector premium sites — 2–3 more `fetch_page` calls at most.
+
+## Constraints that do not relax
+Own branch only (`arena/9d055deb-presentation`); never touch AC's branch, the app manifest, `node_modules` of the app,
+Supabase/auth/Vercel/CI, or secrets. Read-only `git show` of AC's refs is allowed and is what produced every
+`[VERIFIED-FILE]` claim above. **Verify `git ls-remote origin` + `git status` before every commit — this session hit a
+silent local HEAD reset and `git reset --soft <remote-tip>` was the repair.**

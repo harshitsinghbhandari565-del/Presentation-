@@ -1,0 +1,39 @@
+/* Shared lab stylesheet: the tokens AC's design system already has (c9d0d599), so prototypes
+   render in the product's actual visual language rather than a foreign one. */
+:root{
+  --bg:#090b10; --bg-soft:#0e1118; --surface:#12161f; --surface-raised:#191e29; --surface-hover:#1d2330;
+  --text:#f2f3f8; --text-secondary:#a6adbf; --text-muted:#949caf; --border:#242a37; --border-strong:#373f51;
+  --accent:#a5aaff; --accent-soft:rgba(143,149,255,.09); --green:#91d8bd; --amber:#e2c58c;
+  --radius:16px; --shadow:0 16px 50px rgba(0,0,0,.13);
+  --font-ui:'Geist','Inter',system-ui,sans-serif; --font-display:'Newsreader','Georgia',serif;
+  --motion-micro:150ms; --motion-short:300ms; --motion-medium:400ms; --motion-exit:200ms;
+  --ease-default:cubic-bezier(0.16,1,0.3,1); --ease-out-soft:cubic-bezier(0.22,1,0.36,1);
+  --move-xs:4px; --move-sm:8px; --move-md:14px;
+}
+:root[data-theme=light]{--bg:#f8f9fc;--bg-soft:#f0f2f8;--surface:#fff;--surface-raised:#f4f5fa;--surface-hover:#eceef7;
+  --text:#1a2031;--text-secondary:#586176;--text-muted:#626d82;--border:#e0e4ee;--border-strong:#c4ccdd;
+  --accent:#5157c4;--accent-soft:rgba(85,91,208,.065);--green:#237457;--amber:#866020;--shadow:0 16px 50px rgba(30,41,75,.055)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);line-height:1.55;
+  -webkit-font-smoothing:antialiased;padding:clamp(16px,4vw,40px);padding-bottom:96px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 .35em}
+h1 small{display:block;font-size:13px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:8px}
+h2{font-size:20px;margin:2em 0 .6em}
+p.note{color:var(--text-secondary);max-width:72ch}
+code,kbd{font-family:ui-monospace,'JetBrains Mono',monospace;font-size:.88em;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1px 6px}
+ol{line-height:2.1}
+a{color:var(--accent)}
+.toolbar{position:fixed;inset:auto 0 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  padding:10px 16px;background:color-mix(in oklab,var(--surface) 88%,transparent);backdrop-filter:blur(14px) saturate(160%);
+  border-top:1px solid var(--border);z-index:50;font-size:12.5px}
+.toolbar button{font:inherit;color:inherit;background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:9px;padding:6px 10px;cursor:pointer;transition:background var(--motion-micro) var(--ease-default),transform var(--motion-micro)}
+.toolbar button:hover{background:var(--surface-hover)}
+.toolbar button:active{transform:scale(.96)}
+.toolbar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.fps{position:fixed;top:10px;right:10px;z-index:60;font:600 12px/1.2 ui-monospace,monospace;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--green);display:none}
+body[data-stats="1"] .fps{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+canvas{display:block;max-width:100%}

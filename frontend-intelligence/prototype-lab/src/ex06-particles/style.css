@@ -1,0 +1,9 @@
+.field{position:relative;height:min(560px,60vh);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(100% 80% at 50% 30%,rgba(24,28,42,.9),rgba(9,11,16,1))}
+.field canvas{width:100% !important;height:100% !important}
+.css-dots{position:absolute;inset:0}
+.css-dots i{position:absolute;left:var(--x);top:var(--y);width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.5;
+  animation:bob calc(4s + var(--d) * 1s) ease-in-out infinite alternate}
+@keyframes bob{to{transform:translate3d(10px,-14px,0)}}
+@media (prefers-reduced-motion: reduce){.css-dots i{animation:none}}
+.below{padding:22px 0 40px;max-width:68ch;color:var(--text-secondary)}

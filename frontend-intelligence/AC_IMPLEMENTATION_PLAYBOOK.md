@@ -281,3 +281,92 @@ Full spec: `research/performance-accessibility.md` + `implementation-recipes.md`
 
 **Prepared by AK · 2026-11-01 · 31 knowledge files under `frontend-intelligence/` · zero application-code changes · branch not merged (awaiting AO review).**
 Handover notes: `AO_HANDOVER.md` (state + decisions) and `AK_HANDOVER.md` (what remains researchable).
+
+
+---
+
+# Phase 2 additions to the playbook (§18–§24)
+
+Everything in §1–§17 above still applies. These sections add what Phase 2's prototypes and measurements made
+actionable. Code shapes are lifted from `prototype-lab/src/_shared/lab.js` and the ten `exNN-*/main.js` files — copy
+the *pattern*, not the lab's tokens, into AC's app (AC owns `@theme`).
+
+## 18. Motion tokens → framer-motion wiring (step 1, zero cost)
+```css
+/* AC's globals.css, extending the Vault token names they already chose */
+@theme {
+  --motion-micro: 150ms; --motion-short: 220ms; --motion-exit: 200ms; --motion-story: 420ms;
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
+  --move-rise: 18px; --move-slide: 8px;
+}
+```
+```ts
+// the single source of truth for components that animate with framer-motion
+export const MOTION = {
+  rise:  { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 },
+           transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } },
+  chip:  { transition: { duration: 0.15, ease: [0.16, 1, 0.3, 1] } },
+};
+```
+`Reveal.tsx` currently hard-codes `y:18 / duration:0.5 / ease:[0.22,1,0.36,1]` [VERIFIED-FILE] — either move it onto
+the tokens or rename the tokens to match; **do not keep two easings in the system.**
+
+## 19. The document card (EX07) — the highest-value CSS AC can ship
+Five absolutely-positioned layers + `@property` for the spotlight, `:focus-visible` ring, `hover:hover and pointer:fine`
+guard, tilt written through a rAF-batched property setter (one style write per frame):
+```ts
+let raf = 0, pending = new Map<Element, Record<string,string>>();
+const write = (el: Element, p: Record<string,string>) => {
+  pending.set(el, { ...pending.get(el), ...p });
+  if (!raf) raf = requestAnimationFrame(() => { raf = 0;
+    for (const [e, v] of pending) for (const k in v) (e as HTMLElement).style.setProperty(k, v[k]);
+    pending.clear(); });
+};
+```
+Rules: the card stays a **server component**; the cover link keeps `tabIndex={-1} aria-hidden`; a `null` field is not
+rendered; the CTA keeps AC's "Open document" wording; `?fallback=1`-style removal of tilt/glare must leave a
+perfectly readable card (that is the low-power build).
+
+## 20. Measured indicator for subject/course nav (EX08)
+Position the pill from `getBoundingClientRect()` deltas, re-measure on `ResizeObserver` **and** on
+`document.fonts.ready`, animate `transform/width/height` only, roving `tabindex` with one `aria-selected="true"`.
+Reduced motion: set the position, don't animate it — the indicator is an affordance, not decoration.
+
+## 21. Ambient background, if PO says yes (EX05)
+`use client` component; capability check **before** `await import`; `try/catch` around program build; 3-vertex
+fullscreen triangle; fbm or two-stop gradient; `dprCap(1.25, 0.75)`; `IntersectionObserver` pause; one static frame
+under reduced motion; a CSS gradient layer **already present in the DOM** as the fallback (not injected on error);
+`destroy()` deletes program/buffer/VAO. Budget: 2.9 KB gz [MEASURED]; 1 draw call; 0 textures; never the LCP element;
+mount after LCP via `requestIdleCallback`.
+
+## 22. Pinned chapter, only with a licence sign-off (EX04)
+`matchMedia("(min-width:900px) and (prefers-reduced-motion: no-preference)")` inside `gsap.context()`;
+`pin`, `scrub: 0.6`, `invalidateOnRefresh`, `anticipatePin: 1`; `onUpdate` maps `progress → index`; the **non-pinned
+branch renders the same steps as a list** so there is no content fork; `ctx.revert()` on unmount. Never put the
+document's `scroll-behavior: smooth` in the same build as a pin (remove it in that PR).
+
+## 23. View Transitions: what AC can do today
+```ts
+const swap = () => { /* setState / router.push */ };
+if (typeof document.startViewTransition === "function" && !reduced) document.startViewTransition(swap); else swap();
+```
+`view-transition-name: doc-{slug}` on the card and the detail header gives the morph for free; add
+`::view-transition { pointer-events: none }` and re-query `document.activeElement` **after** `transition.finished`.
+The npm helpers need React ≥ 19.3; AC pins 19.2.6 → **do not add them** [VERIFIED-FILE + Phase 1 §5/6].
+
+## 24. Do-not-do list (Phase 2, additive to §16)
+1. No `import * as THREE` in app code (57.1 KB gz difference, measured).
+2. No animation library imported by a component used on `/resources/[slug]`.
+3. No Lottie/Rive runtime for a spinner, checkmark or shimmer.
+4. No carousel library; `scroll-snap` + one `IntersectionObserver` index (EX10 = 2.0 KB).
+5. No virtualiser at `PAGE_SIZE = 12`; try `content-visibility: auto` first.
+6. No `motion` package swap (measured +4.6 KB for no new capability).
+7. No `transition: all`, no `!important` for motion overrides, no `cursor:none`, no scroll-jacking, no text-split below `<h1>`.
+8. No document thumbnails fetched/proxied from Drive/Docs to decorate a card (D2).
+9. No auto-loaded iframe on the detail route; preview stays user-initiated.
+10. No reduced-motion path that leaves content at `opacity: 0`.
+
+## Test recipes AC can paste (Phase 2)
+`ACCESSIBILITY_GUIDELINES.md` §7 (axe × theme × motion, "reduce leaves content visible", focus-return, external-link
+name) and `PERFORMANCE_BUDGETS.md` §7 (frames-while-idle = 0, `size-limit`). Each experiment in the lab exposes
+`boot(root) → { mode, destroy() }` for exactly this reason — the same contract works against AC's Playwright project.

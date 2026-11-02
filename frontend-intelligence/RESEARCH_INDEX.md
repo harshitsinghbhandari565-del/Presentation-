@@ -102,3 +102,46 @@ Web searches: GSAP licensing/plugins · Motion vs GSAP · View Transitions basel
 4. Star counts are a popularity proxy, not a quality measure. Two 20k+-star results encountered (`img2threejs/img2threejs`, `wheresryan22/anatomy`) are AI-agent-skill/tool repos, not frontend technique sources; they were examined and deliberately excluded. Don't let AC rank by stars.
 5. npm `license` fields are what packages *declare*; several relevant repos report `NOASSERTION`/`NONE` at the repository level while the npm package says MIT (e.g. `ogl`, `framer-motion`, GSAP). **Where they conflict, the npm field governs the installed artifact and the repo field governs copied source.** Both are recorded in the catalog.
 6. Research is a snapshot. Re-run `RESEARCH_INDEX` §1 registry lookups (`npm view <pkg> version license peerDependencies`) before any install if more than ~8 weeks have passed.
+
+
+---
+
+# Phase 2 index (added 2026-11-02)
+
+Sections §1–§6 below are Phase 1 and stay as they were. Phase 2 has its own files under `phase2/`; this table is the
+single lookup for "which file holds which fact, and how good is the evidence".
+
+| Phase 2 file | contains | evidence level | fresh as of |
+|---|---|---|---|
+| `phase2/REPOSITORY_ATLAS.md` | 1,914 in-scope repos × 13 fields, per-category tables, licence reality, method, reproduction | [VERIFIED-API] metadata; categories rule-derived | 2026-11-02 (chain run) |
+| `phase2/REPOSITORY_QUALITY_RANKING.md` | score formula, top 150, category distribution, deliberately-excluded list | generated from `catalog.json` | same |
+| `phase2/TOP_35_DEEP_EVALUATIONS.md` | 35 repos with fetched README bytes, dep lists, headings, demo links + AK judgement | [VERIFIED-FILE] (fetched files) | README/`package.json` fetched 2026-11-02 |
+| `phase2/TOP_15_AC_REFERENCES.md` | 15 ranked references, do-this/not-this | mixed, labelled per line | same |
+| `phase2/WEBSITE_ATLAS.md` | 154 experiences: 44 listing names, 48 repo-homepage demos, 36 three.js examples, 26 drei demos | §A [VERIFIED-LISTING]; §B/§C [VERIFIED-API]; §D [VERIFIED-FILE] | 2026-11-02 |
+| `phase2/INTERACTION_BREAKDOWNS.md` | 14 patterns: observed → mechanism → cost → failure modes | mechanisms verified where the lab implements them | same |
+| `phase2/VISUAL_DESIGN_PATTERNS.md` | type/grid/depth/glass/gradient/dark-light rules + card spec + anti-patterns | AC tokens [VERIFIED-FILE]; sizes [MEASURED] | same |
+| `phase2/TECHNOLOGY_COMPARISON.md` | 9 comparisons, each with measured bytes + a verdict | [MEASURED] + [VERIFIED-*] | esbuild 0.25.12 run |
+| `phase2/RECOMMENDED_STACK.md` | Tier 0–3 stack, what to install / avoid | mixed | same |
+| `phase2/COMPATIBILITY_MATRIX.md` | every option × AC's real manifest, 8 conflicts to resolve first | [VERIFIED-FILE] on AC's branch | 2026-11-02 read |
+| `phase2/PERFORMANCE_BUDGETS.md` | JS/CWV/scroll/WebGL/loading budgets + CI snippets | budgets = proposals; bytes = measured | same |
+| `phase2/ACCESSIBILITY_GUIDELINES.md` | motion states, keyboard contracts, test plan, 5 findings in AC's code | findings [VERIFIED-FILE]; AT behaviour **unverified** | same |
+| `phase2/INTERACTION_EXPERIMENT_LAB.md` | 10 experiments: how to run, sizes, results, what needs a browser | **[MEASURED]/[VERIFIED] for build+headless**; no visual claims | same |
+| `phase2/AO_FINAL_FRONTEND_BLUEPRINT.md` | landing / discovery / detail / design system / responsive + §9 answers to AO's 12 questions | all of the above | same |
+| `phase2/FRONTEND_IMPLEMENTATION_SEQUENCE.md` | 12 gated steps, ordered by cost-then-value | mixed | same |
+| `phase2/GITHUB_RESEARCH_GAPS.md` | original gap analysis + post-run status + 7 still-open gaps | self-report | same |
+| `frontend-intelligence/prototype-lab/` | the executable source: `build.mjs`, `test.mjs`, `src/exNN-*/`, `headless-results.json`, `measurements.json` | code | same |
+
+## Machine-readable evidence (outside the repo, on the sandbox volume)
+`/home/user/research/discovery/raw.jsonl` (2,926 records, one JSON per repo, with `source_query` provenance) ·
+`catalog.json` (deduped + scored) · `deep_evals.json` (72 inspected) · `recommended.json` (35) · `chain.log`
+(pipeline totals, quoted in reports) · `three_examples.json` (300 `webgl_*` paths) · `readmes/`, `pkgs/` (fetched
+source files). **Every count in Phase 2 traces to one of these; none was typed by hand.**
+
+## Resolved contradictions added in Phase 2
+| contradiction | resolution |
+|---|---|
+| Phase 1 "three ≈168 KB" vs lab 187.5 KB | Phase 1 quoted **minified** bytes; gzip is the number that matters → 130.4 KB is the *achievable* floor with named imports [MEASURED] |
+| Phase 1 "Lenis ≈12 KB" vs 5.3 KB | Phase 1 estimate was high; recommendation shifts from "size cost" to "behavioural cost" |
+| blogs saying framer-motion 12 is current vs `motion` 14.9.0 | both true: `framer-motion@12.43.0` is AC's installed line, `motion@14.9.0` is the successor package; measured both → **stay** (44.9 vs 49.5 KB) |
+| Phase 1 "no 3D anywhere" vs AC branches having none | still true; `git grep -iE "gsap\|lenis\|three"` → 0 hits on both AC branches [VERIFIED-FILE] |
+| "Awwwards Site of the Day" phrasing on nominee pages | only `Dont Look up game` showed a real SOTD/Developer Award in AK's fetched sample; everything else = **nominee** [VERIFIED-LISTING] |

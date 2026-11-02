@@ -75,3 +75,49 @@ frontend-intelligence/
 ├── technical-guides/ (recommended-stack · technology-comparison · compatibility-matrix · implementation-recipes)
 └── design-system/ (visual-direction · animation-guidelines · responsive-guidelines · interaction-principles)
 ```
+
+
+---
+
+# Phase 2 milestone update (2026-11-02) — for AO
+
+Branch `arena/9d055deb-presentation`; Phase 1's D1–D8 above are **unchanged and still open**. Everything below is new
+information from the Phase 2 run (repository discovery → 72 inspected repos → 150 website rows → 10 built prototypes).
+AK is not merging; AC reviews.
+
+## P2.1 The five things AO must not miss
+
+1. **The premium brief does not need a new dependency.** Measured in the lab: type-led hero 0 KB, document card system ~4 KB,
+   mobile variant **2.0 KB**, raw-WebGL2 ambient background **2.9 KB gz**. The only experiences that cost real bytes are
+   a pinned chapter (**+44.4 KB**) and real 3D (**+130–190 KB**) — those are PO taste decisions, not architecture.
+2. **The cheapest performance win is a one-line change in AC's own code.** framer-motion's root entry measures
+   **44.9 KB gz**; `framer-motion/mini` + `LazyMotion(domAnimation)` measures **29.7 KB** → −15.2 KB with *no* manifest change.
+3. **GSAP's licence is not MIT.** npm metadata for `gsap@3.15.0` reads `Standard 'no charge' license` [VERIFIED-LICENSE].
+   Usable commercially under their terms, but someone with authority (PO/legal) must read them before AC installs it.
+   AK deliberately did **not** summarise the licence as "free".
+4. **Search quality outranks motion.** AC's SQL path uses `to_tsvector('simple')` over a concatenated string with **no
+   `setweight`, no `tsquery` operators, no `ts_rank`** [VERIFIED-FILE `lib/search.ts`/`api/search/route.ts`]. On a
+   discovery product, that is the top UX fix and it is not a frontend-dependency question at all.
+5. **Three real file-level issues found in AC's branches (reported, not fixed):** the self-referential
+   `--font-editorial` token, an **italic-only** Newsreader file feeding the editorial face, and `html{scroll-behavior:smooth}`
+   which will fight Lenis/ScrollTrigger if either lands. Details: `phase2/ACCESSIBILITY_GUIDELINES.md` §8.
+
+## P2.2 What AO can now decide that Phase 1 could not
+
+| decision | now backed by | AK's recommendation |
+|---|---|---|
+| do we add three/R3F? | measured 130.4–187.5 KB gz floor + a working CSS-3D fallback in EX02 | **no**, unless PO names a user-facing benefit that survives mobile; if yes: R3F + drei, interaction-gated, mobile-excluded |
+| GSAP or framer-motion or both | 44.4 KB vs 44.9/29.7 KB measured; both engines in EX01/EX04/EX07 | framer-motion (already shipped) for components; GSAP **only** for a pinned chapter, licence-reviewed |
+| Lenis or native | 5.3 KB, plus AC's `scroll-behavior` conflict | native; Lenis only as a user-visible desktop toggle |
+| 3D, shaders, Lottie, Rive, VT, virtualisation | lab + `TECHNOLOGY_COMPARISON.md` nine comparisons | keep View Transitions (0 KB) and one GLSL background (2.9 KB); drop Lottie, Rive, virtualiser, carousel libs |
+| implementation order | `phase2/FRONTEND_IMPLEMENTATION_SEQUENCE.md` 12 steps with gates | steps 1–6 have **zero** new dependencies and include the search-ranking fix |
+
+## P2.3 Where the evidence lives (so AO doesn't re-run anything)
+
+`phase2/REPOSITORY_ATLAS.md` (1,914 in-scope rows, generated from `catalog.json`) · `phase2/TOP_35_DEEP_EVALUATIONS.md`
+(72 repos actually inspected) · `phase2/TOP_15_AC_REFERENCES.md` · `phase2/WEBSITE_ATLAS.md` (154 entries, no invented
+URLs) · `phase2/INTERACTION_EXPERIMENT_LAB.md` + `prototype-lab/` (code, build, `headless-results.json`) ·
+`phase2/GITHUB_RESEARCH_GAPS.md` (what is still missing, updated after the run).
+
+## P2.4 AK's next action pending AO's answer
+Nothing self-initiated. If AO approves Tier 0/1, AK's next act is to (a) add the 12-step gates as Playwright bodies AC can paste, and (b) re-run the lab's size table against **Next's** bundler in AC's app (the ±15 % unknown in `PERFORMANCE_BUDGETS.md` §8) — both still research-only, no app dependency added.

@@ -1,0 +1,225 @@
+{
+ "date": "2026-11-02",
+ "env": "node 22.22.3 + jsdom 26.1.0, no browser binary, no GPU",
+ "scope": "bundle parses, boot() completes, final DOM readable, destroy() clean",
+ "not_covered": [
+  "visual rendering",
+  "WebGL/GPU behaviour",
+  "animation timing / fps",
+  "layout & scroll geometry",
+  "touch gestures",
+  "assistive-technology output"
+ ],
+ "harness_limitation": "jsdom has no canvas/getContext, so every GL experiment is verified on its documented fallback path only; those 'Not implemented' notices are recorded per experiment as harnessNotes.",
+ "pass": 20,
+ "fail": 0,
+ "line": "20 passed, 0 failed across 2 passes (default + forced reduced-motion) — headless DOM execution in jsdom 26.1.0. Fallback paths only; no WebGL, no layout, no timing evidence.",
+ "results": [
+  {
+   "pass": "default",
+   "name": "ex01-hero-typography",
+   "label": "type-led hero — CSS variant and GSAP variant of the same markup",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "default",
+   "name": "ex02-3d-object",
+   "label": "3D coverflow — must degrade to CSS 3-D when WebGL is absent",
+   "ok": true,
+   "why": "ok (+4 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "default",
+   "name": "ex03-scroll-3d",
+   "label": "scroll-driven 3D tunnel — scalar progress, no layout writes",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "default",
+   "name": "ex04-pinned-cinematic",
+   "label": "pinned chapter — pin disabled below 900 px / reduced motion, content preserved",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "default",
+   "name": "ex05-shader-bg",
+   "label": "raw WebGL2 shader background — no library, CSS-gradient fallback",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "default",
+   "name": "ex06-particles",
+   "label": "GPU particle field — 1 draw call, count adapts to device",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "default",
+   "name": "ex07-doc-card",
+   "label": "document card — 5 CSS layers, @property spotlight, rAF-batched tilt",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "default",
+   "name": "ex08-nav-animation",
+   "label": "animated subject nav — measured pill, roving tabindex, one selected",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "default",
+   "name": "ex09-page-transition",
+   "label": "View Transitions + Lenis toggle — works with VT unsupported",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "default",
+   "name": "ex10-mobile-variant",
+   "label": "mobile variant — snap carousel, bottom sheet closed by default, ARIA wired",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex01-hero-typography",
+   "label": "type-led hero — CSS variant and GSAP variant of the same markup",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex02-3d-object",
+   "label": "3D coverflow — must degrade to CSS 3-D when WebGL is absent",
+   "ok": true,
+   "why": "ok (+4 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "reduced",
+   "name": "ex03-scroll-3d",
+   "label": "scroll-driven 3D tunnel — scalar progress, no layout writes",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "reduced",
+   "name": "ex04-pinned-cinematic",
+   "label": "pinned chapter — pin disabled below 900 px / reduced motion, content preserved",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex05-shader-bg",
+   "label": "raw WebGL2 shader background — no library, CSS-gradient fallback",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "reduced",
+   "name": "ex06-particles",
+   "label": "GPU particle field — 1 draw call, count adapts to device",
+   "ok": true,
+   "why": "ok (+2 harness notes)",
+   "info": {},
+   "harnessNotes": [
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",
+    "jsdomError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)"
+   ]
+  },
+  {
+   "pass": "reduced",
+   "name": "ex07-doc-card",
+   "label": "document card — 5 CSS layers, @property spotlight, rAF-batched tilt",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex08-nav-animation",
+   "label": "animated subject nav — measured pill, roving tabindex, one selected",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex09-page-transition",
+   "label": "View Transitions + Lenis toggle — works with VT unsupported",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  },
+  {
+   "pass": "reduced",
+   "name": "ex10-mobile-variant",
+   "label": "mobile variant — snap carousel, bottom sheet closed by default, ARIA wired",
+   "ok": true,
+   "why": "ok",
+   "info": {},
+   "harnessNotes": []
+  }
+ ]
+}

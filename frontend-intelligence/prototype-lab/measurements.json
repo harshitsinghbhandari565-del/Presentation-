@@ -1,0 +1,204 @@
+{
+ "date": "2026-11-02",
+ "measured": [
+  {
+   "label": "gsap (core)",
+   "bytes": 70689,
+   "gz": 27765,
+   "br": 25030
+  },
+  {
+   "label": "gsap + ScrollTrigger",
+   "bytes": 115212,
+   "gz": 45426,
+   "br": 40757
+  },
+  {
+   "label": "gsap + ST + Flip",
+   "bytes": 140383,
+   "gz": 54337,
+   "br": 48284
+  },
+  {
+   "label": "gsap + ST + Flip + SplitText",
+   "bytes": 147806,
+   "gz": 57404,
+   "br": 51002
+  },
+  {
+   "label": "lenis",
+   "bytes": 18707,
+   "gz": 5408,
+   "br": 4858
+  },
+  {
+   "label": "three (namespace)",
+   "bytes": 749422,
+   "gz": 191992,
+   "br": 155625
+  },
+  {
+   "label": "three (named subset)",
+   "bytes": 534466,
+   "gz": 133575,
+   "br": 109940
+  },
+  {
+   "label": "three + OrbitControls",
+   "bytes": 769550,
+   "gz": 196189,
+   "br": 159174
+  },
+  {
+   "label": "motion (vanilla: animate/scroll/inView/spring)",
+   "bytes": 76503,
+   "gz": 28341,
+   "br": 25802
+  },
+  {
+   "label": "motion + Lenis (both)",
+   "bytes": 94750,
+   "gz": 33146,
+   "br": 30106
+  },
+  {
+   "label": "framer-motion 12.43.0 (root, motion+AnimatePresence+useScroll)",
+   "bytes": 136795,
+   "gz": 45990,
+   "br": 40838
+  },
+  {
+   "label": "framer-motion (react-only: motion + useScroll)",
+   "bytes": 131185,
+   "gz": 43792,
+   "br": 38952
+  },
+  {
+   "label": "framer-motion/mini + LazyMotion(domAnimation)",
+   "bytes": 85169,
+   "gz": 30421,
+   "br": 27512
+  },
+  {
+   "label": "motion/react (successor package)",
+   "bytes": 146748,
+   "gz": 50651,
+   "br": 45145
+  },
+  {
+   "label": "gsap ScrollTrigger only (no core import?)",
+   "bytes": 44088,
+   "gz": 18299,
+   "br": 16499
+  }
+ ],
+ "experiments": [
+  {
+   "name": "ex01-hero-typography",
+   "title": "Ex01 · Premium typography-led hero (GSAP timeline + CSS-only variant)",
+   "js": 79348,
+   "js_gz": 31388,
+   "js_br": 28149,
+   "css": 27,
+   "libs": {
+    "gsap": null
+   }
+  },
+  {
+   "name": "ex02-3d-object",
+   "title": "Ex02 · Interactive 3D object — document stack (three.js, demand rendering)",
+   "js": 757540,
+   "js_gz": 196367,
+   "js_br": 158988,
+   "css": 675,
+   "libs": {
+    "three": null
+   }
+  },
+  {
+   "name": "ex03-scroll-3d",
+   "title": "Ex03 · Scroll-controlled 3D camera journey (three.js + scroll progress)",
+   "js": 758199,
+   "js_gz": 196756,
+   "js_br": 159335,
+   "css": 339,
+   "libs": {
+    "three": null
+   }
+  },
+  {
+   "name": "ex04-pinned-cinematic",
+   "title": "Ex04 · Cinematic pinned scroll (GSAP ScrollTrigger pin + scrub)",
+   "js": 122050,
+   "js_gz": 48739,
+   "js_br": 43430,
+   "css": 1588,
+   "libs": {
+    "gsap": null
+   }
+  },
+  {
+   "name": "ex05-shader-bg",
+   "title": "Ex05 · Shader animated background (raw WebGL2, no library)",
+   "js": 6709,
+   "js_gz": 3162,
+   "js_br": 2798,
+   "css": 941,
+   "libs": {}
+  },
+  {
+   "name": "ex06-particles",
+   "title": "Ex06 · Particle field (three.js Points + ShaderMaterial, 4k GPU particles)",
+   "js": 758443,
+   "js_gz": 196776,
+   "js_br": 159529,
+   "css": 708,
+   "libs": {
+    "three": null
+   }
+  },
+  {
+   "name": "ex07-doc-card",
+   "title": "Ex07 · Premium document card (5 layers, spotlight, tilt, View Transition)",
+   "js": 194602,
+   "js_gz": 69131,
+   "js_br": 61038,
+   "css": 3072,
+   "libs": {
+    "motion": null
+   }
+  },
+  {
+   "name": "ex08-nav-animation",
+   "title": "Ex08 · Animated subject/course navigation (Motion vanilla + FLIP)",
+   "js": 192125,
+   "js_gz": 68209,
+   "js_br": 60311,
+   "css": 1123,
+   "libs": {
+    "motion": null
+   }
+  },
+  {
+   "name": "ex09-page-transition",
+   "title": "Ex09 · Smooth section/page transition (View Transitions + Lenis)",
+   "js": 96030,
+   "js_gz": 35955,
+   "js_br": 32131,
+   "css": 1359,
+   "libs": {
+    "lenis": null,
+    "gsap": null
+   }
+  },
+  {
+   "name": "ex10-mobile-variant",
+   "title": "Ex10 · Mobile-first variant of Ex04/Ex07 (touch, sheet, no pin)",
+   "js": 4659,
+   "js_gz": 2060,
+   "js_br": 1740,
+   "css": 3471,
+   "libs": {}
+  }
+ ]
+}
