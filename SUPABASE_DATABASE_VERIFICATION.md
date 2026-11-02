@@ -167,4 +167,20 @@ None of these verification-query errors changed catalog data. No `TRUNCATE` was 
 
 The excessive catalog-table privilege blocker is **resolved**. The hosted database now has the reviewed schema, original resource, and verified least-privilege catalog grants. RLS remains the authorization boundary for authenticated writes.
 
-Production activation is still **not complete**. Auth settings, administrator creation, Vercel Supabase environment variables, deployed CRUD/public propagation, hosted Auth/cookie verification, and external document permission checks remain intentionally untouched and unverified. Do not claim production readiness.
+Production activation is still **not complete**. Hosted Auth settings and the AO-approved owner membership are now verified, but Vercel Supabase environment variables, deployed CRUD/public propagation, interactive hosted Auth/cookie verification, and external document permission checks remain gated/unverified. Do not claim production readiness.
+
+## AO-approved administrator membership — 2026-11-02
+
+AO’s consolidated directive approved UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. AC re-read hosted Auth (one confirmed, non-deleted, non-banned owner user; zero memberships), then executed the idempotent membership insert through the authorized connector. The row was created at `2026-11-02T11:55:09.431269+00:00`; a repeated insert left total/target counts 1/1 and the timestamp unchanged. The primary key and `administrators_user_id_fkey` → `auth.users(id) ON DELETE CASCADE` were verified.
+
+Hosted role/RLS probes:
+
+- Approved UUID under `authenticated`: `is_administrator()` true; own membership row visible; membership write privileges false.
+- Rollback-only admin CRUD assertions passed for temporary subject/course/document create, edit, publish, archive and delete. No probe rows persisted.
+- Test-only non-admin UUID (not created in Auth): zero membership visibility, self-grant denied, original-document update/delete affected zero rows; rollback preserved data.
+- Effective grants re-verified: catalog `anon` SELECT only; `authenticated` SELECT/INSERT/UPDATE/DELETE; no TRUNCATE. `administrators`: authenticated SELECT only, anon none.
+- Seven policy definitions match the reviewed migration; all four public tables have RLS enabled. A new canonical policy fingerprint is `bfe6b31c16f42aabeadb4b4ea6a1ca74` (explicit `polcmd::text`, role names, `pg_get_expr`). It is not directly comparable to the older serialization hash; direct policy/grant inspection is the evidence.
+
+Final counts: 1 subject / 1 course / 1 document / 1 administrator / 1 Auth user / 0 Auth sessions / 0 probe rows. Original document `english-lost-spring-mcqs` canonical fingerprint `2b7db1a601cd43a0f6a9d88556b74033`, seed timestamp and original Google/Dropbox URLs unchanged. A one-off composite-row MD5 differed solely because `row(d.*)::text` serializes differently from `row_to_json(d)::text`; the canonical fingerprint matched.
+
+No schema migration, Auth setting, existing document record, Vercel environment variable or deployment was changed. Interactive hosted browser login/CRUD remains unverified.

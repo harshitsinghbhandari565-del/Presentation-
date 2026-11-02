@@ -18,15 +18,15 @@ The application already has a real administrator authentication and authorizatio
 - Database RLS and least-privilege grants as a second enforcement layer.
 - No service-role key is required by the application.
 
-Current status (2026-11-02, preservation commit `5a61d6d`; supersedes prior `b1e73b0` after sandbox re-clone):
+Current status (2026-11-02, AO consolidated directive):
 
 - Hosted Site URL and redirect allow list are verified correct; public signup is disabled; Email provider and email confirmation are enabled.
-- One owner-created Auth user exists and is email-confirmed: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. Administrator memberships remain 0.
+- One owner-created Auth user exists and is email-confirmed: `978a7ac3-7385-4d3d-8b83-51855c8eb25a`.
+- AO’s directive records explicit Product Owner confirmation/approval. AC re-read the account and inserted exactly that UUID into `public.administrators` idempotently; hosted administrator count is 1.
 - Approved browser-config, cookie, logout and authorization hardening is implemented and locally verified.
-- Membership insertion is blocked until AO confirms the UUID with the Product Owner.
 - The deployed Vercel site still lacks Supabase environment variables and remains in compatibility mode; env/deploy approval is separate.
 
-Do not create an administrator or grant membership until the AO/owner UUID gate is satisfied and the account is re-read immediately before the write.
+Do not create another Auth account or grant. Interactive hosted owner login/session/CRUD/logout remains unverified until approved activation.
 
 ## Initial hosted Supabase Auth configuration observed (2026-11-01; superseded by final verification below)
 
@@ -345,9 +345,9 @@ Authorized read-only checks now confirm:
 
 No credentials or API keys were requested or retrieved. No Auth setting or membership was changed by AC.
 
-## Current blocker
+## Membership gate resolution
 
-The Product Owner confirmed the UUID in chat, but the latest instruction requires a separate AO confirmation with the Product Owner before membership insertion. That AO gate remains open. Continue approved local hardening/tests only; do not insert membership, configure Vercel, or deploy without the required approvals.
+AO’s consolidated directive records explicit Product Owner confirmation and approval for UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a`. That gate is satisfied. AC re-read hosted Auth/membership state and inserted only that UUID. Vercel environment configuration and deployment remain separately approval-gated.
 
 
 ## Applied hardening verification — 2026-11-02
@@ -363,3 +363,29 @@ Commit `b1e73b0d7a178995e6135b3b47683a30f85c65a8` implements the approved local 
 Local gates: `npm ci`, `npm run check` (lint, typecheck, 33 unit tests, 15 database tests, production build), and production-server Playwright E2E 12/12 with axe checks. Initial sandbox Chromium NSPR/NSS library failure was resolved locally; one ambiguous E2E alert selector was scoped. No application workaround was used for sandbox infrastructure.
 
 These results verify source/local behavior only. Hosted login, hosted cookies, deployed CRUD and production readiness remain unverified until membership, Vercel env/deploy and hosted checks are completed under their respective approvals.
+
+
+## AO-approved membership and access verification — 2026-11-02
+
+Authorized write performed through the Supabase connector after re-verification:
+
+```sql
+insert into public.administrators (user_id)
+values ('978a7ac3-7385-4d3d-8b83-51855c8eb25a')
+on conflict (user_id) do nothing;
+```
+
+Evidence:
+
+- Pre-write: one Auth user; target UUID email-confirmed at `2026-11-01T23:51:46.943756+00:00`; not deleted/banned; zero administrator rows.
+- Insert returned the target UUID with `created_at = 2026-11-02T11:55:09.431269+00:00`.
+- Post-write: administrator count 1; target count 1; FK `administrators_user_id_fkey` references `auth.users(id) ON DELETE CASCADE`; referenced user exists and is confirmed.
+- Repeating the idempotent insert left counts 1/1 and the creation timestamp unchanged.
+- Hosted SQL role probe with the approved UUID: `auth.uid()` matched, `public.is_administrator()` true, own membership rows 1, catalog read 1, membership SELECT allowed and INSERT/UPDATE/DELETE denied.
+- Hosted rollback-only CRUD assertions with the approved UUID succeeded for subject/course/document create, edit, publish, archive and delete. Zero probe rows persisted.
+- Hosted non-admin probe used test-only UUID `00000000-0000-0000-0000-000000000002`, which does not exist in hosted Auth. It saw zero membership rows, could not self-grant, and could not update/delete the original document. Rollback preserved data.
+- Final hosted counts: 1 subject / 1 course / 1 document / 1 administrator / 1 Auth user / 0 Auth sessions / 0 probe rows. Original document fingerprint `2b7db1a601cd43a0f6a9d88556b74033` unchanged.
+
+Local regression coverage now includes membership idempotency/FK integrity and authenticated self-grant denial. Anonymous production-server E2E verifies protected admin routes redirect to setup/login with private/no-store and CDN no-store headers.
+
+**Still not executed:** interactive owner-password login, hosted browser session persistence/refresh, deployed admin CRUD, deployed logout revocation and deployed non-admin browser denial. Hosted Auth reports zero sessions and the owner’s `last_sign_in_at` is null. No password or API key was requested or printed. These checks require the separately gated Vercel env/deploy activation and an interactive owner session.

@@ -120,3 +120,14 @@ Local production server (`next start`) is running on port 3000, bound to 0.0.0.0
 - Re-ran local gates on `5a61d6d`: `npm ci`, lint, typecheck, unit **33/33**, DB/RLS/grant **15/15**, production build, production-server E2E **12/12** incl. axe. Chromium provisioned no-save from `@sparticuz/chromium` with AL2023 libs; not a dependency change.
 - Read-only data preservation: 1/1/1/0; original document fingerprint `2b7db1a601cd43a0f6a9d88556b74033`; original Google/Dropbox URLs unchanged.
 - Reported UUID and confirmation status to AO in `AO_HANDOVER.md`. **No administrator membership inserted** — the AO–Product Owner UUID confirmation gate remains open. No Vercel env/deploy/schema/record changes.
+
+
+## AO consolidated directive — architecture reconciliation and membership — 2026-11-02
+
+- Reconciled remote refs read-only: `main`/AK baseline `4307a68`; AK pinned research `arena/9d055deb-presentation` `2f3c352`; separate frontend line `arena/019fbda9-presentation` `64abe95`; earlier AC line `AC-Branch` `cac9c7f`; active AC source `0077a01`. AK’s branch was not checked out or modified. Full table: `ARCHITECTURE_RECONCILIATION.md`.
+- Confirmed the active implementation uses Supabase catalog/Auth/admin/RLS; the empty Drizzle stub remains but is not the catalog schema, and `src/db` is only the optional health scaffold.
+- Re-verified hosted owner Auth and inserted only AO-approved UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` into `public.administrators` idempotently. Count 1; valid FK; repeat insert no-op; created `2026-11-02T11:55:09.431269+00:00`.
+- Hosted admin/non-admin RLS and rollback-only CRUD probes passed; zero probe rows; original document fingerprint/URLs unchanged.
+- Added DB membership regressions and expanded anonymous admin E2E. Local gates: lint, typecheck, unit 33/33, DB 17/17, build, production-server E2E 12/12, production dependency audit clean. Full audit retains 20 moderate dev-only advisories.
+- Updated AO/AC handovers, architecture reconciliation, Auth/database audits, verification and continuity docs. No Vercel env/deploy, schema, Auth setting, document record, AK branch or unrelated user change.
+- Interactive hosted owner login/session/CRUD/logout remains unverified; hosted Auth sessions 0 and owner last sign-in null. Deployment/env approval remains separate.

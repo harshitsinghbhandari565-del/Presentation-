@@ -17,6 +17,8 @@ const db = {
 };
 const adminId = "00000000-0000-0000-0000-000000000001";
 const studentId = "00000000-0000-0000-0000-000000000002";
+// Local fixture only: mirrors the owner-approved UUID without creating a hosted Auth user.
+const approvedId = "978a7ac3-7385-4d3d-8b83-51855c8eb25a";
 async function actor(id: string | null) {
   // Fixed test-only UUIDs: use simple SQL, not prepared statements, for session
   // setup. PGlite caches initplans across SET ROLE on reused prepared queries.
@@ -24,7 +26,7 @@ async function actor(id: string | null) {
 }
 
 before(async () => {
-  await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated; insert into auth.users values ('${adminId}'),('${studentId}');`);
+  await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated; insert into auth.users values ('${adminId}'),('${studentId}'),('${approvedId}');`);
   await db.exec(await readFile("supabase/migrations/202611010001_catalog.sql", "utf8"));
   await db.exec(await readFile("supabase/seed.sql", "utf8"));
   await db.exec(`insert into public.administrators(user_id) values ('${adminId}');`);
@@ -86,6 +88,34 @@ test("referenced categories cannot be deleted; full-text search uses the generat
   await assert.rejects(db.query("delete from public.subjects where slug='english'"));
   const found = await db.query("select id from public.documents where search_vector @@ websearch_to_tsquery('simple',$1)",["lost spring"]);
   assert.equal(found.rows.length,1);
+});
+test("approved membership insertion is idempotent and preserves the Auth UUID foreign key", async () => {
+  await db.exec("reset role;");
+  const insert = `insert into public.administrators(user_id) values ('${approvedId}') on conflict (user_id) do nothing`;
+  await db.query(insert);
+  const first = await db.query<{ created_at: string }>("select created_at::text as created_at from public.administrators where user_id=$1", [approvedId]);
+  await db.query(insert);
+  const result = await db.query<{ total: number; target: number; referenced: number; created_at: string }>(
+    `select count(*)::int as total,
+       count(*) filter (where a.user_id=$1)::int as target,
+       count(u.id)::int as referenced,
+       min(a.created_at::text) filter (where a.user_id=$1) as created_at
+     from public.administrators a left join auth.users u on u.id=a.user_id`,
+    [approvedId],
+  );
+  assert.equal(result.rows[0].total, 2); // original local fixture admin + approved local fixture
+  assert.equal(result.rows[0].target, 1);
+  assert.equal(result.rows[0].referenced, 2);
+  assert.equal(result.rows[0].created_at, first.rows[0].created_at);
+  await assert.rejects(db.query("insert into public.administrators(user_id) values ('00000000-0000-0000-0000-000000000099')"));
+});
+test("authenticated users cannot grant, alter or revoke administrator membership", async () => {
+  await actor(studentId);
+  await assert.rejects(db.query(`insert into public.administrators(user_id) values ('${studentId}')`));
+  await assert.rejects(db.query(`update public.administrators set user_id='${studentId}' where user_id='${approvedId}'`));
+  await assert.rejects(db.query(`delete from public.administrators where user_id='${approvedId}'`));
+  assert.equal((await db.query<{ count: number }>("select count(*)::int as count from public.administrators")).rows[0].count, 0);
+  assert.equal((await db.query<{ is_administrator: boolean }>("select public.is_administrator() as is_administrator")).rows[0].is_administrator, false);
 });
 test("seed is idempotent and never overwrites edited metadata", async () => {
   await db.exec("reset role;");

@@ -96,3 +96,30 @@ Commit: `b1e73b0d7a178995e6135b3b47683a30f85c65a8`.
 - Hosted Auth read-only: exact Site URL/redirect, signup disabled, email confirmation required, owner UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` email-confirmed; 1 Auth user, 0 administrators, target membership absent.
 - Data preserved read-only: 1/1/1/0; original document fingerprint `2b7db1a601cd43a0f6a9d88556b74033`; original URLs unchanged.
 - These are local/source + hosted-configuration verifications. Hosted login/logout/cookies, deployed CRUD, public propagation and direct hosted API RLS remain unverified pending Vercel env/deploy approval. Administrator membership remains uninserted pending the AO gate.
+
+
+## AO consolidated directive verification — 2026-11-02
+
+Source inspected: `0077a01c35a7d0a588d2f31dc8167f935b7c8d98` on `arena/c9d0d599-presentation`. Architecture reconciliation: `ARCHITECTURE_RECONCILIATION.md`. AK’s named baseline `4307a68` equals `origin/main`; AK’s pinned research branch and the separate frontend-polish branch do not contain the AC Supabase backend. `AC-Branch` key security files are identical to the active source; only handover docs differ.
+
+Executed local gates after the membership/regression changes:
+
+- `npm ci`: passed (424 packages).
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:unit`: 33/33.
+- `npm run test:db`: 17/17, including new approved-membership idempotency/FK and authenticated self-grant denial tests. Two initial assertion failures were test-harness timestamp serialization/scoping issues; after correcting the test to compare the target row’s PostgreSQL text timestamp consistently, the full DB suite passed.
+- `npm run build`: passed; admin routes dynamic.
+- Production-server Playwright/Chromium E2E: 12/12, including expanded anonymous protected-route/no-store checks and axe. Chromium 153.0.8010.0 provisioned no-save with AL2023 libraries; no app dependency change.
+- `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities. Full audit: 20 moderate development-toolchain advisories; no forced breaking downgrade.
+- Anonymous `/admin`, `/admin/categories`, `/admin/resources/new`, `/admin/[id]/edit`, `/admin/access-denied`, `/admin/login`, `/admin/logout-error`: private/no-store + CDN no-store; protected content redirects to setup/login in compatibility mode.
+
+Hosted verification:
+
+- Approved membership inserted idempotently for `978a7ac3-7385-4d3d-8b83-51855c8eb25a`; count 1, valid confirmed Auth FK, repeat insert no-op.
+- Approved UUID database-role probe: administrator true, own-row membership visible, membership writes denied.
+- Rollback-only admin CRUD assertions passed; non-admin self-grant/write probes denied; zero probe rows persisted.
+- Counts 1/1/1/1; Auth users 1; Auth sessions 0; original document fingerprint/URLs/timestamp unchanged.
+- Migration MD5s and effective grants re-verified; no new migration.
+
+Not executed / not claimed: interactive owner-password hosted login, hosted browser session persistence/refresh, deployed admin CRUD/logout, deployed non-admin browser denial, GitHub CI run, external Google/Dropbox permission check, Safari/Firefox/physical-device/AT sign-off. Vercel env/deploy remains approval-gated.

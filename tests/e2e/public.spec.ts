@@ -150,6 +150,15 @@ test("unconfigured services fail honestly; admin does not offer fake persistence
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content",/noindex/);
   await page.goto("/admin/access-denied");
   await expect(page).toHaveURL(/\/admin\/login$/);
+  for (const route of ["/admin/categories", "/admin/resources/new", "/admin/00000000-0000-0000-0000-000000000001/edit"]) {
+    const response = await page.goto(route);
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(/\/admin\/login$/);
+    expect(response?.headers()["cache-control"]).toContain("no-store");
+    expect(response?.headers()["cdn-cache-control"]).toBe("no-store");
+    await expect(page.getByRole("heading", { name: "Your learning collection." })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Save resource" })).toHaveCount(0);
+  }
 });
 
 test("unconfirmed logout shows an honest recovery state without private data or public caching", async ({ page, request }) => {

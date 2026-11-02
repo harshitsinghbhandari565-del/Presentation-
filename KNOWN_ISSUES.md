@@ -4,8 +4,8 @@ Updated: 2026-11-02. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 ## External blockers (not resolved by code)
 
-- **Supabase partially activated:** project `nypojddjzzycicfinxbv` has the reviewed schema, original resource and approved least-privilege catalog grants applied and verified. Hosted Auth URL/signup/email settings and one email-confirmed owner account are verified; administrators remain zero. Hosted login, cookies, admin CRUD and deployed API/RLS integration remain unverified because Vercel Supabase variables/deployment are approval-gated. Global Supabase default privileges remain unchanged, so future public table migrations must set explicit grants. See `SUPABASE_DATABASE_VERIFICATION.md`.
-- **Administrator membership gated:** owner Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` is verified and email-confirmed, but AO must confirm it with the Product Owner before AC inserts membership. The app intentionally has no default password, public signup shortcut or service-role key. See `SUPABASE_AUTH_AUDIT.md` and `AO_HANDOVER.md`.
+- **Supabase partially activated:** project `nypojddjzzycicfinxbv` has the reviewed schema, original resource, approved least-privilege catalog grants and the AO-approved owner membership applied and verified. Hosted Auth URL/signup/email settings and one email-confirmed owner account are verified. Interactive hosted login, cookies, deployed admin CRUD and deployed browser/API integration remain unverified because Vercel Supabase variables/deployment are approval-gated. Hosted database-role probes passed with rollback. Global Supabase default privileges remain unchanged, so future public table migrations must set explicit grants. See `SUPABASE_DATABASE_VERIFICATION.md`.
+- **Administrator membership complete:** owner Auth UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` was re-verified and inserted idempotently under AO’s consolidated directive; hosted administrator count is 1. Do not create another account or grant from an email string. The app intentionally has no default password, public signup shortcut or service-role key. See `SUPABASE_AUTH_AUDIT.md`, `ARCHITECTURE_RECONCILIATION.md` and `AO_HANDOVER.md`.
 - **Vercel preview deployment:** project `harshit-presentation-hub-preview` now exists and serves the branch. It is a preview/staging URL on the hobby plan, not a custom production domain. Supabase/admin remain unconfigured.
 - **Production origin:** `NEXT_PUBLIC_SITE_URL` is configured in the existing Vercel project for the public preview origin. A custom domain is optional and not configured. Preview metadata currently shares the production origin; review during activation.
 - **External permissions unverified:** sandbox network restrictions prevented fetching the original Google/Dropbox destinations. Owner must confirm intentional public sharing; the app cannot guarantee ongoing availability.
@@ -13,7 +13,7 @@ Updated: 2026-11-02. Baseline evidence remains in `REPOSITORY_AUDIT.md`; exact l
 
 ## Production audit findings
 
-See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`. Public signup is disabled and Auth URL/redirect settings are verified. Browser config, cookie policy, logout failure handling and administrator authorization hardening are implemented and locally verified at `b1e73b0`. Before production sign-off: complete the AO membership gate, make health check the actual Supabase catalog rather than only optional `DATABASE_URL`, decide preview database isolation, configure/deploy under approval, and verify hosted behavior. Keep future public table migrations least-privilege. HttpOnly/server-owned login, MFA challenge flow and CSP/HSTS remain future work. No secret is configured in a public variable.
+See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_AUDIT.md`. Public signup is disabled and Auth URL/redirect settings are verified. Browser config, cookie policy, logout failure handling and administrator authorization hardening are implemented and locally verified at `b1e73b0`. Before production sign-off: make health check the actual Supabase catalog rather than only optional `DATABASE_URL`, decide preview database isolation, configure/deploy under approval, and verify hosted behavior. Keep future public table migrations least-privilege. HttpOnly/server-owned login, MFA challenge flow and CSP/HSTS remain future work. No secret is configured in a public variable.
 
 ## Product limitations kept visible
 
@@ -25,7 +25,7 @@ See `SUPABASE_AUDIT.md`, `SUPABASE_DATABASE_VERIFICATION.md` and `SUPABASE_AUTH_
 - Sitemap/export reads use bounded batches; discovery pages use counts/facets/limited queries rather than loading the whole catalog.
 - Automated axe checks are not full WCAG certification. Chromium only; no Safari/Firefox/physical-device or screen-reader sign-off yet.
 - Full dependency audit reports moderate development-only advisories through retained Drizzle Kit/ESLint dependencies. Production audit is clean; no forced breaking downgrade was applied.
-- Git history is grafted to one baseline commit; earlier decisions are unavailable.
+- Sandbox clones may present the baseline commit with implementation files as working-tree changes; verify remote refs and preserve work before resyncing. `ARCHITECTURE_RECONCILIATION.md` records the current branch/commit evidence.
 
 ## Baseline defects addressed and verified locally
 
