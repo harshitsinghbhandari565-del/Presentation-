@@ -1,3 +1,9 @@
+# Current status addendum — deterministic V1 (2026-11-03)
+
+The unapplied local search RPC now uses UUID ASC as its final tie-break, retaining ranking/window pagination; complete oracle/page tests passed. V2 remains rejected and hosted migration/deployment remain blocked pending AO. Fallback/browse ties and cross-request writes remain limitations. See `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Current status addendum — 2026-11-03
 
 Search optimization v2 is **rejected**, not implemented. Duplicate-key pagination changes and unreplicated speedup block it; v1 tie stability is itself unresolved. Hosted ranking migration remains unapplied, and no deployment/hosted changes are authorized. See `SEARCH_V2_VALIDATION.md`; stop for AO review.

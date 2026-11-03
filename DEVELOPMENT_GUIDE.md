@@ -1,3 +1,9 @@
+# Local deterministic search validation (2026-11-03)
+
+Run `npm run test:db` for regression tests and `node scripts/evaluate-search-ordering.mjs` for the reconstructed 28+20 full-scan oracle, all-page comparison and V1 timing/plan baseline. It uses only in-memory PGlite; optional `SEARCH_ORDER_RESULTS=/path/to/local.json` saves samples/plans. No hosted SQL is applied. See `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Local-only search v2 evaluation — 2026-11-03
 
 After `npm ci`, run `node scripts/evaluate-search-v2.mjs` from the repo root. It creates an in-memory PGlite database and a temporary reconstructed candidate; it does not connect to Supabase or apply hosted SQL. Optional `SEARCH_V2_RESULTS=/path/to/local-results.json` saves detailed plans and comparisons. It documents a rejected optimization, not a passing regression gate. See `SEARCH_V2_VALIDATION.md` for environment, limitations, and decision.

@@ -140,3 +140,73 @@ test("websearch OR, excluded terms and phrase syntax use the complete query afte
   const phrase = await search('"algebra practice"', { pageSize: 48 });
   assert.ok(phrase.documents.some(item => item.slug === "fixture-algebra-title"));
 });
+
+test("duplicate keys use UUID as the final order across complete, repeated and deep pages", async () => {
+  // Descending UUID insertion deliberately differs from the required ascending
+  // UUID order. 144 identical titles/ranks/timestamps span many pages; six
+  // body-only hits verify that the final key never overrides relevance.
+  await db.exec(`insert into public.documents(id,slug,title,description,original_url,platform,subject_id,course_id,topic,document_type,is_featured,publication_status,created_at)
+    select ('12000000-0000-4000-8000-' || lpad(to_hex(301-i),12,'0'))::uuid,
+      'ordering-probe-' || i, case when i<=144 then 'Tieprobe Identical' else 'Body Only' end,
+      'A tieprobe in this synthetic description.', 'https://example.com/order/' || i,
+      'Other', s.id, c.id, 'Ordering Fixture', 'Notes', i%2=0, 'published',
+      case when i<=144 then '2024-01-01'::timestamptz else '2024-02-01'::timestamptz end
+    from generate_series(1,150) i cross join public.subjects s cross join public.courses c
+    where s.slug='fixture-mathematics' and c.slug='fixture-class-10';`);
+  try {
+    // Independent, unpaginated full-scan reference: no candidate CTE, window,
+    // LIMIT, or aggregation from the RPC. The primary keys are fixed locally.
+    async function reference(query: string, sort: string) {
+      return (await db.query<{ id: string; rank: number }>(`with v as (
+        select d.id, d.title, d.created_at, d.is_featured,
+          setweight(to_tsvector('simple', d.title), 'A') ||
+          setweight(to_tsvector('simple', d.topic || ' ' || public.document_terms(d.keywords) || ' ' || public.document_terms(d.tags)), 'B') ||
+          setweight(to_tsvector('simple', s.name || ' ' || coalesce(c.name,'') || ' ' || coalesce(d.semester,'') || ' ' || d.document_type || ' ' || d.platform), 'C') ||
+          setweight(to_tsvector('simple', d.description), 'D') as vector
+        from public.documents d join public.subjects s on s.id=d.subject_id
+        left join public.courses c on c.id=d.course_id
+        where d.topic='Ordering Fixture' and d.publication_status='published'
+      ), ranked as (select *, ts_rank(vector,websearch_to_tsquery('simple',$1)) as rank from v
+        where $1='' or vector @@ websearch_to_tsquery('simple',$1))
+      select id, rank from ranked
+      order by case when $2='title' then title end asc,
+        case when $2='newest' then created_at end desc nulls last,
+        case when $2 not in ('title','newest') and $1<>'' then rank end desc,
+        case when $2 not in ('title','newest') and $1='' then is_featured end desc,
+        title asc, id asc`, [query, sort])).rows;
+    }
+    for (const [query, sort] of [["tieprobe", "relevance"], ["tieprobe", "title"], ["tieprobe", "newest"], ["", "relevance"]]) {
+      const full = await reference(query, sort);
+      assert.equal(full.length, 150);
+      const expected = full.map(row => row.id);
+      const first = await search(query, { topic: "Ordering Fixture", sort, pageSize: 12 });
+      const repeated = await search(query, { topic: "Ordering Fixture", sort, pageSize: 12 });
+      assert.deepEqual(repeated, first, `${sort}/${query}: repeat`);
+      const joined: string[] = [];
+      for (let offset = 0; offset < full.length; offset += 12) {
+        const page = await search(query, { topic: "Ordering Fixture", sort, pageSize: 12, offset });
+        assert.equal(page.total, full.length);
+        assert.deepEqual(page.documents.map(row => row.id), expected.slice(offset, offset + 12), `${sort}/${query}: offset ${offset}`);
+        joined.push(...page.documents.map(row => String(row.id)));
+      }
+      assert.equal(new Set(joined).size, full.length, `${sort}/${query}: duplicates`);
+      assert.deepEqual(joined, expected, `${sort}/${query}: all pages versus unpaginated order`);
+      const deep = await search(query, { topic: "Ordering Fixture", sort, pageSize: 12, offset: 132 });
+      assert.deepEqual(deep.documents.map(row => row.id), expected.slice(132, 144));
+      assert.equal((await search(query, { topic: "Ordering Fixture", sort, pageSize: 12, offset: 150 })).documents.length, 0);
+      if (sort === "relevance" && query) {
+        assert.ok(full[0].rank > full[full.length - 1].rank, "title matches must precede body-only matches");
+        assert.equal(new Set(full.slice(0,144).map(row => row.rank)).size, 1, "title ties have equal scores");
+      }
+      if (sort === "relevance" && !query) assert.ok(first.documents.every(row => row.is_featured === true), "featured wins in blank browse");
+      if (sort === "newest") assert.ok(first.documents.slice(0, 6).every(row => row.title === "Body Only"), "newest timestamp wins");
+    }
+    const normal = await search("tieprobe", { topic: "Ordering Fixture", pageSize: 12 });
+    const unknown = await search("tieprobe", { topic: "Ordering Fixture", sort: "unknown", pageSize: 12 });
+    const explicitNull = await db.query<{ result: typeof normal }>("select public.search_catalog(query_text => 'tieprobe', topic_filter => 'Ordering Fixture', sort_option => null, page_size => 12) as result");
+    assert.deepEqual(unknown, normal);
+    assert.deepEqual(explicitNull.rows[0].result, normal);
+  } finally {
+    await db.exec("delete from public.documents where slug like 'ordering-probe-%';");
+  }
+});

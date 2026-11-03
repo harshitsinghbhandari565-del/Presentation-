@@ -1,3 +1,18 @@
+# Current addendum — deterministic V1 search (2026-11-03)
+
+| Gate | State |
+| --- | --- |
+| RPC deterministic ties | **MEASURED-AC PASS** fixed snapshot: UUID ASC follows original ranking/featured/title/newest keys; window pagination and aggregate share row numbers. |
+| Page completeness | **MEASURED-AC PASS** 150 controlled tie cases in four modes; independent 4,000-row/84-page concatenation equals full order without duplicates. |
+| Candidate/facets/bounds/RLS | **MEASURED-AC PASS** 28 reconstructed + 20 additional full-set, ordered-page and total oracle cases, role/draft/write and existing DB tests. Original AK scratch inputs unavailable. |
+| Performance | V1 baseline only, local PGlite; natural scans and forced GIN eligibility distinct. Hosted latency unverified. |
+| Limitations | Concurrent changes can shift offsets; pre-existing fallback/browse ties are not fixed. Slow-GL strict refusal unverified. |
+| Activation | **BLOCKED**: migration unapplied pending separate AO approval; no v2 implementation. |
+
+Details: `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Current addendum — search v2 and slow-GL (2026-11-03)
 
 | Gate | State |

@@ -1,3 +1,9 @@
+# Current decision — UUID as V1 final tie-break (2026-11-03)
+
+AO requested a deterministic V1 order. Preserve existing relevance/featured/title/newest precedence and window pagination; append ascending document UUID. This intentionally specifies formerly arbitrary tied-row order for a fixed snapshot; it does not provide cross-request snapshot consistency or change fallback behavior. No v2 optimization or hosted migration. Evidence: `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Current decision — 2026-11-03: reject reconstructed search v2
 
 Do not remove the window ranking or add an unapproved UUID tie-break: v2 changed tied results/pages and measured improvements did not meet the requested reproduction. V1 itself is not guaranteed stable across ties. AO must decide a tie contract and review new completeness/scale evidence before migration approval. No bounded-prefix v3. `SEARCH_V2_VALIDATION.md` records the reconstructed comparison and limits.

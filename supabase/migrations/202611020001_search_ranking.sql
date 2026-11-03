@@ -90,7 +90,10 @@ as $$
         case when sort_option = 'newest' then f.created_at end desc nulls last,
         case when coalesce(sort_option, 'relevance') not in ('title', 'newest') and btrim(coalesce(query_text, '')) <> '' then f.rank end desc,
         case when coalesce(sort_option, 'relevance') not in ('title', 'newest') and btrim(coalesce(query_text, '')) = '' then f.is_featured end desc,
-        f.title asc
+        f.title asc,
+        -- UUID primary keys complete the order when every visible sort key ties.
+        -- Keep this inside row_number so pagination and aggregation use it too.
+        f.id asc
     ) as rn
     from filtered f
     order by rn
@@ -115,7 +118,7 @@ as $$
 $$;
 
 comment on function public.search_catalog(text, uuid, uuid, text, text, text, text, boolean, text, integer, integer) is
-  'Unapplied review candidate. Defaults: query_text empty (browse), all nullable filters off, featured_filter false, sort_option relevance, page_size 12 (explicit NULL also 12; clamp 1..48), page_offset 0 (explicit NULL also 0; minimum 0). Query is trimmed and limited to 200 characters. Uses simple websearch matching, A/B/C/D ranking, security invoker/RLS. Positive document terms filter through documents_search_idx using an OR candidate superset; joined subject/course names supply additional candidates. Blank browsing and intrinsically broad negation-only/taxonomy-only queries may scan. No stemming or zero-result expansion.';
+  'Unapplied review candidate. Defaults: query_text empty (browse), all nullable filters off, featured_filter false, sort_option relevance, page_size 12 (explicit NULL also 12; clamp 1..48), page_offset 0 (explicit NULL also 0; minimum 0). Query is trimmed and limited to 200 characters. Uses simple websearch matching, A/B/C/D ranking and a final ascending document UUID tie-break, security invoker/RLS. Positive document terms filter through documents_search_idx using an OR candidate superset; joined subject/course names supply additional candidates. Blank browsing and intrinsically broad negation-only/taxonomy-only queries may scan. No stemming or zero-result expansion.';
 
 revoke all on function public.search_catalog(text, uuid, uuid, text, text, text, text, boolean, text, integer, integer) from public;
 grant execute on function public.search_catalog(text, uuid, uuid, text, text, text, text, boolean, text, integer, integer) to anon, authenticated;

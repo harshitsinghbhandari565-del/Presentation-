@@ -1,3 +1,9 @@
+# Deterministic search ordering — AO review handover (2026-11-03)
+
+**Locally implemented; AO review pending.** Parent `2b46c60d8945a6a10a9f05be49994b32d5939343`; this section belongs to the current commit (`git rev-parse HEAD`). The unapplied V1 RPC retains ranking/window/paging and adds ascending UUID primary key after title. The change intentionally resolves previously unspecified ties; no v2 optimization. `SEARCH_V2_VALIDATION.md` records contract, reconstructed 28+20 oracle cases, complete 4,000-row / 84-page comparison, local baseline and natural/forced plans. Tests: lint/typecheck/build, 47 unit, 27 DB, serial Chromium 23 pass/1 dev-only skip; audit production 0. Slow-GL strict refusal remains unverified. Fallback and non-RPC browse remain unchanged and are not guaranteed total-order; cross-request writes can shift offsets. No hosted application/deploy/merge. Review and separately approve any hosted migration.
+
+---
+
 # Search v2 review handover — 2026-11-03 (current)
 
 **REJECT reconstructed v2 / stop for AO review.** Parent `3ffd555fc8b0f41ba8ef4e62676b8941335db1aa`; this section is in the current commit (use `git rev-parse HEAD` for its identity). Migration unchanged and unapplied. Exact v2 page order/membership differed on duplicate ties, including a repeated row across adjacent v2 pages; 14/28 reconstructed JSON cases and 12/20 extra cases differed. Existing v1 itself has no unique tie key. Candidate-stage full ID sets and both totals matched independent no-candidate oracle for all 28 reconstructed cases. Exact AK scratch files absent; do not claim AK's 28 were reproduced. Small overlapping-range local speedups did not reproduce AK's reported ~30% improvement. Full setup, numbers, RLS/plan and boundaries: `SEARCH_V2_VALIDATION.md`; rerunnable local script `scripts/evaluate-search-v2.mjs`.

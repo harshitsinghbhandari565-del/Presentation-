@@ -1,3 +1,9 @@
+# Deterministic search ordering handover (2026-11-03)
+
+Branch `arena/c9d0d599-presentation`, starting parent `2b46c60d8945a6a10a9f05be49994b32d5939343`; current commit via `git rev-parse HEAD`. The still-unapplied V1 RPC adds UUID ASC as final key, keeping `row_number()` and explicitly ordered aggregation. New regression checks 150 tie/score rows across every page and four sort/browse modes; old SQL fails that test, new passes. Local `scripts/evaluate-search-ordering.mjs` confirms 28 reconstructed and 20 additional exact full sets/totals/ordered pages, plus 4,000-result all-page concatenation. Full measurements, commands and limitations: `SEARCH_V2_VALIDATION.md`. No v2 shipped, no hosted action; fallback disclosure preserved, native slow-GL refusal unverified. Stop for AO review.
+
+---
+
 # Search v2 validation handover — 2026-11-03 (current)
 
 Starting parent `3ffd555fc8b0f41ba8ef4e62676b8941335db1aa` on `arena/c9d0d599-presentation`; this document is in the current commit (`git rev-parse HEAD`). **REJECT v2; no RPC changes.** `SEARCH_V2_VALIDATION.md` records the 28 reconstructed full-set oracle cases, 14 JSON differences, 12/20 extra differences, real tie/page duplication, local timing ranges and EXPLAINs, absent AK probes, current baseline gates, retry after E2E timeout, and unverified native slow-GL refusal. Run `node scripts/evaluate-search-v2.mjs` locally; never against hosted DB. Ask AO to review and choose tie semantics and the next performance investigation. The migration is unapplied; compatibility fallback's taxonomy limitation is still disclosed. No merge/deploy/hosted action.

@@ -1,3 +1,9 @@
+# Follow-up: deterministic V1 search ordering (2026-11-03)
+
+Added UUID ASC as final tie-break in the **unapplied** V1 window ordering, preserving relevance and aggregation by row number. Local duplicate-score/title/deep-page tests and independent full-set oracle passed; 4,000 rows concatenated without gaps or duplicates. V2 remains rejected; no application/fallback code changed. Offset stability assumes unchanged visible data between calls; non-RPC fallback/browse still lacks a unique key. Native slow-GL refusal is unverified. Full evidence and local performance baseline: `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Follow-up: search v2 validation (2026-11-03)
 
 **REJECTED / not implemented.** AK's exact probe scripts and SQL were unavailable; a local reconstructed v2 failed exact ordering/page membership on equal-title ties. V1 is itself not uniquely ordered. The 28 reconstructed candidate ID sets/totals matched an independent scan oracle; large AK-reported gains were not reproduced. Details, measurements, current checks and E2E retry: `SEARCH_V2_VALIDATION.md`. Migration still unapplied; disclosed narrower fallback unchanged. Native slow-GL refusal remains **UNVERIFIED**, not proven by the software override or generic null stub.

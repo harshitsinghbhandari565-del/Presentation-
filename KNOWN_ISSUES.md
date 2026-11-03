@@ -1,3 +1,11 @@
+# Deterministic search update — 2026-11-03
+
+- Local V1 RPC now uses UUID final tie-break; the prior v1 tie ambiguity below is historical for this local file, not hosted/applied. AO must review and separately approve any hosted application. Relevance preserved; previously arbitrary tie order intentionally changes.
+- Offset pages can shift when data/RLS changes between requests. No-RPC database browse/fallback and JS compatibility sorts remain unchanged and lack the RPC's unique final key; their tied results are not guaranteed stable. Missing-RPC taxonomy limitation remains visibly disclosed. Database UUID is a primary key but not protected against authorized ID updates.
+- Strict slow-GL refusal remains unverified: SwiftShader accepted strict and relaxed contexts; disabling rasterization rejected both. See `SEARCH_V2_VALIDATION.md`. No hosted performance claim; v2 remains rejected.
+
+---
+
 # Search v2 / test follow-up — 2026-11-03
 
 - **Ordering:** v1 ends sort with title, not a unique key; ties can make pages unstable. Reconstructed v2 changed order and page membership and repeated a row between pages. Reject v2; agree tie policy with AO rather than silently changing established behavior.

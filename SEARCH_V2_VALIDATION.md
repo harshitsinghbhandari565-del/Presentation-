@@ -1,3 +1,55 @@
+# Deterministic V1 ordering follow-up — 2026-11-03 (current)
+
+**Implemented locally; awaiting AO review.** The historical rejected-v2 evaluation below remains evidence, not an approval of v2. The local, still-unapplied V1 migration now completes its existing window order with `f.id ASC`, preserving all earlier precedence, pagination and JSON aggregation by `rn`. No v2 optimizer, schema/table change, hosted application, deployment or merge.
+
+## Contract and nondeterminism
+
+For a fixed database snapshot, filters, query, sort, collation and permissions:
+
+| Mode | Total order |
+| --- | --- |
+| Nonblank relevance (also NULL/unknown sort) | `ts_rank` DESC, `title` ASC, document UUID ASC |
+| Blank relevance (also NULL/unknown sort) | `is_featured` DESC, `title` ASC, UUID ASC |
+| Title | `title` ASC, UUID ASC |
+| Newest | `created_at` DESC NULLS LAST, `title` ASC, UUID ASC |
+
+`public.documents.id` is a non-null UUID primary key with `gen_random_uuid()` default; application edits do not set it. UUID order is a unique deterministic final key without displacing rank, title, date or featured priority. This deliberately specifies the previously unspecified tied-row order, so pages can change for ties; it does not promise parity with the former arbitrary order. Database grants allow authorized UPDATE generally and no immutable-id constraint exists, so identity stability assumes no out-of-band ID mutation; none was added.
+
+Previously equal rank/title, equal featured/title, equal created_at/title, or equal titles in title mode had no final key; text collation may treat distinct strings as equal. Candidate `UNION` and planner scan/sort choice do not promise input order, so `row_number()` could assign different row numbers to ties and LIMIT/OFFSET could pick different members. The existing aggregate explicitly orders by unique `rn`; without that explicit `jsonb_agg` order, subquery ordering alone would not guarantee array order. The new UUID resolves ties for one fixed visible set. `created_at` is currently NOT NULL, though explicit NULLS LAST remains. Different collation versions, record edits, inserts, deletes, changed RLS visibility or permissions, ID mutation, and separate RPC snapshots can still change order or page membership. Offset pagination does **not** provide a cross-request snapshot under concurrent writes. The pre-existing no-RPC PostgREST browse/fallback and JavaScript compatibility sorts still end in non-unique keys; their pagination stability is not guaranteed by this RPC change. They remain untouched, including honest narrower-coverage disclosure and fail-closed error behavior.
+
+## Verification — MEASURED-AC
+
+- Starting branch `arena/c9d0d599-presentation` at `2b46c60d8945a6a10a9f05be49994b32d5939343`, parent `3ffd555fc8b0f41ba8ef4e62676b8941335db1aa`, clean; fetched origin matched. AK `4d7c56cee8cc34c2daeb1ac0ff53a102ae9af9f5` review read via `git show`; original AK scratch cases/SQL remain unavailable. Current commit identity: `git rev-parse HEAD`; parent must be the starting commit above.
+- `node scripts/evaluate-search-ordering.mjs` runs entirely in memory, creates the same reconstructed 4,016-published/one-draft scale dataset, and independently scans all published rows with full weighted query and facet predicates. **28/28 reconstructed cases and 20/20 extra cases:** exact complete candidate/re-filter ID sets, totals and ordered RPC pages matched that no-candidate, unpaginated oracle. Cases cover mixed taxonomy/document, numeric, phrase/OR/NOT-only, blank/null, malformed/injection, truncation, subject/course/semester/type/platform/topic/featured and paging. These are not AK's exact unrecoverable 28 cases or an exhaustive proof.
+- Full 4,000-result `filler` order: **84 pages of 48**, concatenation exactly equals the unpaginated oracle, **zero duplicates**. Duplicate-title `Equal`: 80 rows over seven pages of 12 also exactly match, zero duplicates; repeats match. Extra probes include offset 1,980 and tail 3,990, and NULL/zero/negative/oversized size and offset bounds.
+- `tests/database/search-ranking.test.ts` adds 150 controlled rows, 144 equal title/rank/timestamp ties inserted in reverse UUID order plus lower-ranked body-only hits. For relevance, title, newest and blank featured browse, repeated queries and every adjacent page match an independent unpaginated full-scan order, including offset 132 and empty offset 150; full concatenations have no duplicates, and title relevance remains above body relevance. Against the old migration from `2b46c60` in an isolated temporary directory, the new test **failed as expected** on the relevance page at offset 0. First attempt in that directory failed at setup because its TS path-alias configuration was missing; rerunning with `TSX_TSCONFIG_PATH` set to the repo config reached the ordering assertion.
+- Local ephemeral `anon` and unauthenticated-claims `authenticated` both saw no draft through RPC and direct subject inserts failed `42501`; existing policy/admin tests passed. No hosted authorization re-test.
+- `npm run check` **passed** (lint, typecheck, 47 unit, 27 DB, build). After adding the scale script, lint and typecheck were rerun and passed. `npm audit --omit=dev`: 0 vulnerabilities. Serial production Chromium/SwiftShader E2E: **23 passed, 1 dev-only skipped**; no test-only override should be read as real GPU validation. No dependency manifests/lockfiles changed.
+
+## Deterministic V1 baseline — MEASURED-AC, local only
+
+After correctness checks, with no concurrent test/build job: PGlite 0.5.14, Node 22.22.3, analyzed 4,016 published synthetic/fixture rows, 48-row pages, two warmups then five sequential wall-clock measurements. Reproduce with `node scripts/evaluate-search-ordering.mjs`; optional `SEARCH_ORDER_RESULTS=/path/to/local.json` saves detailed plans/samples. This is a baseline, not a controlled pre/post optimization comparison or hosted latency.
+
+| Query / offset | Matches | Median ms | Range ms |
+| --- | ---: | ---: | ---: |
+| graviton / 0 | 2,667 | 294.83 | 293.40–301.12 |
+| filler / 0 | 4,000 | 415.55 | 410.34–435.80 |
+| graviton / 1,980 | 2,667 | 312.00 | 302.94–316.63 |
+| kw12 / 0 | 45 | 65.03 | 64.56–66.12 |
+| filler + Sem 1 / Worksheet / Google Drive | 66 | 12.50 | 11.69–14.44 |
+
+`EXPLAIN ANALYZE` on the document predicate naturally chose sequential scans for graviton and kw12. With seqscan disabled, the full published predicate used a bitmap on the **btree** `documents_public_course_idx`, filtering text. A separate forced simplified kw12 predicate **without** publication filter used `documents_search_idx` GIN; this proves eligibility only for that simplified predicate, not natural/hosted usage or speedup. Extracted literal V1 body still contains `WindowAgg → Sort` (under `Limit → Sort`) and candidate seq scans; one instrumented execution was 405.021 ms, not the median. Hosted plans/latency unverified.
+
+## Slow-GL and next step
+
+Native unmodified separate-canvas WebGL2 probes on temporary Chromium 153: default, `--disable-gpu`, and explicit ANGLE SwiftShader all produced contexts with both `failIfMajorPerformanceCaveat: true` and false (unmasked renderer SwiftShader); disabling both GPU and software rasterizer produced neither. Thus no genuine strict-only refusal condition was available. The existing software success helper rewrites the option, and the generic null stub is unconditional; neither proves refusal. **UNVERIFIED**, no misleading test added. A controlled browser/driver must demonstrate strict-null/relaxed-success without rewriting options and then check ambient and shelf fallback/status.
+
+AO review of the tie-contract behavior change is next. Keep `202611020001_search_ranking.sql` unapplied until separate AO approval. Do not deploy or merge. Consider non-RPC tie ordering and snapshot/cursor semantics separately; do not assume this resolves concurrent-write pagination or re-accepts v2.
+
+Files changed in this follow-up: `supabase/migrations/202611020001_search_ranking.sql`, `tests/database/search-ranking.test.ts`, `scripts/evaluate-search-ordering.mjs`, `SEARCH_V2_VALIDATION.md`, `FRONTEND_CORRECTIONS.md`, `FRONTEND_ACCEPTANCE_CHECKLIST.md`, `KNOWN_ISSUES.md`, `AC_HANDOVER.md`, `AO_HANDOVER.md`, `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `DECISIONS.md` and `DEVELOPMENT_GUIDE.md`. No dependency, production data, fallback application, previously applied migrations, hosted Auth, Vercel, or AK branch changes. Git's final commit hash and remote agreement must be checked after committing and pushing; a commit cannot embed its own hash.
+
+---
+
 # Search optimization v2 validation — AC, 2026-11-03
 
 **Decision: REJECT this reconstructed v2; no migration or application change.** The exact-order/pagination gate fails and the claimed large speedup was not reproduced. This is not an acceptance of v1's tie stability: the unchanged v1 order ends in `title`, not a unique key. Do not apply `202611020001_search_ranking.sql` to hosted Supabase without separate AO approval. Stop for AO review.
