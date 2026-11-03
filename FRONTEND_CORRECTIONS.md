@@ -1,3 +1,9 @@
+# Follow-up: search v2 validation (2026-11-03)
+
+**REJECTED / not implemented.** AK's exact probe scripts and SQL were unavailable; a local reconstructed v2 failed exact ordering/page membership on equal-title ties. V1 is itself not uniquely ordered. The 28 reconstructed candidate ID sets/totals matched an independent scan oracle; large AK-reported gains were not reproduced. Details, measurements, current checks and E2E retry: `SEARCH_V2_VALIDATION.md`. Migration still unapplied; disclosed narrower fallback unchanged. Native slow-GL refusal remains **UNVERIFIED**, not proven by the software override or generic null stub.
+
+---
+
 # Consolidated frontend correction round — AC
 
 Date: 2026-11-02

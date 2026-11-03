@@ -1,3 +1,18 @@
+# Current addendum — search v2 and slow-GL (2026-11-03)
+
+| Gate | State |
+| --- | --- |
+| Exact order / page boundaries | **FAIL** reconstructed v2; duplicate sort/title ties cause order/membership changes and repeated adjacent-page row. V1 is not totally ordered either. |
+| Candidate completeness | **MEASURED-AC** 28 reconstructed exact candidate ID sets and v1/v2 totals match independent all-row oracle; original AK scripts/cases unavailable. |
+| Scale improvement | **NOT MET**: 4,016-row PGlite, small noisy differences, not AK's reported gains; natural plans scanned. |
+| Slow-GL refusal | **UNVERIFIED**: native browser accepted true on SwiftShader; software override and unconditional null do not prove actual strict refusal. |
+| Hosted migration / deployment | **BLOCKED**, AO approval separate; no hosted actions. |
+| Current gates | `npm run check` passed; E2E initially 22 pass/1 fail/1 skip, isolated retry pass, serial full 23 pass/1 skip. |
+
+Complete evidence and commands: `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Correction-round acceptance checklist for AK and AO
 
 This is AC's evidence map for the independent review of `681800f`; it **does not replace or erase** AK's historical `frontend-intelligence/phase2/APPROVED_DESIGN_ACCEPTANCE_CHECKLIST.md` or its independent audit. Labels: **MEASURED-AC** executed here; **REPORTED** from another review; **UNVERIFIED** not executed. Full audit table, exact commands, failures, results, limitations and parent commit: `FRONTEND_CORRECTIONS.md`.

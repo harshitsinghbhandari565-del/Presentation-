@@ -1,3 +1,9 @@
+# Current status addendum — 2026-11-03
+
+Search v2 gates **failed** on exact tie ordering/pagination and did not demonstrate the reported material speedup. Do not deploy or adopt a bounded-prefix alternative. AO should decide a unique tie policy, recover AK's exact harness if possible, and request independent controlled scale/real Postgres review; native slow-GL refusal remains unverified. See `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Implementation plan and status
 
 Updated: 2026-11-02

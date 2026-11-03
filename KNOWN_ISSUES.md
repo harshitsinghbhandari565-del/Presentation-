@@ -1,3 +1,12 @@
+# Search v2 / test follow-up — 2026-11-03
+
+- **Ordering:** v1 ends sort with title, not a unique key; ties can make pages unstable. Reconstructed v2 changed order and page membership and repeated a row between pages. Reject v2; agree tie policy with AO rather than silently changing established behavior.
+- **Performance:** 4,016-row reconstructed local workload did not reproduce AK's reported large improvements; no hosted plans or latency verified. Original AK scratch harness/SQL absent. Ranking migration remains blocked.
+- **Slow-GL:** neither option-rewriting software helper nor unconditional null stub exercises genuine strict-refusal. Current SwiftShader browser returned WebGL2 even with strict flag. Real refusal is unverified; controlled browser/driver follow-up needed.
+- **Browser gate:** two-worker E2E run had one command-search timeout; isolated and one-worker full retries passed. Cause not established; monitor instead of claiming the first run passed. Details: `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Correction-round open issues — 2026-11-02
 
 - **Search migration BLOCKED:** `202611020001_search_ranking.sql` is corrected locally but remains **unapplied**; AO must independently approve any future hosted application. Local scale `EXPLAIN` proves existing GIN predicate eligibility only with `enable_seqscan=off`; ordinary PGlite planning selected a sequential scan at 4,016 rows. Hosted Postgres plan/latency are **UNVERIFIED**. Broad negation-only/blank/taxonomy searches can scan. Missing-RPC fallback cannot search subject/course names and visibly discloses this; relevance falls back to title order. PostgreSQL `simple` has no stemming and differs from compatibility substring semantics; do not claim full parity. See `FRONTEND_CORRECTIONS.md`.

@@ -1,3 +1,9 @@
+# Search v2 validation handover — 2026-11-03 (current)
+
+Starting parent `3ffd555fc8b0f41ba8ef4e62676b8941335db1aa` on `arena/c9d0d599-presentation`; this document is in the current commit (`git rev-parse HEAD`). **REJECT v2; no RPC changes.** `SEARCH_V2_VALIDATION.md` records the 28 reconstructed full-set oracle cases, 14 JSON differences, 12/20 extra differences, real tie/page duplication, local timing ranges and EXPLAINs, absent AK probes, current baseline gates, retry after E2E timeout, and unverified native slow-GL refusal. Run `node scripts/evaluate-search-v2.mjs` locally; never against hosted DB. Ask AO to review and choose tie semantics and the next performance investigation. The migration is unapplied; compatibility fallback's taxonomy limitation is still disclosed. No merge/deploy/hosted action.
+
+---
+
 # AC handover — consolidated frontend correction round
 
 Updated: 2026-11-02 · Branch `arena/c9d0d599-presentation` · Starting commit `681800f894b2cf17021bb540e177a68c05e8f72e` · Its parent `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`.

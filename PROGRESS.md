@@ -1,3 +1,9 @@
+# Current status addendum — 2026-11-03
+
+Completed local-only search v2 evaluation; **rejected candidate**, left migration and product code unchanged. Added reproducible in-memory comparator and `SEARCH_V2_VALIDATION.md`; 28 reconstructed exact ID-set oracle cases passed but 14 page comparisons failed, plus 12/20 extra comparisons, and broad speedups were small/noisy. Current checks passed except an initial E2E timeout (isolated and serial reruns passed). Real slow-GL refusal unverified. No hosted changes; AO review pending.
+
+---
+
 # Development progress
 
 Updated: 2026-11-02

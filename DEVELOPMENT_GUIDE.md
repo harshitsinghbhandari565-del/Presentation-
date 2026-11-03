@@ -1,3 +1,9 @@
+# Local-only search v2 evaluation — 2026-11-03
+
+After `npm ci`, run `node scripts/evaluate-search-v2.mjs` from the repo root. It creates an in-memory PGlite database and a temporary reconstructed candidate; it does not connect to Supabase or apply hosted SQL. Optional `SEARCH_V2_RESULTS=/path/to/local-results.json` saves detailed plans and comparisons. It documents a rejected optimization, not a passing regression gate. See `SEARCH_V2_VALIDATION.md` for environment, limitations, and decision.
+
+---
+
 # Development guide
 
 Updated: 2026-11-02

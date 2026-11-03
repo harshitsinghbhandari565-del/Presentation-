@@ -1,3 +1,9 @@
+# Search v2 validation — 2026-11-03
+
+The reconstructed optimization was rejected, not shipped: ties changed order/page membership and noisy local timings did not reproduce the reported large gains. The unchanged v1 also lacks a unique tie-break. Search migration remains unapplied pending AO; missing-RPC taxonomy limitation remains disclosed. Original AK scratch probes were unavailable; 28 new oracle cases are not claimed as exact reproduction. See `SEARCH_V2_VALIDATION.md`.
+
+---
+
 # Correction-round update — pending AK review (2026-11-02)
 
 The independent review of implementation `681800f` prompted corrections; the historical report below remains as evidence of the **earlier** milestone, not the current typography/search verdict. Geist now owns h1–h4/UI; Newsreader italic is editorial emphasis. The roman face is no longer preloaded. Ambient grid is above the shader; shader colours follow cached theme tokens. Shelf context loss updates React state/poster/retry/status; projector mode enforces a static scene; both GL contexts request `failIfMajorPerformanceCaveat`. Pinned steps animate only once; pending text remains fully opaque; forced-colors decorations are suppressed.

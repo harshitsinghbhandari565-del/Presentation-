@@ -1,3 +1,9 @@
+# Current decision — 2026-11-03: reject reconstructed search v2
+
+Do not remove the window ranking or add an unapproved UUID tie-break: v2 changed tied results/pages and measured improvements did not meet the requested reproduction. V1 itself is not guaranteed stable across ties. AO must decide a tie contract and review new completeness/scale evidence before migration approval. No bounded-prefix v3. `SEARCH_V2_VALIDATION.md` records the reconstructed comparison and limits.
+
+---
+
 # Architecture and product decisions
 
 Updated: 2026-11-01

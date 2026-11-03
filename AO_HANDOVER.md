@@ -1,3 +1,11 @@
+# Search v2 review handover — 2026-11-03 (current)
+
+**REJECT reconstructed v2 / stop for AO review.** Parent `3ffd555fc8b0f41ba8ef4e62676b8941335db1aa`; this section is in the current commit (use `git rev-parse HEAD` for its identity). Migration unchanged and unapplied. Exact v2 page order/membership differed on duplicate ties, including a repeated row across adjacent v2 pages; 14/28 reconstructed JSON cases and 12/20 extra cases differed. Existing v1 itself has no unique tie key. Candidate-stage full ID sets and both totals matched independent no-candidate oracle for all 28 reconstructed cases. Exact AK scratch files absent; do not claim AK's 28 were reproduced. Small overlapping-range local speedups did not reproduce AK's reported ~30% improvement. Full setup, numbers, RLS/plan and boundaries: `SEARCH_V2_VALIDATION.md`; rerunnable local script `scripts/evaluate-search-v2.mjs`.
+
+**Current gates:** `npm run check` passed (47 unit, 26 DB), production audit 0; production E2E initial 22 pass/1 fail/1 skip (search result timed out), isolated retry passed and serial full rerun 23 pass/1 skip. Slow-GL refusal **UNVERIFIED**: native software WebGL2 accepted the strict option; override tests and unconditional-null stubs are not production-condition refusal proof. No hosted service, deploy, merge or membership action. Resolve tie policy and obtain AK harness/representative Postgres benchmark before any further optimization or hosted approval. Existing narrower missing-RPC fallback disclosure remains.
+
+---
+
 # AO handover — consolidated frontend corrections for independent re-review
 
 Updated: 2026-11-02 · Branch `arena/c9d0d599-presentation` · Reviewed starting commit `681800f894b2cf17021bb540e177a68c05e8f72e` · Reviewed parent `71d6fb912f97693f9dded837fdbaeafb5b90e9b0`.

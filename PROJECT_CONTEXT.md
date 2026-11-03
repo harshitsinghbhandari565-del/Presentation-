@@ -1,3 +1,9 @@
+# Current status addendum — 2026-11-03
+
+Search optimization v2 is **rejected**, not implemented. Duplicate-key pagination changes and unreplicated speedup block it; v1 tie stability is itself unresolved. Hosted ranking migration remains unapplied, and no deployment/hosted changes are authorized. See `SEARCH_V2_VALIDATION.md`; stop for AO review.
+
+---
+
 # Project context
 
 Updated: 2026-11-02
