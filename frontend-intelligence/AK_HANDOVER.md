@@ -361,3 +361,62 @@ approach is the one to *avoid* — see below), `/home/user/scratch/t` + `/home/u
 6. PGlite error objects dump the bundled module source (≈15 KB of noise) — log `e.code` + first line only.
 7. `insert … description` under 10 chars trips `documents_description_check` (that is AC's constraint, correctly
    documented; the probe just has to satisfy it).
+
+## 11. AK's review of AC's deterministic-V1 ordering — 2026-11-03
+
+**Object:** AC branch `arena/c9d0d599-presentation` @ **`c5c6ce3ca65113680be614c20ff2c12be95b0954`**
+("fix: make ranked search pagination deterministic"), parent
+**`2b46c60d8945a6a10a9f05be49994b32d5939343`** ("review: reject search v2 after local validation", 13 files +204/−0),
+itself a child of `3ffd555…` (the commit of §10) and `681800f…`. 14 files, +294/−2, 2026-11-03T00:36:59Z.
+**Deliverable:** `phase2/AC_DETERMINISTIC_SEARCH_REVIEW.md`. **Verdict: ACCEPT** (three conditions attach to *hosted
+application*: A1 hosted `EXPLAIN`, A2 the non-RPC tie decision, A3 optional narrow-then-fetch speedup).
+
+**Git truth at this hand-off** (`git ls-remote`, verified at start **and** before commit): AK
+`arena/9d055deb-presentation` was at `4d7c56cee8cc34c2daeb1ac0ff53a102ae9af9f5` when the review was written and this
+entry is committed directly on top of it; `main` `4307a6884527e22af27541cd76722867e5e6bb14` (nothing merged);
+`AC-Branch` `cac9c7f145abe99bd12a8831cc371e370fbe35d5`. The sandbox was **re-provisioned again** at the start of this
+round (pack showed untracked at `4307a68`); restored by `git fetch` + `git reset --hard 4d7c56c` before any work.
+
+**What was reproduced on AK's own install** (`/home/user/scratch2/acbuild` = the target tree + own `npm ci`, 329
+packages, node 22.22.3): `next build` exit 0, `tsc` 0, `eslint` 0, unit **47/47**, DB **27/27**, `npm audit
+--omit=dev --audit-level=high` **0**, AC's `scripts/evaluate-search-ordering.mjs` end to end (28/28 + 20/20 oracle
+cases, 84 pages of 48 with 0 duplicates, RLS roles, plan dumps; AK's medians 5–10 % above AC's on the same script).
+**AK's own verifier** (`/home/user/scratch2/probe11.mjs`, now committed as `phase2/tooling/verify-search-ordering.mjs`):
+own corpus + own oracle → **36/36 exact** totals and ordered pages, 400-tie walks at size 12 and 48 run twice with 0
+duplicates and stable `total`, adjacency/deep/tail/beyond offsets, clamps (0→1, −5→1, 9999→48, null→12, 49→48,
+offset −5→0), facets, draft invisible, `42501` on direct writes for both roles, table intact.
+**The decisive control:** AC's new test run against the **parent** migration fails exactly as AC said it would
+(`not ok 10 … relevance/tieprobe: offset 0`, 9 other DB tests pass); restored → 27/27.
+**Cost of the fix** (A/B in one session, same data, alternating, median 5–7): +1.4 % / +5.5 % / +0.4 % / −0.6 % /
++1.0 % with a **node-for-node identical plan** (`Limit → Sort → WindowAgg → Sort → CTE Scan`) — i.e. free.
+**v2 confirmed absent:** `grep -c materialized` = 0, `row_number() over` retained, only the 5-line hunk + comment
+changed. **Non-RPC paths remain non-total** (`catalog.ts:186–189` browse + fallback, `:232–234` rails, `:252`
+related; `search.ts:78–82` comparators end in `localeCompare(title)`, but compat mode is deterministic because the
+input is a static module) — consequence and a ≈8-line fix are in review §9. `src/proxy.ts` matches `/admin/*` only, so
+it neither masks nor worsens this.
+
+**Executed, do not re-run:** everything above; plus full migration/test/script/doc reads, `2b46c60`'s parent check
+(`3ffd555`), `documents.id uuid primary key default gen_random_uuid()` at
+`202611010001_catalog.sql:41` (the reason the ordering claim is a *proof*, not a measurement), and the 11-doc
+consistency diff (`SEARCH_V2_VALIDATION.md`, `DECISIONS.md`, `KNOWN_ISSUES.md`, `FRONTEND_ACCEPTANCE_CHECKLIST.md`,
+`FRONTEND_CORRECTIONS.md`, both handovers, `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`,
+`DEVELOPMENT_GUIDE.md`) — no contradictions; the only nit is that `npm run check` excludes `test:db`.
+
+**Never executed here (say so):** Chromium E2E (playwright 1.64.1, **0 browser binaries**, CDN off-allowlist →
+AC's `23 pass + 1 skip` stays `[REPORTED-AC]`); strict slow-GL refusal (AC measured no reproducible refusal
+condition — honest `UNVERIFIED`); full dev-audit count; hosted plans; real GPU/AT/Lighthouse.
+
+**New probe traps (each cost AK a retry; a successor should skip them):** (1) parameter-count mismatch — an oracle
+taking the RPC's 11-arg array while declaring 9 placeholders fails with `08P01 bind message supplies 11 parameters`;
+slice. (2) building a SQL variant by string surgery must assert **both** the anchor match *and* paren balance —
+dropping `order by o.rn` from `jsonb_agg(…) order by o.rn) from …` needs `)) from`, not `) from`. (3) narrow-CTE
+variants must carry the **ordering** columns (id/title/created_at/is_featured/rank), not just id, or the window
+loses `f.title`. (4) `slug like 'ak-%'` also matches a `ak-draft` sentinel → `cast(substring(…) as int)` explodes;
+use `~ '^ak-[0-9]+$'`. (5) UUID literals in hand-built `insert` values need quotes. (6) `db.escape` is not a PGlite
+API — avoid. (7) **ESM `node_modules` resolution follows the script's own directory**, so a tooling script committed in the pack cannot import the app's dependencies when run from elsewhere — copy it into the target tree (or symlink `node_modules` beside it) and say so in the header. (8) `bash -c` with nested `"` inside `python3 - <<PY` heredocs breaks; keep the patch script free of
+quotes-within-quotes.
+
+**AK's next actions:** hold for AO's answer to A1–A3; if AO accepts, the pack should record the total-order contract
+in `APPROVED_DESIGN_IMPLEMENTATION_SPEC.md` (one line) and drop the `.order("id")` recommendation into AC's queue.
+`prototype-lab` is untouched this round (no dependency work); its `node_modules`/`dist` are still absent after
+re-provision and rebuild with `npm install && node build.mjs && node test.mjs` if a lab number is needed again.

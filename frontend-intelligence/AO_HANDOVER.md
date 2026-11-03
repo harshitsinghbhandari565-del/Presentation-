@@ -328,3 +328,67 @@ was silently replaced.
 `phase2/AC_CORRECTION_INDEPENDENT_REVIEW.md`; tree clean after commit; `main` and AC's branch untouched; nothing
 merged; no production code, schema, dependency, env or hosted resource modified by AK. AK holds pending AO's answer
 to decisions 1–3; scratch reproductions live in `/home/user/scratch/{t,p,acbuild,probe}` and are throwaway.
+
+## Deterministic-V1 ordering review — AK → AO, 2026-11-03
+
+**Reviewed:** AC branch `arena/c9d0d599-presentation` @ **`c5c6ce3ca65113680be614c20ff2c12be95b0954`**, parent
+**`2b46c60d8945a6a10a9f05be49994b32d5939343`** (AC's own "reject search v2 after local validation" commit, whose parent
+is `3ffd555…` = the commit reviewed in the previous addendum). 14 files, +294/−2. Chain:
+`681800f → 3ffd555 → 2b46c60 → c5c6ce3`, all verified against `git ls-remote` and `api.github.com`, never assumed.
+**Deliverable:** `phase2/AC_DETERMINISTIC_SEARCH_REVIEW.md`. **Verdict: ACCEPT.**
+
+### Why ACCEPT, in one paragraph
+
+The migration change is 5 lines: `f.id asc` appended as the **final** key inside the existing `row_number()` window, so
+relevance/featured/title/newest precedence is untouched, and pagination (`order by rn limit/offset`) and the JSON
+aggregate (`jsonb_agg(… order by o.rn)`) both consume the *same* numbering — consistency by construction rather than by
+duplicated key lists. Because `documents.id` is a non-null unique PK in the already-applied schema
+(`202611010001_catalog.sql:41`), the resulting order is **provably total** on a fixed snapshot. AC's new DB test inserts
+144 exact ties in descending id order with an anti-vacuity rank assertion and compares against a separately written
+unpaginated oracle — and **AK reproduced the decisive control**: that test fails (`not ok 10 … offset 0`) against the
+parent SQL and passes (27/27) against the target. AC's scale harness (28+20 oracle cases, 84 pages of 48, zero
+duplicates) runs clean on AK's machine, AK's own 36-case oracle agrees, and the cost of the whole change is
+**+0…5 % with a node-for-node identical plan**. No `src/**` file, no dependency, no config, no seed, no applied
+migration and no hosted action is in the diff; v2 is confirmed absent (`grep -c materialized` = 0).
+
+### The three things AO must decide (none of them blocks accepting this commit)
+
+1. **A1 — application gate.** One `EXPLAIN (ANALYZE, BUFFERS)` against the real hosted table before applying
+   `202611020001_search_ranking.sql`. Expectation to set with AC: at small N the planner **will** choose a sequential
+   scan — AK's measurements (natural: `Seq Scan`; `enable_seqscan=off`: a **btree** on `created_at`/`course_id`, not the
+   GIN; the GIN only appears for a predicate without the publication filter) match AC's exactly, and both sides label
+   that as eligibility, not usage, not speedup. Do not let a local plan become the acceptance test.
+2. **A2 — the two-regime question.** The RPC is now a total order; **blank browse, the disclosed missing-RPC fallback and
+   the landing rails are not** (`catalog.ts:186–189`, `:232–234`, `:252`; the JS comparators in `search.ts:78–82` end in
+   `localeCompare(title)`, though compatibility mode over a static module *is* deterministic). Practical effect: searching
+   is stable, clearing the search box is stable only while no two rows tie. AC documents this honestly rather than
+   claiming a fix. Closing it is ≈8 one-line edits (`.order("id")` after each PostgREST chain — the codebase already
+   does exactly that at `catalog.ts:76` — plus an id tie-break in the two comparators), with **no** migration and no
+   hosted change. AK recommends doing it, alongside the migration decision, not as a condition on this commit.
+3. **A3 — optional speed, correctly attributed.** AC rejected AK's earlier "drop the window" v2 on measured grounds, and
+   **AK confirms AC was right** (re-measured: −3.6 / −2.1 / +4.4 %, noise; see C23 in `phase2/VERIFICATION_LOG.md`).
+   The measured lever is different: rank on narrow intermediates `(id, title, created_at, is_featured, rank)` and join
+   back for the page — **−27…−38 % with byte-identical pages**, order-equivalent *because* `id` is now unique. That
+   variant lives only in AK's harness; if AO wants it, it goes into the still-unapplied migration for a fresh review, and
+   AC's `2b46c60` rejection is not reversed by it.
+
+### Also worth AO's attention
+
+* **Docs are consistent and self-critical.** AC's records state the snapshot scope, the offset-pagination limits
+  ("does not provide a cross-request snapshot under concurrent writes"), the unchanged fallback ties, and — usefully —
+  that a first E2E run came out `22 passed, 1 failed` before a clean rerun, and that their software-GL helper rewrites
+  `failIfMajorPerformanceCaveat`, so **no test proves the slow-GL refusal path**. AK verified all of this against source
+  and found no overclaim; only a nit (`npm run check` does not include `test:db`, so the "check passed (… 27 DB …)"
+  grouping is loose — the numbers are right).
+* **What AK could not run, stated as unavailable, not as passing:** the Chromium E2E (no browser binary; CDN
+  off-allowlist → AC's `23 passed + 1 skipped` is `[REPORTED-AC]`), real GPU/Safari/Firefox/AT/Lighthouse, hosted plans,
+  the full dev-audit count. Nothing in this diff touches the visual layer, so no new visual risk is being accepted.
+* **Reproducibility fix.** AK's verifier for this whole class of check is now committed:
+  `frontend-intelligence/phase2/tooling/verify-search-ordering.mjs` (`AC_TREE=… PARENT_TREE=… node …`). AK's scratch
+  probes had been lost to a sandbox re-provision, which is why AC had to reconstruct AK's v2 from prose (C25).
+
+**State at this hand-off:** AK branch `arena/9d055deb-presentation` was at `4d7c56c` when this review was written; the
+review, the tooling addition, `phase2/VERIFICATION_LOG.md` §7 (C23–C25) and both handover entries are committed on top of
+it on the AK branch only. `main` remains `4307a68`; AC's `3ffd555`→`2b46c60`→`c5c6ce3` line is untouched by AK (read via
+GitHub archive tarballs outside the repo); the migration remains unapplied and nothing was merged. AK holds for AO's
+answer to A1–A3.
