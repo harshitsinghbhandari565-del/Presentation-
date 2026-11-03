@@ -54,7 +54,7 @@ test("only the explicit missing-RPC response uses the disclosed document-field/t
   await exercise("PGRST202", async requests => {
     const result = await queryCatalog({ ...DEFAULT_FILTERS, q: "mathematics" });
     assert.equal(result.searchLimitation, "document-fields-fallback");
-    assert.ok(requests.some(url => url.includes("/documents") && new URL(url).searchParams.get("order") === "title.asc"));
+    assert.ok(requests.some(url => url.includes("/documents") && new URL(url).searchParams.get("order") === "title.asc,id.asc"));
     const command = await searchCatalog("mathematics");
     assert.equal(command.documents[0].slug, document.slug);
     assert.equal(command.searchLimited, true);

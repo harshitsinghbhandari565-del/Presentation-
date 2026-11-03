@@ -1,3 +1,9 @@
+# Current update — catalog ordering (2026-11-03)
+
+AO accepted deterministic V1, approved application ID tie-breaks, deferred further optimization; V1 migration remains unapplied. Document path ordering is locally unified at the ID tail; hosted facet-option RPC has a separately tracked name-tie limitation. Read `CATALOG_ORDERING_REVIEW.md`; no hosted execution/deploy/merge.
+
+---
+
 # Current status addendum — deterministic V1 (2026-11-03)
 
 The unapplied local search RPC now uses UUID ASC as its final tie-break, retaining ranking/window pagination; complete oracle/page tests passed. V2 remains rejected and hosted migration/deployment remain blocked pending AO. Fallback/browse ties and cross-request writes remain limitations. See `SEARCH_V2_VALIDATION.md`.

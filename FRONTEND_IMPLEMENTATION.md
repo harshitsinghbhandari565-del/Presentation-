@@ -1,3 +1,9 @@
+# Current update — catalog order (2026-11-03)
+
+ID is now the final tie-break on the live/compatibility catalog document paths and admin order chains, without changing earlier ranking/featured/date/title priority. V1 migration remains unchanged and unapplied; the existing hosted facet-option RPC's name ties are a separate limitation. Local tests and approval-bound hosted-plan instructions: `CATALOG_ORDERING_REVIEW.md`. Physical GPU/device/AT and genuine slow-GL refusal remain unverified.
+
+---
+
 # Search v2 validation — 2026-11-03
 
 The reconstructed optimization was rejected, not shipped: ties changed order/page membership and noisy local timings did not reproduce the reported large gains. The unchanged v1 also lacks a unique tie-break. Search migration remains unapplied pending AO; missing-RPC taxonomy limitation remains disclosed. Original AK scratch probes were unavailable; 28 new oracle cases are not claimed as exact reproduction. See `SEARCH_V2_VALIDATION.md`.

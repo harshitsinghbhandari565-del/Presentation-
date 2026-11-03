@@ -1,3 +1,9 @@
+# Current decision — catalog ID tails and hosted plan (2026-11-03)
+
+AO accepted deterministic V1, rejected v2, approved ID tie-breaks on application catalog ordering and deferred rank-narrow-then-fetch-wide. Preserve each path's existing preceding keys, including related candidate precedence and fallback disclosure. Hosted inspection/migration are separately unauthorized. Applied `get_catalog_facets` SQL name ties require a separate reviewed change. See `CATALOG_ORDERING_REVIEW.md`.
+
+---
+
 # Current decision — UUID as V1 final tie-break (2026-11-03)
 
 AO requested a deterministic V1 order. Preserve existing relevance/featured/title/newest precedence and window pagination; append ascending document UUID. This intentionally specifies formerly arbitrary tied-row order for a fixed snapshot; it does not provide cross-request snapshot consistency or change fallback behavior. No v2 optimization or hosted migration. Evidence: `SEARCH_V2_VALIDATION.md`.

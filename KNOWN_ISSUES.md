@@ -1,3 +1,12 @@
+# Current catalog ordering and hosted-plan issues — 2026-11-03
+
+- V1 is AO-accepted but **unapplied**; hosted plan inspection and later application require separate AO/PO authorization. V2 rejected, rank-narrow-fetch-wide deferred.
+- Document paths now use unique ID after their existing keys; the prior no-RPC document-tie issue below is historical. Already-hosted `get_catalog_facets` aggregates subject/course options by name only, without ID; equal-name facet option order may vary. A separately reviewed migration is required to alter it without changing SQL collation.
+- Offset pagination is not snapshot-consistent across writes/visibility changes; IDs can be changed by authorized out-of-band updates. JS/PostgreSQL collation and compatibility search semantics are not identical.
+- Genuine slow-GL refusal remains **UNVERIFIED**; headless software override and unconditional-null stub cannot establish it. Physical GPU/device/AT/visual review and hosted performance remain unverified. Details: `CATALOG_ORDERING_REVIEW.md`.
+
+---
+
 # Deterministic search update — 2026-11-03
 
 - Local V1 RPC now uses UUID final tie-break; the prior v1 tie ambiguity below is historical for this local file, not hosted/applied. AO must review and separately approve any hosted application. Relevance preserved; previously arbitrary tie order intentionally changes.

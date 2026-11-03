@@ -1,3 +1,9 @@
+# Current update — catalog ordering (2026-11-03)
+
+AO accepted deterministic V1; migration unchanged/unapplied. Document browse, disclosed fallback, palette, rails, related candidates and compatibility/fixture comparators now add ID only after existing keys. Related score ties keep server candidate precedence. Local tests and hosted-plan preparation: `CATALOG_ORDERING_REVIEW.md`. Hosted `get_catalog_facets` name-tie ordering remains separately gated; no v2, hosted action, deployment or merge. Slow-GL refusal and physical GPU/device/AT remain unverified.
+
+---
+
 # Follow-up: deterministic V1 search ordering (2026-11-03)
 
 Added UUID ASC as final tie-break in the **unapplied** V1 window ordering, preserving relevance and aggregation by row number. Local duplicate-score/title/deep-page tests and independent full-set oracle passed; 4,000 rows concatenated without gaps or duplicates. V2 remains rejected; no application/fallback code changed. Offset stability assumes unchanged visible data between calls; non-RPC fallback/browse still lacks a unique key. Native slow-GL refusal is unverified. Full evidence and local performance baseline: `SEARCH_V2_VALIDATION.md`.

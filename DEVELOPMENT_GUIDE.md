@@ -1,3 +1,9 @@
+# Current catalog ordering checks (2026-11-03)
+
+Run `npm run check` and `node scripts/evaluate-search-ordering.mjs` locally. `tests/unit/catalog-ordering.test.ts` exercises actual emitted PostgREST ordering parameters against a synthetic in-process mock and JS fallback/fixtures; this is not a hosted integration test. Exact plan SQL and preconditions: `docs/HOSTED_SEARCH_PLAN_REVIEW.md`; execution on hosted systems is not authorized. Review `CATALOG_ORDERING_REVIEW.md` for residual facet, concurrency, locale and GL limits.
+
+---
+
 # Local deterministic search validation (2026-11-03)
 
 Run `npm run test:db` for regression tests and `node scripts/evaluate-search-ordering.mjs` for the reconstructed 28+20 full-scan oracle, all-page comparison and V1 timing/plan baseline. It uses only in-memory PGlite; optional `SEARCH_ORDER_RESULTS=/path/to/local.json` saves samples/plans. No hosted SQL is applied. See `SEARCH_V2_VALIDATION.md`.

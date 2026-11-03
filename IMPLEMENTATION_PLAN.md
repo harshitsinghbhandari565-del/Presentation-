@@ -1,3 +1,9 @@
+# Current update — catalog ordering (2026-11-03)
+
+Application tie-breaks and local regression/oracle gates complete; AO review pending. Hosted query-plan SQL/instructions prepared, not executed; hosted inspection and eventual migration each require explicit authorization. Existing hosted facet-name ties are a separate SQL issue. No v2 or deferred narrow-fetch. See `CATALOG_ORDERING_REVIEW.md`.
+
+---
+
 # Current status addendum — deterministic V1 (2026-11-03)
 
 Local UUID tie-break and 28+20 reconstructed oracle/page validations complete; baseline and residual risks in `SEARCH_V2_VALIDATION.md`. AO review precedes any hosted approval; no optimization, deployment or merge. Slow-GL strict refusal remains unverified.

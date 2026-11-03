@@ -1,3 +1,9 @@
+# Current update — catalog ordering (2026-11-03)
+
+Added ID tie-breaks to application catalog/admin order chains and compatibility/fixture comparators; maintained related candidate precedence and fallback disclosure. 53 unit/28 DB/check, reconstructed 28+20 oracle and 4,000-row page walk passed; browser 23/1 skipped. Prepared and locally tested read-only hosted plan SQL, not executed hosted. Existing facet RPC option ties and slow-GL refusal remain open. Details: `CATALOG_ORDERING_REVIEW.md`.
+
+---
+
 # Current status addendum — deterministic V1 (2026-11-03)
 
 Local search migration adds UUID tie-break; 150-row ordering regression, 28+20 oracle cases, 4,000-row all-page comparison and current checks passed. Captured PGlite V1 baseline; hosted behavior and native slow-GL refusal unverified. Migration still unapplied, v2 not implemented; AO review pending. Details: `SEARCH_V2_VALIDATION.md`.

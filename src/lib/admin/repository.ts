@@ -7,7 +7,7 @@ export interface AdminRow {
   updated_at: string; subjects: { name: string } | null;
 }
 export async function getCategories(client: AdminClient) {
-  const [subjects, courses] = await Promise.all([client.from("subjects").select("id,name,slug").order("name"), client.from("courses").select("id,name,slug").order("name")]);
+  const [subjects, courses] = await Promise.all([client.from("subjects").select("id,name,slug").order("name").order("id"), client.from("courses").select("id,name,slug").order("name").order("id")]);
   if (subjects.error || courses.error) throw new Error("Categories could not be loaded. Please try again.");
   return { subjects: subjects.data as Category[], courses: courses.data as Category[] };
 }
@@ -16,7 +16,7 @@ export async function getAdminDocuments(client: AdminClient, query = "", status 
   if (query) request = request.textSearch("search_vector", query.slice(0, 200), { type: "websearch", config: "simple" });
   if (["draft", "published", "archived"].includes(status)) request = request.eq("publication_status", status);
   const from = (page - 1) * 20;
-  const { data, error, count } = await request.order("updated_at", { ascending: false }).range(from, from + 19);
+  const { data, error, count } = await request.order("updated_at", { ascending: false }).order("id").range(from, from + 19);
   if (error) throw new Error("The admin library could not be loaded. Please try again.");
   return { documents: data as unknown as AdminRow[], total: count ?? 0, page, pageCount: Math.max(1, Math.ceil((count ?? 0) / 20)) };
 }

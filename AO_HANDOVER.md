@@ -1,3 +1,11 @@
+# Catalog ordering + hosted-plan preparation — AO review (2026-11-03)
+
+Starting commit `c5c6ce3ca65113680be614c20ff2c12be95b0954`; this handover is in the current commit (`git rev-parse HEAD`). AO accepted V1, rejected v2, approved application ID tie-breaks, deferred narrow-fetch. Added final IDs to live document browse/fallback/palette/rails/related candidate and admin order chains, plus compatibility/fixture comparators; related score ties retain server candidate precedence. Existing hosted `get_catalog_facets` RPC still has name-only facet-option ties; changing applied SQL is separately gated. V1 migration byte-identical and unapplied.
+
+**MEASURED-AC:** 53 unit, 28 DB, lint/typecheck/build; 28 reconstructed + 20 extras match independent oracle and 4,000 rows/84 pages have no duplicates; serial browser 23 pass/1 dev-only skip; production audit 0. Exact SQL and approval-bound hosted instructions: `docs/HOSTED_SEARCH_PLAN_REVIEW.md` and `docs/hosted-search-plan-review.sql`; never executed hosted. Slow-GL genuine refusal, physical GPU/AT/device and hosted performance remain unverified. Details, fixed-snapshot limits and scope: `CATALOG_ORDERING_REVIEW.md`. Stop for AO review; no deployment/merge/migration.
+
+---
+
 # Deterministic search ordering — AO review handover (2026-11-03)
 
 **Locally implemented; AO review pending.** Parent `2b46c60d8945a6a10a9f05be49994b32d5939343`; this section belongs to the current commit (`git rev-parse HEAD`). The unapplied V1 RPC retains ranking/window/paging and adds ascending UUID primary key after title. The change intentionally resolves previously unspecified ties; no v2 optimization. `SEARCH_V2_VALIDATION.md` records contract, reconstructed 28+20 oracle cases, complete 4,000-row / 84-page comparison, local baseline and natural/forced plans. Tests: lint/typecheck/build, 47 unit, 27 DB, serial Chromium 23 pass/1 dev-only skip; audit production 0. Slow-GL strict refusal remains unverified. Fallback and non-RPC browse remain unchanged and are not guaranteed total-order; cross-request writes can shift offsets. No hosted application/deploy/merge. Review and separately approve any hosted migration.

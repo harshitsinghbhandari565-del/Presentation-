@@ -1,3 +1,11 @@
+# Current update — catalog ordering + hosted-plan preparation (2026-11-03)
+
+AO accepted the deterministic V1 correction and rejected v2; rank-narrow-then-fetch-wide is deferred. The V1 migration is byte-identical to `c5c6ce3` and unapplied. Live PostgREST and JS catalog document orders now append stable IDs without changing preceding priorities; live related-score ties preserve server candidate precedence. Existing `get_catalog_facets` RPC option-name ties remain a separate hosted schema limitation. Full current scope, tests and caveats: `CATALOG_ORDERING_REVIEW.md`.
+
+**MEASURED-AC:** 28 reconstructed and 20 extra cases matched full ID sets/totals/ordered pages, 4,000-row walk over 84 pages exact/no duplicates; 53 unit/28 DB, lint/typecheck/build passed. Actual hosted SQL plan remains **UNVERIFIED**; exact approval-bound preparation: `docs/HOSTED_SEARCH_PLAN_REVIEW.md` and `docs/hosted-search-plan-review.sql` (locally tested without installing RPC). Slow-GL genuine refusal remains unverified.
+
+---
+
 # Deterministic V1 ordering follow-up — 2026-11-03 (current)
 
 **Implemented locally; awaiting AO review.** The historical rejected-v2 evaluation below remains evidence, not an approval of v2. The local, still-unapplied V1 migration now completes its existing window order with `f.id ASC`, preserving all earlier precedence, pagination and JSON aggregation by `rn`. No v2 optimizer, schema/table change, hosted application, deployment or merge.

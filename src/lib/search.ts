@@ -19,6 +19,12 @@ export const DEFAULT_FILTERS: LibraryFilters = {
 };
 export const PAGE_SIZE = 12;
 
+// Code-unit order is total for distinct IDs and agrees with canonical UUID
+// order. localeCompare alone may consider different strings equivalent.
+export function compareDocumentIds(a: EducationalDocument, b: EducationalDocument): number {
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
 export function normalizeSearch(value: string): string {
   return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[–—-]/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -62,7 +68,7 @@ export function relevanceScore(document: EducationalDocument, query: string): nu
 export function searchDocuments(documents: EducationalDocument[], query: string) {
   return documents
     .filter(document => matchesSearch(document, query))
-    .sort((a, b) => relevanceScore(b, query) - relevanceScore(a, query) || a.title.localeCompare(b.title));
+    .sort((a, b) => relevanceScore(b, query) - relevanceScore(a, query) || a.title.localeCompare(b.title) || compareDocumentIds(a, b));
 }
 
 export function filterDocuments(documents: EducationalDocument[], filters: LibraryFilters) {
@@ -76,10 +82,10 @@ export function filterDocuments(documents: EducationalDocument[], filters: Libra
     (!filters.featured || document.isFeatured)
   );
   return result.sort((a, b) => {
-    if (filters.sort === "title") return a.title.localeCompare(b.title);
-    if (filters.sort === "newest") return (b.createdAt ? Date.parse(b.createdAt) : 0) - (a.createdAt ? Date.parse(a.createdAt) : 0) || a.title.localeCompare(b.title);
-    if (filters.q) return relevanceScore(b, filters.q) - relevanceScore(a, filters.q) || a.title.localeCompare(b.title);
-    return Number(b.isFeatured) - Number(a.isFeatured) || a.title.localeCompare(b.title);
+    if (filters.sort === "title") return a.title.localeCompare(b.title) || compareDocumentIds(a, b);
+    if (filters.sort === "newest") return (b.createdAt ? Date.parse(b.createdAt) : 0) - (a.createdAt ? Date.parse(a.createdAt) : 0) || a.title.localeCompare(b.title) || compareDocumentIds(a, b);
+    if (filters.q) return relevanceScore(b, filters.q) - relevanceScore(a, filters.q) || a.title.localeCompare(b.title) || compareDocumentIds(a, b);
+    return Number(b.isFeatured) - Number(a.isFeatured) || a.title.localeCompare(b.title) || compareDocumentIds(a, b);
   });
 }
 

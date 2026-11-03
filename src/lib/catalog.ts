@@ -3,7 +3,7 @@ import type { Presentation } from "@/types/presentation";
 import type { CatalogFacets, CatalogMode, EducationalDocument, PublicationStatus } from "@/types/document";
 import { DOCUMENT_TYPES, PLATFORMS } from "@/types/document";
 import { detectPlatform, safeExternalUrl, slugify } from "./urls";
-import { filterDocuments, searchDocuments, PAGE_SIZE, type LibraryFilters } from "./search";
+import { filterDocuments, searchDocuments, compareDocumentIds, PAGE_SIZE, type LibraryFilters } from "./search";
 import { getPublicClient } from "./supabase/public";
 
 export class CatalogUnavailableError extends Error {
@@ -106,10 +106,14 @@ export async function getFacets(reviewDocuments?: EducationalDocument[] | null):
 }
 
 export function deriveFacets(documents: EducationalDocument[]): CatalogFacets {
-  const unique = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b));
+  const compareStrings = (a: string, b: string) => a.localeCompare(b) || (a < b ? -1 : a > b ? 1 : 0);
+  // Legacy categories have no database ID; their unique slug is the fallback.
+  const compareCategories = (a: { id: string | null; name: string; slug: string }, b: { id: string | null; name: string; slug: string }) =>
+    a.name.localeCompare(b.name) || ((a.id ?? a.slug) < (b.id ?? b.slug) ? -1 : (a.id ?? a.slug) > (b.id ?? b.slug) ? 1 : 0) || compareStrings(a.slug, b.slug);
+  const unique = (values: string[]) => [...new Set(values)].sort(compareStrings);
   return {
-    subjects: documents.map(d => ({ id: d.subjectId, name: d.subject, slug: d.subjectSlug })).filter((s, i, all) => all.findIndex(x => x.slug === s.slug) === i).sort((a, b) => a.name.localeCompare(b.name)).map(subject => ({ ...subject, count: documents.filter(d => d.subjectSlug === subject.slug).length, topics: unique(documents.filter(d => d.subjectSlug === subject.slug).map(d => d.topic)) })),
-    courses: documents.flatMap(d => d.course && d.courseSlug ? [{ id: d.courseId, name: d.course, slug: d.courseSlug }] : []).filter((s, i, all) => all.findIndex(x => x.slug === s.slug) === i).sort((a, b) => a.name.localeCompare(b.name)),
+    subjects: documents.map(d => ({ id: d.subjectId, name: d.subject, slug: d.subjectSlug })).filter((s, i, all) => all.findIndex(x => x.slug === s.slug) === i).sort(compareCategories).map(subject => ({ ...subject, count: documents.filter(d => d.subjectSlug === subject.slug).length, topics: unique(documents.filter(d => d.subjectSlug === subject.slug).map(d => d.topic)) })),
+    courses: documents.flatMap(d => d.course && d.courseSlug ? [{ id: d.courseId, name: d.course, slug: d.courseSlug }] : []).filter((s, i, all) => all.findIndex(x => x.slug === s.slug) === i).sort(compareCategories),
     semesters: unique(documents.flatMap(d => d.semester ? [d.semester] : [])),
     topics: unique(documents.map(d => d.topic)), types: unique(documents.map(d => d.documentType)), platforms: unique(documents.map(d => d.platform)),
   };
@@ -187,6 +191,7 @@ export async function queryCatalog(filters: LibraryFilters, reviewDocuments?: Ed
   } else if (filters.sort === "title") query = query.order("title");
   else if (filters.sort === "newest") query = query.order("created_at", { ascending: false }).order("title");
   else query = query.order("is_featured", { ascending: false }).order("title");
+  query = query.order("id");
   const from = (filters.page - 1) * PAGE_SIZE;
   const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
   if (error) { console.error("Catalog query failed", error.code); throw new CatalogUnavailableError(); }
@@ -212,9 +217,9 @@ export async function searchCatalog(query: string, limit = 8) {
       throw new CatalogUnavailableError();
     }
     // Missing migration: the command palette still searches document fields,
-    // with its existing featured-first/title ordering. See FRONTEND_CORRECTIONS.md.
+    // with its existing featured-first ordering. See FRONTEND_CORRECTIONS.md.
   }
-  let request = client.from("documents").select(documentSelect).eq("publication_status", "published").order("is_featured", { ascending: false }).limit(limit);
+  let request = client.from("documents").select(documentSelect).eq("publication_status", "published").order("is_featured", { ascending: false }).order("id").limit(limit);
   if (query.trim()) request = request.textSearch("search_vector", query.trim().slice(0, 200), { type: "websearch", config: "simple" });
   const { data, error } = await request;
   if (error) throw new CatalogUnavailableError();
@@ -224,13 +229,13 @@ export async function searchCatalog(query: string, limit = 8) {
 export async function getCatalogHighlights() {
   const client = getPublicClient();
   if (!client) {
-    const sortRecent = (a: EducationalDocument, b: EducationalDocument) => (b.createdAt ? Date.parse(b.createdAt) : 0) - (a.createdAt ? Date.parse(a.createdAt) : 0) || a.title.localeCompare(b.title);
-    return { total: compatibilityDocuments.length, featured: compatibilityDocuments.filter(d => d.isFeatured).sort((a,b) => a.title.localeCompare(b.title)).slice(0, 3), recent: compatibilityDocuments.filter(d => d.createdAt).sort(sortRecent).slice(0, 3) };
+    const sortRecent = (a: EducationalDocument, b: EducationalDocument) => (b.createdAt ? Date.parse(b.createdAt) : 0) - (a.createdAt ? Date.parse(a.createdAt) : 0) || a.title.localeCompare(b.title) || compareDocumentIds(a, b);
+    return { total: compatibilityDocuments.length, featured: compatibilityDocuments.filter(d => d.isFeatured).sort((a,b) => a.title.localeCompare(b.title) || compareDocumentIds(a, b)).slice(0, 3), recent: compatibilityDocuments.filter(d => d.createdAt).sort(sortRecent).slice(0, 3) };
   }
   const base = () => client.from("documents").select(documentSelect).eq("publication_status", "published");
   const [featured, recent, count] = await Promise.all([
-    base().eq("is_featured", true).order("title").limit(3),
-    base().order("created_at", { ascending: false }).limit(3),
+    base().eq("is_featured", true).order("title").order("id").limit(3),
+    base().order("created_at", { ascending: false }).order("id").limit(3),
     client.from("documents").select("id", { count: "exact", head: true }).eq("publication_status", "published"),
   ]);
   if (featured.error || recent.error || count.error) throw new CatalogUnavailableError();
@@ -241,7 +246,7 @@ export async function getRelatedDocuments(document: EducationalDocument) {
   const client = getPublicClient();
   if (!client) {
     const score = (item: EducationalDocument) => Number(item.subject === document.subject) * 3 + Number(item.course === document.course) * 2 + Number(item.topic === document.topic) * 4;
-    return compatibilityDocuments.filter(item => item.id !== document.id).sort((a,b) => score(b) - score(a)).slice(0, 3);
+    return compatibilityDocuments.filter(item => item.id !== document.id).sort((a,b) => score(b) - score(a) || compareDocumentIds(a, b)).slice(0, 3);
   }
   // A bounded candidate window, not a full-table scan. Prefer the same subject;
   // course/topic similarity ranks the small candidate set.
@@ -249,8 +254,11 @@ export async function getRelatedDocuments(document: EducationalDocument) {
   if (document.subjectId) request = request.eq("subject_id", document.subjectId);
   else if (document.courseId) request = request.eq("course_id", document.courseId);
   else request = request.eq("topic", document.topic);
-  const { data, error } = await request.order("is_featured", { ascending: false }).order("title").limit(12);
+  const { data, error } = await request.order("is_featured", { ascending: false }).order("title").order("id").limit(12);
   if (error) throw new CatalogUnavailableError();
   const score = (item: EducationalDocument) => Number(item.subject === document.subject) * 3 + Number(item.course === document.course) * 2 + Number(item.topic === document.topic) * 4;
+  // A stable sort preserves the server's featured/title/id order for equal
+  // scores. Do not sort score ties by ID alone: that would override the
+  // established candidate precedence (and database title collation).
   return data.map(row => normalizeRow(row as Row)).sort((a,b) => score(b) - score(a)).slice(0, 3);
 }

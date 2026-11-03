@@ -1,3 +1,11 @@
+# Catalog ordering handover — 2026-11-03
+
+Parent `c5c6ce3ca65113680be614c20ff2c12be95b0954`; current branch `arena/c9d0d599-presentation` (commit via `git rev-parse HEAD`). Added ID last to live browse/fallback, palette, highlights, related candidate selection and admin query chains, and JS compatibility/fixture paths. Score ties in live related retain server feature/title/ID order. `get_catalog_facets` hosted RPC name-only ties remain separate approval-gated schema issue. Migration V1 unchanged; no v2.
+
+`CATALOG_ORDERING_REVIEW.md` has code/test map, 53 unit/28 DB, 28+20 oracle, full 4,000-row walk, E2E 23/1 skip and risks. Read-only hosted plan is prepared and tested locally without installing RPC; execution still requires explicit AO/PO approval. No hosted/deploy/merge/Auth/Vercel action; slow-GL refusal unverified.
+
+---
+
 # Deterministic search ordering handover (2026-11-03)
 
 Branch `arena/c9d0d599-presentation`, starting parent `2b46c60d8945a6a10a9f05be49994b32d5939343`; current commit via `git rev-parse HEAD`. The still-unapplied V1 RPC adds UUID ASC as final key, keeping `row_number()` and explicitly ordered aggregation. New regression checks 150 tie/score rows across every page and four sort/browse modes; old SQL fails that test, new passes. Local `scripts/evaluate-search-ordering.mjs` confirms 28 reconstructed and 20 additional exact full sets/totals/ordered pages, plus 4,000-result all-page concatenation. Full measurements, commands and limitations: `SEARCH_V2_VALIDATION.md`. No v2 shipped, no hosted action; fallback disclosure preserved, native slow-GL refusal unverified. Stop for AO review.

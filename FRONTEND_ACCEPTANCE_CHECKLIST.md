@@ -1,3 +1,19 @@
+# Current addendum — catalog tie ordering (2026-11-03)
+
+| Gate | State |
+| --- | --- |
+| RPC V1 | **AO ACCEPTED** deterministic ordering; migration unchanged and unapplied. |
+| Document paths | **MEASURED-AC PASS** ID after existing keys for live browse/fallback, command, rails, related candidate, JS compatibility/fixtures and admin lists. Related tie scores preserve candidate ordering. |
+| Facet options | **OPEN** existing hosted `get_catalog_facets` RPC sorts names without ID; separate schema review required. |
+| Search | **MEASURED-AC PASS** reconstructed 28+20 independent oracle cases, 4,000 rows across 84 pages; original AK scratch inputs remain unavailable. |
+| Tests | 53 unit, 28 DB, lint/typecheck/build; production browser 23 pass/1 dev-only skip; production audit 0. |
+| Hosted plan | **PREPARED, NOT EXECUTED** pending separate authorization; exact SQL/parameters in `docs/HOSTED_SEARCH_PLAN_REVIEW.md`. |
+| Slow-GL / visual | genuine strict refusal, physical GPU/device/AT/visual review **UNVERIFIED**. |
+
+Fixed snapshot and cross-mode collation/semantics limits: `CATALOG_ORDERING_REVIEW.md`.
+
+---
+
 # Current addendum — deterministic V1 search (2026-11-03)
 
 | Gate | State |
