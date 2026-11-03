@@ -291,3 +291,73 @@ that no `three` script is requested on first load.
 audit is accepted, so the pack changes once, not speculatively; (4) `prototype-lab` was re-verified green
 after this sandbox was re-provisioned (`npm install` → `build.mjs` **11/11** → `test.mjs` **22/22**), preview
 served on `:8123`. **Nothing in AC's tree, `main`, or any config/DB/secret was modified; nothing merged.**
+
+## 10. AK's re-review of AC's correction commit — 2026-11-02/03
+
+**Object:** `arena/c9d0d599-presentation` @ `3ffd555` (parent `681800f`, 51 files, +1,696/−180,
+`2026-11-02T18:38:41Z`). **Deliverable:** `phase2/AC_CORRECTION_INDEPENDENT_REVIEW.md` (11 sections).
+**Verdict: ACCEPT WITH CONDITIONS** — 4 conditions, all pre-merge; no functional blocker left open.
+
+Verified independently, all on AK's own `npm ci` of the target tree (`/home/user/scratch/acbuild`, 429 packages,
+node 22.22.3): build exit 0 (11 routes), `tsc` 0, `eslint` 0, unit **47/47**, PGlite DB **26/26**, production-scope
+`npm audit --omit=dev --audit-level=high` **0**. Every bundle number in AC's `FRONTEND_CORRECTIONS.md` reproduced
+(landing 187.5 KB gz JS + 14.4 CSS; `/library` 187.6 — the previously-measured gap is now a real dynamic-route
+measurement; shader 1.8; three 129.0; three **not** referenced initially on all three routes by both AC's script and
+AK's independent live-HTML pass; fonts 148.4 → **93.9 KB**, 2 files, 2 preloads).
+
+The migration was re-attacked on the axis AO asked for — **candidate completeness** — with an independent oracle over
+all published rows: **28/28 exact agreement** across cross-field, digit-boundary (`"1"` 182, `"10"` 108), facet
+(`Sem 1` 96), phrase, OR, negation-only (`zephyrq -Title` 505), injection-shaped, truncated and zero-match queries.
+D-1 is genuinely fixed; D-12's clamp is now measured (null→12, 0→1, 9999→48, −5→1, offset −5→0); D-3/D-4/D-5/D-7/
+D-8/D-9/D-10/D-11/D-13 fixed; **D-6 partial** (5 tokens, 8 `var()` uses vs 14 literal durations); **D-14 open and
+correctly untouched** (113 sub-12px rules — same count as parent, `embed_url` Google-Docs-only CHECK, empty
+`src/db/schema.ts`).
+
+Index reality, kept explicitly apart: **eligible** (existing `documents_search_idx` can serve the candidate
+predicate) ≠ **used** (the planner scans at 4 k rows, and even with `enable_seqscan=off` chose a *btree on
+created_at*, not the GIN) ≠ **fast** (RPC 60–374 ms vs 2.1–2.9 ms for the predicate alone, but only 1.01–1.27× the
+*old* shape — the rewrite bought correctness and scalability, not speed at today's 17 hosted rows where it costs
+1.9 ms). Measured DDL-free fix: materialise `filtered` + drop the `row_number()` window = **−30 %, identical
+order**; prefix-bounded ranking = −76 % but changes ordering and caps `total` → not recommended.
+
+**Four corrections to AK's own prior review are recorded as C19–C22** (nothing silently rewritten): C19 AK's
+"filter indexed, rank weighted" prescription was **wrong** — `search_vector` has no subject/course names, so it
+would have re-introduced D-1; AC's superset design is better. C20 the "double reference to `filtered` doubles the
+cost" hypothesis is unsupported (probe6 confounded joins; probe9's transcription costs the same as shipped).
+C21 "49–57× slower than the GIN predicate" is true but must be read against the old shape (1.01–1.27×) or it
+misrepresents a regression. C22 AK's CSS regex needed the whitespace-free `forced-colors:active` form.
+
+**Executed, do not re-run:** all of the above; plus 9 protected files `cmp -s` IDENTICAL to parent (incl.
+`package.json`, lockfile, `next.config.ts`, `tsconfig.json`, `supabase/seed.sql`, both applied migrations); production
+`next start` fixture isolation (`/library?fixture=1` → 200 with **0** `fixture-` occurrences, real "Lost Spring" ×8;
+`/fixtures/review-catalog.json` → 404; no fixture strings in `.next/static`); `fixtures/review-catalog.json` vs
+`seed.test-fixtures.sql` slug-by-slug parity (16/16, long-title strings **byte-identical**); the five committed JPEGs
+viewed (light/dark landing + fixture empty/one/multi) with **commit correspondence proven by content** (sans `h1` +
+italic serif `em`, and the review banner, exist only in the target tree); `git ls-remote` all four refs.
+
+**Never executed here — say so, don't imply:** Chromium E2E (`playwright@1.64.1` present, **0 browser binaries**, the
+CDN is off-allowlist; AC's "23 passed + 1 skipped" is `[REPORTED-AC]` but *arithmetically consistent* with
+11 + 12 + 1 and every assertion read as substantive); full `npm audit` incl. dev; hosted `EXPLAIN`; real
+GPU/Safari/Firefox/AT/Lighthouse; 1:1 review of the JPEGs (AK's render is downscaled — AK briefly mis-read
+"clippng" and corrected against source).
+
+**Harness artefacts worth keeping:** `/home/user/scratch/probe/probe5|6|9|10.mjs` (probe8's text-substitution
+approach is the one to *avoid* — see below), `/home/user/scratch/t` + `/home/user/scratch/p` (target/parent trees),
+`/home/user/scratch/acbuild` (working install + completed build). Throwaway, outside the repo, safe to delete.
+
+**New probe traps (AK cost time on each; a successor should skip them):**
+1. A probe term that matches **nothing** makes every clamp/paging probe vacuous — probe5's `ak` returned `{"c":0}`
+   for NULL/0/9999 alike and looked "consistent". Use a term that matches most rows (`filler`), and print the
+   match count next to every clamp result.
+2. **Deriving a SQL variant by string-substituting the migration's own body looks faithful but fails silently** —
+   probe8's replaces missed (`syntax error at or near "$"`) and every variant then returned the *same* empty result
+   at 0.2 ms, i.e. a plausible-looking 100 % "improvement". Transcribe the query yourself (probe9) and assert
+   non-zero, differing row counts before believing any timing.
+3. `.catch(() => null)` around a probe query turns a bug into a **false PASS** — two "identical payloads ✓" rows
+   came from two `undefined`s. Remove the catches; let it throw.
+4. `String.replace("x", "y")` fixes only the first occurrence; their body has two.
+5. `EXPLAIN` of a `language sql` function shows only a `Result` node — plan the extracted `SELECT` with literals;
+   PGlite rejects `EXPLAIN` of a parameterised call with `0P01`.
+6. PGlite error objects dump the bundled module source (≈15 KB of noise) — log `e.code` + first line only.
+7. `insert … description` under 10 chars trips `documents_description_check` (that is AC's constraint, correctly
+   documented; the probe just has to satisfy it).

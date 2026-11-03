@@ -257,3 +257,74 @@ checklist E3's "decorative rail" is superseded by AC's tested chapter nav.
 (this sandbox's session branch, which stands in for `knowledge/frontend-intelligence-phase-2`); AC's files
 are unmodified; **nothing has been merged**; the pack's decision IDs remain **D-AK1…D-AK4** and its audit
 findings **D-1…D-14**, kept deliberately distinct from AC's **D1–D18** and its **A1–A4** defect letters.
+
+## Correction-round re-review — AK → AO, 2026-11-03
+
+**Reviewed:** `arena/c9d0d599-presentation` @ `3ffd555` (parent `681800f`, 51 files, +1,696/−180).
+**Full evidence:** `phase2/AC_CORRECTION_INDEPENDENT_REVIEW.md`. **Verdict: ACCEPT WITH CONDITIONS.**
+
+**Repo truth AK verified rather than trusted:** all four refs via `git ls-remote` — AC `3ffd555`, AK
+`arena/9d055deb-presentation` @ `e7d3943`, `main` `4307a68`, `AC-Branch` `cac9c7f`; nothing merged; AC's branch files
+untouched by AK; the target tree extracted outside the repo and `diff -rq`-reconciled; **9 protected files
+byte-identical** to the parent (`package.json`, `package-lock.json`, `next.config.ts`, `tsconfig.json`,
+`eslint.config.mjs`, `.env.example`, `supabase/seed.sql`, both applied migrations). No `src/middleware.ts` or
+`vercel.json` exists in either tree, so edge/deploy behaviour cannot have changed. `202611020001_search_ranking.sql`
+is still **unapplied** and AK never contacted hosted Supabase.
+
+### The five things AO must not miss
+
+1. **The one functional blocker is closed, and it closed on the hard axis.** AO asked AK not to accept facet tests
+   as proof of *candidate completeness*. AK built an independent oracle over all published rows: **28/28 exact
+   agreement** with the shipped RPC — including the two designs usually break (negation-only query 505 = 505;
+   blank/unrestricted) and digit boundaries (`"1"` 182, `"10"` 108, `Class 10` 8 vs `Class 1` 10). D-1 was really
+   fixed, not patched at the test surface.
+2. **The index claim needs AO's framing, not AC's.** AC proved *eligibility* only (and says so). Measured: the
+   planner does not use `documents_search_idx` at 4 k rows — with `enable_seqscan=off` it picked a **btree on
+   `created_at`** instead. The RPC costs 60–374 ms at 4,016 rows but that is **1.01–1.27× the old shape**, i.e. no
+   regression; at today's 17 hosted rows it is 1.9 ms. AO should treat the migration as *correct and scalable*, not
+   as *fast*, and take recommendation 1 below before approving application.
+3. **A measured, DDL-free 30 % win is available now.** Materialising `filtered` and dropping the `row_number()`
+   window over the whole result set: **309→214 ms** (broad term), **367→266 ms** at deep pagination, **identical
+   top-12 ordering** verified. The 4× variant (rank a bounded 240-row prefix) changes ordering and would cap
+   `total` at the prefix — AK recommends against it and says so explicitly so nobody re-derives it from the number.
+4. **D-6 partial, D-14 untouched, and both are honest.** 5 motion tokens exist with 8 `var()` uses against 14
+   literal durations (parent: 0 of 18) — AC scoped it to new rules. The pre-existing items (113 sub-12px rules —
+   same count as parent, `embed_url` CHECK forbidding Dropbox embeds, empty `src/db/schema.ts`) are recorded in AC's
+   `KNOWN_ISSUES.md` instead of being quietly widened into this diff. AO can accept that scoping or order them.
+5. **Three rows AO cannot inherit as "passed":** Chromium E2E (**no browser binary in AK's sandbox**; AC's
+   "23 passed + 1 skipped" is `[REPORTED-AC]`, arithmetically consistent, and every assertion AK read is
+   substantive — `data-state` transitions, canvas 1→0 on forced `WEBGL_lose_context`, computed `-webkit-line-clamp`,
+   `scrollWidth <= innerWidth` at 320/390); real GPU/Safari/Firefox/AT/Lighthouse; the full dev-audit count. The
+   five committed JPEGs are genuine and provably post-correction (their sans `h1` + italic-serif `em` and the review
+   banner do not exist in the parent tree), but they are software-WebGL headless captures — automated evidence, not
+   visual validation. Notably **no test proves the slow-GL refusal path**, because the harness rewrites
+   `failIfMajorPerformanceCaveat` back to `false`; AC discloses that.
+
+### AO decisions AK needs (one line each)
+
+1. **Migration:** adopt v2 first, then approve one hosted `EXPLAIN (ANALYZE, BUFFERS)` against real table size —
+   or approve as-is accepting "correct, not yet fast".
+2. **Ratify D19 as written?** `DECISIONS.md` records *AO* ratifying `three@0.187.0` + `@types/three` and nothing
+   else. AK's review only recommended ratification; AO should confirm the record matches their own decision (no new
+   GSAP work is implied; the licence review remains unrequested).
+3. **Typography:** the reversal is withdrawn and 54.5 KB of fonts went away — AK will amend
+   `APPROVED_DESIGN_IMPLEMENTATION_SPEC.md` §1 to record Geist-headings/serif-emphasis as pinned, if AO says so.
+4. **Look approvals still owed by PO:** ambient layering at GL-ready in both themes, projector mode, post-context-loss,
+   320/390 — none have image evidence yet (recommendation 2).
+5. **One 1:1 check:** the faint rectangular boundary in the two light-theme captures is, by AK's amplitude math
+   (−8/−8/−3 8-bit levels), almost certainly **gradient banding**, not a layer seam. If PO wants it gone, the fix is
+   a dither/noise pass in the shader, **not** a z-index change — worth telling AC before PO asks for "the seam fix".
+
+### AK's own corrections, recorded (C19–C22 in `phase2/VERIFICATION_LOG.md`-style numbering, inside §11 of the review)
+
+AK's prior prescription for D-2 was **wrong**: "filter on `search_vector`, rank on the weighted expression" would
+have re-introduced D-1, because `search_vector` contains no subject/course names — AC's candidate-superset design is
+the better one. The "double `filtered` reference doubles the cost" note is withdrawn (unsupported), the "49–57×
+slower" figure must be read against the old shape (1.01–1.27×) to avoid implying a regression, and AK's CSS regex
+needed the whitespace-free `forced-colors:active` form. All four are in the review with their measurements; nothing
+was silently replaced.
+
+**State at this hand-off:** AK branch `arena/9d055deb-presentation` carries `e7d3943` + this addendum and the new
+`phase2/AC_CORRECTION_INDEPENDENT_REVIEW.md`; tree clean after commit; `main` and AC's branch untouched; nothing
+merged; no production code, schema, dependency, env or hosted resource modified by AK. AK holds pending AO's answer
+to decisions 1–3; scratch reproductions live in `/home/user/scratch/{t,p,acbuild,probe}` and are throwaway.
