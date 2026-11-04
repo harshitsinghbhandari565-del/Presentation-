@@ -420,3 +420,61 @@ quotes-within-quotes.
 in `APPROVED_DESIGN_IMPLEMENTATION_SPEC.md` (one line) and drop the `.order("id")` recommendation into AC's queue.
 `prototype-lab` is untouched this round (no dependency work); its `node_modules`/`dist` are still absent after
 re-provision and rebuild with `npm install && node build.mjs && node test.mjs` if a lab number is needed again.
+
+## 12. Milestone 1 review request — artefact absent (2026-11-04)
+
+AO asked AK for an independent Milestone 1 security/technical review of a complete isolated
+`MILESTONE1_FORWARD.patch` (Drizzle configuration security + facet-ordering migration + 28 Drizzle tests + 4 facet
+tests + patch integrity + evidence assessment). **The artefact does not exist in this environment**, so the review
+could not be executed; the deliverable records that rigorously rather than inventing findings.
+**Deliverable (note the location):** `frontend-intelligence/AK_MILESTONE1_INDEPENDENT_REVIEW.md` — kept inside AK's
+pack because the brief forbids modifying the original checkout, and the requested basename is preserved.
+
+**Absence evidence (all reproducible, §2 of the deliverable):** `find /` for `*MILESTONE1*`/`*.patch`/`*.diff` → 0;
+files newer than 2026-11-03 outside the repo → 0; `git ls-remote` → 5 refs (`main` `4307a68`, AC
+`arena/c9d0d599-presentation` `742c34a`, `AC-Branch` `cac9c7f`, AO's other arena branch `64abe95`, tag `Project`
+`ae2d6a3`) none of which is a milestone branch; `git grep -l DRIZZLE_DATABASE_URL` on **all four** fetched trees → 0
+hits; `gh pr list --state all` / `gh issue list --state all` → none; `gh release list` → release `Project`, no patch
+asset; `api.github.com/…/contents/` at `main` → 9 entries, no `supabase/`, no `tests/`, no `docs/`, no `.env.example`.
+Sandbox had been re-provisioned again (worktree reset to `4307a68`, pack untracked); restored by `git fetch` +
+`git reset --hard 2944e0a` (AK's own pushed tip), read-only `git show`/`git grep`/`git ls-tree` thereafter.
+
+**Verified baseline the patch must target (this is AK's real contribution this round):**
+`drizzle.config.json` is committed at `main` **and** AC tip with `postgresql://postgres:postgres@127.0.0.1:5432/app_db`
+(credential in Git; silently consumed by a hand-run `npx drizzle-kit push` — repo has **no `db:*` scripts**). From the
+pinned tool itself (`npm pack drizzle-kit@0.31.10`, inspected in `/home/user/m1`, outside the repo): default config
+resolution is `drizzle.config.ts` → `drizzle.config.js` → literal `drizzle.config.json`; **no
+`process.env.DATABASE_URL`** anywhere in `bin.cjs`; `dotenv@16.5.0` bundled (so Kit auto-loads `.env` — the reason AK
+ran no Kit/Next command under the privacy prohibition); `drizzleConfigFromFile` honours `TEST_CONFIG_PATH_PREFIX`;
+**no `sslmode` handling at all** → plaintext unless the URL says otherwise. Consequence (H-2): a `DRIZZLE_DATABASE_URL`
+requirement **cannot** be honoured by a JSON config — it needs `drizzle.config.ts`/generated config.
+On the SQL side, measured in in-memory PGlite over AC's applied migrations (PGlite 0.5.14 = **PostgreSQL 18.6**,
+`datcollate = C`, only deterministic `C` collation present): `jsonb_agg(distinct col order by col, id)` →
+**`42P10 in an aggregate with DISTINCT, ORDER BY expressions must appear in argument list`**, and
+**`min(uuid)` does not exist** (`42883`), so four of `get_catalog_facets()`' aggregates (`202611010001_catalog.sql:105–109`)
+cannot take the "name, id" key directly — `distinct on (col) … order by col, id` is legal (verified). Also: `getFacets`
+returns the RPC payload **unresorted** (so DB order is UI order), while `deriveFacets` already sorts
+`name → id ?? slug → slug`; and under a `C` collation a local test only produces a name tie for **byte-identical**
+names, so facet tests must use literal duplicate names or they prove nothing (hosted non-deterministic collations can
+tie distinct names — the case the change actually targets).
+
+**Recommendation issued:** `REJECT PENDING CORRECTIONS` **on delivery grounds only**, explicitly not a technical
+judgement of unseen code (AK refuses to author findings about it). The deliverable additionally contains the 8
+attack-scenario families a loopback-only/env-gated config loader must survive (shorthand/octal/hex IPv4, `[::1]` vs
+`::1`, trailing dot, userinfo `@` tricks, empty host + `?host=/tmp` sockets, `PGPASSFILE`/`PGSERVICEFILE` beyond
+`PG*`, check-the-original-string-not-the-parsed-one bypass, redaction escaping via a nested `cause` or a
+percent-encoded password, TOCTOU on "loopback ⇒ no TLS"), the 7 false-assurance patterns to look for in the 28 tests
+(testing the wrapper not the workflow, `assert.throws` without the message, all-positive loopback suites, un-restored
+`process.env`, tests that spawn dotenv-loading commands, vacuous facet ties, PGlite-vs-server role limits), the 6
+migration risks (must not edit the applied file; `create or replace` + re-assert `revoke`/`grant` since drop+create
+loses ACLs; keep the zero-argument signature; preserve the `exists()`/`count`/`coalesce` behaviour since `getFacets`
+does not validate; require a missing-function guard; get a read-only `pg_get_functiondef` diff before applying), and
+the exact like-for-like reproduction protocol for AC's 82/82 + 32/32/lint/typecheck/build/audit claims (including a
+mandatory **negative control**: new tests run against the pre-patch tree).
+
+**Browser verification remains blocked and is recorded as such, never as passed.** No `.env*` exists in this
+workspace (checked by name only, never opened); no prohibited private value was read, printed, hashed, copied, tested
+or visited; no patch applied, no branch switched/merged, no hosted Supabase contact, no credential rotation, no
+final preservation backup created. AK is **blocked awaiting the artefact** — options for AO: drop the patch file in the
+workspace (repo root or any path), push a branch/commit containing Milestone 1, or paste it in the message; on receipt
+`AK_MILESTONE1_INDEPENDENT_REVIEW.md` is completed in place with a genuine verdict.
