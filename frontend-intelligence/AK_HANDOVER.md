@@ -478,3 +478,100 @@ or visited; no patch applied, no branch switched/merged, no hosted Supabase cont
 final preservation backup created. AK is **blocked awaiting the artefact** — options for AO: drop the patch file in the
 workspace (repo root or any path), push a branch/commit containing Milestone 1, or paste it in the message; on receipt
 `AK_MILESTONE1_INDEPENDENT_REVIEW.md` is completed in place with a genuine verdict.
+
+## 13. Milestone 1 independent review — delivered (2026-11-04)
+
+**Deliverable:** `frontend-intelligence/AK_MILESTONE1_INDEPENDENT_REVIEW.md` (the blocked placeholder from `db2010b`
+is superseded in place; prior version preserved in Git history). Verdict: **APPROVE WITH CONDITIONS FOR AO REVIEW** —
+code accepted as-written; conditions concern reconcilability and evidence closure, not engineering.
+
+**Retrieval:** package was not in the repo/Git/GitHub (last round's finding stands); AO placed
+`AK_MILESTONE1_REVIEW_20261104.zip` (297,900 B) in Dropbox `/Educational-Platform-Backups/`. Sandbox egress is a hard
+allowlist — `curl` to `*.dl.dropboxusercontent.com`, `api.dropboxapi.com`, `www.dropbox.com`, `example.com` all fail
+`SSL_ERROR_SYSCALL` (exit 35) while `registry.npmjs.org`/`api.github.com` return 200, so bytes can only arrive via the
+connector. **The Dropbox connector stages files inside the checkout at `<repo>/dropbox/…`** — I moved the zip to
+`/home/user/m1/pkg/` and removed the directory; `git status --porcelain` verified empty before and after.
+Integrity: container sha256 `84ca118b…` ≠ Dropbox `content_hash` `6766485f…`, but **all 39 member hashes match
+`MANIFEST.md`**, patch = `a9bfe509f969f420…` (also quoted in AC's report) → payload authentic.
+
+**Package contents (39 files):** `01-essential/` (patch, MILESTONE1_REPORT.md 2,171 L, both handovers +
+candidate-project copies), `02-drizzle/` (config.ts, 28-test suite, package.json/lock, installed-kit metadata,
+blank `.env.example`), `03-facets/` (both applied migrations + new `202611040001_facet_ordering.sql` + 236-L test +
+a *verified* byte-exact excerpt slice `catalog.sql[6595:8254]`), `04-verification/` (6 control scripts, 12 logs),
+`MANIFEST.md`, `README_AK.md`.
+
+**Verified ground truth:** patch = **14 operations** (`*** …` headers at lines 2,3,53,227,255,492,498,508,518,528,538,
+548,558,586 of 614): 1 delete (`drizzle.config.json`, path-only, contents never included) + 4 adds + 9 doc updates;
+580 `+` lines, 0 `-` lines; `package.json`/`package-lock.json` byte-identical to AC tip `742c34a` (no deps/scripts), no
+`src/**` touched. **Format is Codex `apply_patch`, not a diff**: `git apply --check` → "No valid patches in input";
+`patch -p1` → "Only garbage was found in the patch input"; and **8 of 9 update contexts match nothing in Git**
+(0/1 lines at `742c34a`, files absent at `main` 4307a68) — only `.env.example` matches (1/1). The 5 code ops *are*
+base-independent: I built `/home/user/m1/tree` = `git archive 742c34a` + those ops (files copied, hashes verified) +
+`npm ci` (429 pkgs) and everything ran there.
+
+**Reproduced by AK:** drizzle-config **28/28**; facet **4/4**; database **32/32** (facet 4, hosted-plan 1,
+least-privilege 7, policies 10, search-ranking 10); unit **81** (14 files, listed per-file in the report);
+`eslint` exit 0; `tsc --noEmit` exit 0; `next build` exit 0 in a tree with **no `.env`**; `npm audit --omit=dev` = 0
+with deps `prod 61 / dev 473 / total 572` **identical to AC's log** (same lockfile), full audit 20 moderate = AC's
+disclosed figure. `patch sha256`, the test's SQL pin `c24de37060a89e1f…` (matches file *and* patch copy) ✓.
+**NOT reproduced: 82 unit → 81.** Name-level diff of AC's `ao-unit-recheck.log` vs my run isolates the extra test as
+`admin editor associates select and description errors with their controls`, **absent from `742c34a`, `c5c6ce3`,
+`3ffd555`, `cac9c7f` and `main`** → condition C2.
+
+**Adversarial result:** the shipped validator rejected **37 of 38** hostile inputs (`0.0.0.0`, `::`, `127.0.0.2`,
+`127.1`, `0x7f000001`, `0177.0.0.1`, `2130706433`, `localhost.`, `LOCALHOST`, `localhost.localdomain`, unbracketed
+`::1`, `[0:0:0:0:0:0:0:1]`, `[::ffff:127.0.0.1]`, `127.0.0.1.evil.example`, second `@`, no-user/no-pass,
+`postgresql:///d?host=/var/run/postgresql`, `?host=/tmp`, `#frag`, `?sslmode=*`, `%ZZ %A %ff %C3%28 %00 %0A %41
+%65%CC%81`, leading/trailing space, trailing newline, `POSTGRESQL://`, `db:../etc`, two segments, port
+`0/055432/65536`, …). Sole acceptance beyond intent: **`…%2F..` → `database:"d/../../etc"`** reaches `pg`
+ConnectionParameters (traced) because `:42` only rejects literal `.`/`..` while `:15` claims "one database path"
+(→M-3). `PG*` guard trips on `PGPASSWORD/pgpassword/PgData/PGXID/PGOPTIO/PGSQL_URI/PGR/PG` and empty `PGHOST`; `DSN`
+untouched. **New evidence AC did not have:** `DRIZZLE_DATABASE_URL=… npx drizzle-kit generate` → `Reading config file`
+→ `0 tables` → `No schema changes, nothing to migrate`, **exit 0** — so the explicit-fields shape *is* a usable Kit
+config; AC's `check`-only harness (`valid.exitedNonzero && reachedCheckValidation`) can never show that, and its
+"missing `out`" attribution is wrong (the `AWS Data API` params error appears for *every* postgres shape I tried,
+including plain `{url}`; Kit's own schema text is `Either "url" or "host", "database" are required…`). **Bypass
+verified:** `--config=/tmp/evil2.ts` and `TEST_CONFIG_PATH_PREFIX=/tmp/pfx` both load configs past the gate (no
+`db:*` script pins it since package.json is untouched) →M-1.
+
+**Mutation battery (test-strength):** config — delete PG* guard 27/28 ✓; drop `parts[0]!==value` **28/28** (dead code:
+regex is anchored); broaden host to `127\.[0-9.]+` **28/28 + 127.0.0.2 accepted**; add `0.0.0.0` **28/28 + accepted**
+(→M-4); skip canonical check 27/28 ✓; drop port bound 27/28 ✓; `{url:value}` instead of fields 23/28 ✓; interpolate
+value into the error **11/28** ✓; omit `ssl:false` 23/28 ✓. Facet — all five mutations (revert tie-break, neutralise
+guard, `s.id desc`, delete a count filter, change signature) → **0/4** ✓ total detector.
+
+**Facet facts measured:** body diff = **1600→1612 chars = two 6-char insertions**, header/signature identical;
+`create or replace` keeps `proacl={postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}`, `proowner`,
+`prosecdef=false`, `provolatile=s`, `overloads=1`; idempotent on re-apply; guard aborts with
+`Expected public.get_catalog_facets() to exist; aborting` and (my probe) leaves the `begin;` txn aborted → AC's test
+issues the needed `rollback;` ✓. Old vs new on AC's fixture: subjects `high,low → low,high` (**behavioural detector**)
+but **courses `low,high` both before and after** → the course half passes on unpatched SQL (M-5; AC's own diagnostic
+disclosed `course IDs ascending=true`). 32-way name tie: old order `tie-025,tie-017,tie-016,tie-011,…` (plan-dictated),
+new fully ascending under 4 planner settings. `jsonb_agg(distinct …) order by …, id` remains illegal (`42P10`) and
+`min(uuid)` does not exist — their choice to leave the four distinct lists alone is correct (`DISTINCT` merges
+collation-equal values), and `PGlite = PG18.6, datcollate=C, only deterministic C collation` means no local test can
+reproduce a non-deterministic-collation tie.
+
+**Conditions handed to AO:** C1 re-emit code delta as `git diff`/`format-patch` against a declared commit (docs out of
+the source patch); C2 reconcile 82 vs 81 / ship the missing test; C3 three test additions (`127.0.0.2`, `0.0.0.0`,
+`%2F` in db, one distinct message per rejected class); C4 read-only hosted preflight `pg_get_functiondef`/`proacl`/
+`proowner`/`pg_policies`/`datcollate`+`collisdeterministic` before any future authorisation; C5 the two 380-byte audit
+logs are byte-identical → count once; C6 pin `--config` in a script + state the `.env` trust boundary (Kit bundles
+dotenv 16.5.0; app depends on dotenv 17.3.1).
+
+**Unavailable, recorded as such:** browser E2E (no `~/.cache/ms-playwright`; my `npx playwright --version` had to fetch
+the *npm* package — registry only, no browser download, CDN off-allowlist); `push`/`migrate`/`introspect` against a
+live server; hosted definition/ACL/collation; real-data build; dev-audit remediation.
+
+**Do not re-run:** the whole package retrieval + integrity + gate + mutation set above (documented, ~30 min of
+compute). Re-runnable cheaply: `node sc2.mjs old|new <ties>` and `node sc3.mjs old|new` (in `/home/user/m1`, needs
+`node_modules` + `pkg/x` extraction), `npx tsx --test …` in `/home/user/m1/tree`. **Scratch is outside the repo and
+will vanish on re-provision**: `/home/user/m1/{tree,basecheck,pkg/x,sc.mjs,sc2.mjs,sc3.mjs,exp.mjs,supa,m1/pkg/x}`;
+`.akprobe/config.orig` + `.akprobe/mig.orig` inside `tree` are the pristine pre-mutation copies.
+
+**Probe traps confirmed again:** ESM resolves `drizzle-kit` from the *script's* directory — `/tmp/v.ts` configs failed
+with `Cannot find module 'drizzle-kit'` until placed inside the tree; bash single-quoted `'…127\.0\.0\.1…'` does not
+match the file's single backslashes (two mutants silently no-oped until re-run with `'127\.'`→`'127\.'`); PGlite
+multi-DB in one process OOMs at ~1.9 GB (run one scenario per process); `provolatile::text` cast needed before `||`
+(`operator is not unique: "char" || unknown`); `db.exec()` of a multi-statement SQL file must not be parameterised; a
+`begin;` + `raise` migration leaves an aborted transaction requiring explicit `rollback;`.

@@ -450,3 +450,45 @@ or visited; no patch applied, no branch switched/merged, no hosted Supabase cont
 final preservation backup created. AK is **blocked awaiting the artefact** — options for AO: drop the patch file in the
 workspace (repo root or any path), push a branch/commit containing Milestone 1, or paste it in the message; on receipt
 `AK_MILESTONE1_INDEPENDENT_REVIEW.md` is completed in place with a genuine verdict.
+
+## Milestone 1 — AK independent review delivered, 2026-11-04
+
+Full report: `frontend-intelligence/AK_MILESTONE1_INDEPENDENT_REVIEW.md`. **AK's verdict: APPROVE WITH CONDITIONS FOR
+AO REVIEW** (advisory; AO owns technical acceptance, PO owns integration).
+
+**Accepted as written:** the fail-closed `drizzle.config.ts` (explicit `DRIZZLE_DATABASE_URL`, never reads
+`DATABASE_URL`, case-insensitive `PG*` rejection, anchored loopback-only regex, canonical-uppercase + NFC +
+control-char validation, discrete `dbCredentials` fields with `ssl:false`, constant non-echoing error strings) and the
+facet migration (12-character tie-break-only `create or replace` with a `to_regprocedure` guard; signature,
+volatility, security-invoker, `search_path`, counts, filters, RLS, ACL and owner provably unchanged).
+
+**AK reproduced independently:** 28/28 Drizzle, 4/4 facet, 32/32 PGlite, lint 0, typecheck 0, `next build` 0 (in a
+tree with no `.env`), prod audit 0 with dependency counts identical to AC's log (prod 61/dev 473/total 572) and 20
+moderate dev advisories as disclosed. New evidence beyond AC's package: **`npx drizzle-kit generate` with the shipped
+config exits 0**, proving the config is usable by the real workflow (AC's `check`-only harness could not show this, and
+its "missing `out`" attribution is contradicted). Validator rejected 37/38 hostile inputs; a 14-case mutation battery
+shows the facet suite catches 5/5 and the Drizzle suite 7/9.
+
+**Conditions for AO (none is a code rewrite):** **C1** the artefact is Codex `apply_patch` text — `git apply`/`patch`
+cannot read it and 8 of 9 doc-update contexts exist in no Git object, so re-emit the 5 code ops as a diff against a
+declared commit; **C2** reported unit total 82 is not reproducible from the patch (AK measured 81; the single extra
+test, `admin editor associates select and description errors with their controls`, exists in no ref) — ship it or
+correct the count; **C3** pin three unpinned properties with ~10 test lines (reject `127.0.0.2`/`0.0.0.0`, reject or
+re-document `%2F` in the database segment — `…%2F..` currently reaches `pg` as `dbname="d/../../etc"`, and assert one
+distinct message per rejected class); **C4** before any future hosted authorisation, take a read-only
+`pg_get_functiondef`/`proacl`/`proowner`/`pg_policies`/`datcollate`+`collisdeterministic` preflight, because the local
+`C` collation cannot reproduce the non-deterministic-collation tie the change targets; **C5** the two 380-byte audit
+logs are byte-identical and count as one observation; **C6** add a `--config`-pinning script (or doc line) since
+`--config`/`TEST_CONFIG_PATH_PREFIX` bypass the gate and no `db:*` script exists, and state the `.env` trust boundary.
+
+**Unverified by anyone, kept open:** all browser/device/AT behaviour (blocked: no browser binaries; none installed);
+`push`/`migrate`/`introspect` against a live DB; hosted schema drift; real-data build; CSP/HSTS/MFA/preview isolation;
+and the privacy incident's external-exposure question — AC's "Privacy-boundary exception during AO packaging" discloses
+that local screening scripts read the four private link values into memory (never printed/copied/visited/transmitted);
+`README_AK.md` states external exposure is not independently ruled out, and AK neither confirms nor excludes it. AK
+accessed none of those values, opened no `.env*`, ran none of AC's control scripts (they spawn real `drizzle-kit` and
+write temporary `.env` files), and did not open the sibling `AO_NEW_CHAT_HANDOVER.md` for the same reason.
+**Transport note for AO:** the connector staged the zip inside the checkout (`Presentation-/dropbox/`); AK relocated it
+and left the tree clean — treat any Dropbox-retrieved path as a repo-pollution risk, and consider putting
+`MANIFEST.sha256` *inside* future archives (the container hash did not match Dropbox's `content_hash`, although every
+member hash did).

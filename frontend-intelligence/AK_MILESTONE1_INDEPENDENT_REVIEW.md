@@ -1,348 +1,441 @@
 # AK — Independent Milestone 1 security and technical review
 
 **Project:** Harshit Presentation Hub · **Reviewer:** AK · **Date:** 2026-11-04 (Asia/Kolkata)
-**Authority:** independent review only. No implementation, patch application, reconciliation, migration, deploy or
-branch operation performed or authorised by AK.
-**Advisory only:** only AO may make a technical acceptance recommendation to the Product Owner, and only the PO may
-authorise integration.
+**Target:** `AK_MILESTONE1_REVIEW_20261104.zip` → `AK_MILESTONE1_REVIEW/01-essential/MILESTONE1_FORWARD.patch` (54,162 B) + Drizzle/facet artefacts + verification package.
+**Authority:** independent review only. Nothing here implements, applies, reconciles, migrates or deploys anything.
+**Advisory only:** AO owns technical review/acceptance; the Product Owner alone authorises integration.
+**Supersedes** the "artefact absent" version of this file (preserved in Git at `db2010b`, `2026-11-04`); §1.1 records what changed.
+Kept inside `frontend-intelligence/` because the brief forbids modifying the original checkout; requested basename preserved.
 
-> ## ⚠ Status: the review target is not available in this workspace — no findings are made about unseen code
+> ## Verdict: **APPROVE WITH CONDITIONS FOR AO REVIEW**
 >
-> `MILESTONE1_FORWARD.patch` **does not exist in the sandbox, in any Git ref of this repository, or on the remote**, as
-> verified in §2. I therefore cannot inspect its 14 operations, its Drizzle configuration module, its
-> facet-ordering migration, or its 28 + 4 tests. Writing findings about content I have not read would be fabrication,
-> and the brief forbids it ("never report an unexecuted prototype as working"; every checklist row must carry an
-> honest label).
+> The Milestone 1 implementation is **technically sound and, in the important parts, provably sound**: I reproduced
+> every headline number except one (81 vs the reported 82 unit tests), and I independently confirmed that the
+> security gate is real *inside the actual Drizzle Kit load path* — including a result AC did not obtain: **`npx
+> drizzle-kit generate` with this config exits 0** (§4.3), which demonstrates the config produces a usable Kit
+> configuration rather than merely throwing correctly. The validator rejected **37 of 38** hostile inputs I threw at
+> it, with constant, non-interpolated error strings — the strongest available redaction design.
 >
-> What this document does instead — and what is genuinely useful when the artefact arrives:
-> 1. records the absence rigorously, so AO can act on the delivery gap rather than wait on a phantom review (§2);
-> 2. establishes the **verified baseline** the patch modifies — the repository's actual Drizzle setup, the actual
->    Drizzle Kit 0.31.10 behaviour, and the actual `get_catalog_facets()` function — with reproducible commands (§4);
-> 3. lists the **specific failure modes** the Milestone 1 design must be tested against, including two SQL shapes that
->    are provably illegal in this database and one aggregate that does not exist — i.e. the concrete ways a
->    "name, id" facet migration and a loopback-only URL gate most often go wrong (§5–§7);
-> 4. states what I will run the moment the patch is available, so the review can execute in one pass (§8, §9).
->
-> **Privacy compliance (absolute prohibition honoured):** I did not inspect, print, hash, copy, test, visit or
-> request the four private link values, and I ran no command that could load them. Concretely: no `.env*` file was
-> opened (`.gitignore` allow-listing was checked by name only: `.env`, `.env.*`, `!.env.example`); `find` was used to
-> establish that **no `.env*` file exists in this checkout at all**; I deliberately did **not** run `drizzle-kit`,
-> `next dev/build/start`, or `npm run check`, because Drizzle Kit 0.31.10 bundles `dotenv@16.5.0` (verified from
-> `package/bin.cjs`) and auto-loads `.env`, so in a developer environment those commands are exactly the
-> "scripts that might load or expose" values the brief prohibits. This constraint is not a hypothetical: it applies to
-> AC's own Milestone 1 tests, and I would have checked that they never dotenv-load (§6.5).
+> The conditions are **not about code quality**; they are about **reconcilability and evidence closure**:
+> **C1** the patch is in Codex `apply_patch` format and cannot be applied or validated by `git apply`/`patch`, and 8 of
+> its 9 update hunks match a working-tree state that exists in **no Git object** → it cannot be reconciled as-is (§3.1, §3.2).
+> **C2** the reported `82 unit tests` is not reproducible from the patch: I get 81, and the missing test exists in no
+> Git ref (§6.2). **C3** three properties the milestone claims to lock down are unpinned by its tests — the exact
+> loopback host set, the database-name shape, and course-side tie behaviour (§5.2, §5.3, §4.4). **C4** hosted
+> preflight (definition/ACL/owner/collation) must precede any future authorisation, as AC's own text requires (§4.5).
+> **C5** the two audit logs are byte-identical and must not be counted twice (§6.4). **C6** browser verification
+> remains **blocked and unverified** — recorded as such, never as passed (§6.5).
 
 ---
 
 ## 1. Executive assessment
 
-* **Deliverability:** as submitted, Milestone 1 **cannot be reviewed, and therefore cannot proceed to AO's acceptance
-  step**, because the artefact is absent from the review environment. This is a process defect, not an engineering one.
-* **Fit of the stated scope to the repository:** the described scope is precisely what the repo needs. `main` and AC's
-  tip both commit a **credential-bearing `drizzle.config.json`** (`postgresql://postgres:postgres@127.0.0.1:5432/app_db`)
-  `[VERIFIED-AK]`, and AC's own `CATALOG_ORDERING_REVIEW.md:30` / `KNOWN_ISSUES.md:4` document that
-  `get_catalog_facets()` sorts facet options by name only, with ties, and that changing it requires "a separately
-  reviewed migration" `[VERIFIED-AK]`. So an isolated patch containing a Drizzle-config security gate plus a facet
-  migration is the right *shape* of work.
-* **Two facts already tell me the patch cannot be judged on its tests alone:** the local database is
-  `datcollate = C` with only the deterministic `C` collation available `[VERIFIED-AK]`, and Drizzle Kit cannot read an
-  environment variable from a JSON config `[VERIFIED-AK]`. If the patch keeps `drizzle.config.json`, a
-  `DRIZZLE_DATABASE_URL` requirement is unenforceable by Kit; and if the facet-ordering tests rely on collation-equal
-  names, they prove nothing locally. Both are §5/§6 details.
-* **Verdict field:** see §10 — issued on delivery grounds, explicitly carrying no judgement of the implementation.
+### 1.1 What changed since my "artefact absent" report
+The package was delivered out-of-band (Dropbox `/Educational-Platform-Backups/AK_MILESTONE1_REVIEW_20261104.zip`,
+297,900 B). Retrieval: the sandbox egress allowlist blocks every Dropbox host (`curl: (35) SSL_ERROR_SYSCALL` on
+`dl.dropboxusercontent.com`, `api.dropboxapi.com`, `www.dropbox.com`, and on `example.com` as a control; allowlisted
+hosts returned 200), so bytes could not be fetched by shell. The **connector** staged the file at
+`Presentation-/dropbox/AK_MILESTONE1_REVIEW_20261104.zip` — i.e. *inside the original checkout*. I immediately moved it
+to `/home/user/m1/pkg/` and removed the now-empty `dropbox/` directory; `git status --porcelain` is empty before and
+after, and the checkout is otherwise untouched. **All findings below are from the extracted payload.**
+Integrity: the container's own SHA-256 (`84ca118b7f43ff17…`) does **not** equal Dropbox's `content_hash`
+(`6766485f5b926eb1…`), but **all 39 member hashes match `MANIFEST.md` exactly**, including
+`MILESTONE1_FORWARD.patch = a9bfe509f969f420423d59df0daefca3afcc187199dd52592be5c5cbc934c97e`, which the report also
+quotes at `MILESTONE1_REPORT.md` §3 → **payload authenticity verified; container-level difference only, no
+substitution.** `[VERIFIED-AK]`
 
-## 2. Complete inventory of what I actually examined
-
-**Searched for the artefact (all negative, every command reproducible):**
-
-| Where | Command | Result |
-|---|---|---|
-| Whole filesystem | `find / -xdev \( -iname "*MILESTONE1*" -o -iname "*.patch" \)` | no match |
-| Home/tmp/root/workspace/mnt, depth 5 | `find … \( -iname "*milestone*" -o -iname "*.patch" -o -iname "*.diff" \)` | no match |
-| Files newer than 2026-11-03 outside the repo | `find /home/user -maxdepth 3 -type f -newermt "2026-11-03 00:00"` | no match |
-| All remote refs | `git ls-remote origin` | 5 branches + 1 tag; none named for a milestone; AC's branch tip `742c34a` |
-| Tree of every fetched ref | `git grep -l "DRIZZLE_DATABASE_URL"` on `742c34a`, `64abe95`, `ae2d6a3`, `cac9c7f` | **0 hits in any tree** |
-| GitHub | `gh pr list --state all`, `gh release list`, `gh issue list --state all` | no PRs, no issues; one release `Project` with no patch asset |
-| `main` root contents | `api.github.com/…/contents/` | `README.md`, `drizzle.config.json`, `eslint.config.mjs`, `next.config.ts`, `package.json`, `postcss.config.mjs`, `public`, `src`, `tsconfig.json` — no `supabase/`, no `tests/`, no `docs/`, no `.env.example` |
-
-**Repo/workspace state (verified before and after this review):** branch `arena/9d055deb-presentation` @
-`2944e0a7c27106e25b6982ec9c87ce1c0e9e5615` (AK's pack tip, restored after a sandbox re-provision that had reset the
-worktree to `4307a68` with `frontend-intelligence/` untracked); `main` `4307a6884527e22af27541cd76722867e5e6bb14`;
-AC's review branch tip `742c34aafef7ac4e899a55e5c828d3fa3bbb666e`; `AC-Branch` `cac9c7f…`; tag `Project` `ae2d6a3…`.
-No checkout modification, no branch switch, no destructive Git operation; only `git fetch` + `git reset --hard` onto
-**AK's own already-pushed commit** and read-only `git show`/`git grep`/`git ls-tree`.
-
-**Baseline files actually read (the substrate the patch targets):**
-
-| File (at `742c34a` unless noted) | Why it matters |
+### 1.2 Assessment in one paragraph per scope item
+| AO item | Assessment |
 |---|---|
-| `drizzle.config.json` (also at `main`) | the object of item A: `{dialect: postgresql, schema: ./src/db/schema.ts, dbCredentials.url: "postgresql://postgres:postgres@127.0.0.1:5432/app_db"}` |
-| `package.json` | `drizzle-kit@0.31.10`, `@electric-sql/pglite@0.5.14`, `tsx@4.23.15`, `@types/pg@8.18.0`; scripts `test:unit`/`test:db` = `tsx --test tests/{unit,database}/*.test.ts`; **no `db:*`/drizzle scripts at all** |
-| `supabase/migrations/202611010001_catalog.sql:99–116` | the **applied** `public.get_catalog_facets()` definition + its `revoke all … from public` / `grant execute … to anon, authenticated` pair, inside `commit` |
-| `src/lib/catalog.ts` (`getFacets`, `deriveFacets`) | the RPC payload is returned **unresorted**, so DB order = UI order; `deriveFacets` already sorts `name → id ?? slug → slug` |
-| `CATALOG_ORDERING_REVIEW.md:30`, `KNOWN_ISSUES.md:4`, `DECISIONS.md:3`, `FRONTEND_ACCEPTANCE_CHECKLIST.md:7` | AC's own statement that the facet tie ordering needs a separately reviewed migration — the milestone's purpose |
-| `drizzle-kit-0.31.10` `package/bin.cjs` (from `registry.npmjs.org`, in `/home/user/m1`, outside the repo) | the real config/env/TLS behaviour of the pinned tool (§5.1–§5.4) |
-| `.gitignore` env lines | names only, to establish what could have contained the prohibited values |
+| **A. Drizzle config security** | **Strong, with three unpinned properties.** Fails closed on missing/empty/whitespace value; `DATABASE_URL` is *never read* (0 occurrences — verified by source scan and by a hostile-env Kit run); `PG*` rejected case-insensitively before parsing; anchored regex admits only `localhost`/`127.0.0.1`/`[::1]` with explicit port and one path segment; percent-encoding must be canonical-uppercase, NFC-normalised, control-char-free; explicit `dbCredentials` fields (no `url`) defeat driver-side ambient fallbacks; `ssl:false` is only reachable for numeric loopback. Gaps: host *set* not test-pinned, database-name guard weaker than its comment, and the gate is bypassable by `--config`/`TEST_CONFIG_PATH_PREFIX`. §4–§5. |
+| **B. Facet migration** | **Correct and minimal.** The new function body differs from the applied original by **exactly 12 characters** — `, s.id` and `, c.id` inserted inside the existing `jsonb_agg(... order by …)` — plus `create or replace`; header (`language sql stable security invoker set search_path = ''`) and zero-argument signature preserved; `to_regprocedure` existence guard aborts rather than creates; `begin`/`commit` wrapped; the four `jsonb_agg(distinct …)` aggregates are correctly left alone (adding an id key there is illegal — `42P10` — and unnecessary, since `DISTINCT` already merges collation-equal values). Verified in PGlite, plus ACL/owner/overload/RLS invariance. §4.4–§4.6. |
+| **C. Tests (28 + 4)** | **Unusually rigorous; three specific weaknesses.** Sanitised per-case child env, network/driver denial with attempt counters, SQL pinned by SHA-256, before/after definition regex, metadata/ACL/policy snapshots, reverse-inserted byte-identical duplicate names (exactly the fixture shape the `C` collation requires). My mutation battery: 11 of 14 deliberate weakenings detected (facet suite: 5 of 5). Weaknesses: host-set and db-name cases absent; `rejected()` accepts a generic error pattern; course-side tie assertion passes on unpatched SQL. §5. |
+| **D. Patch integrity** | **Content matches its inventory; form is not reconcilable.** 14 operations at `MILESTONE1_FORWARD.patch:2,3,53,227,255,492,498,508,518,528,538,548,558,586` = 1 delete + 4 adds + 9 updates, exactly as §3 of the report claims; `package.json`/`package-lock.json` byte-identical to AC's branch tip (no dependency drift); no app-source changes; no `.env`, no old JSON, no credentials included. But: not consumable by `git apply`/`patch`, and its 8 documentation hunks key off untracked mirror content. §3. |
+| **E. Evidence** | **Reproduced: 28/28, 4/4, 32/32, lint 0, typecheck 0, `next build` 0, prod audit 0 (dev: 20 moderate — exactly AC's disclosed figure), dependency counts identical (prod 61 / dev 473 / total 572).** Not reproduced: 82 → **81** unit tests. Not independent: the 4/4 and 28/28 logs are subsets of the 32/82. Overstated attribution: the Kit `check` failure is explained as "missing `out`"; my runs show it precedes any `out` handling and that `generate` succeeds. §6. |
 
-**Not examined: any line of the patch itself** — including its 14 operations, its new config module, its migration SQL
-and its 32 tests. Rows A–E of AO's brief are therefore **NOT REVIEWED**, listed in §9 with the checks that will run.
+## 2. Files reviewed (complete inventory)
 
-## 3. Findings (severity = consequence for the eventual integration, not severity of unseen code)
+**Package:** 39 files, all listed in `MANIFEST.md`; every member hashed and matched. I read in full:
+`01-essential/MILESTONE1_FORWARD.patch` (614 lines, all 14 ops), `02-drizzle/drizzle.config.ts` (49),
+`02-drizzle/tests/unit/drizzle-config.test.ts` (173), `03-facets/supabase/migrations/202611040001_facet_ordering.sql`
+(27), `03-facets/tests/database/facet-ordering.test.ts` (236), `03-facets/excerpts/get_catalog_facets.original.sql`,
+`02-drizzle/{package.json,.env.example,installed-drizzle-kit-package.json}`,
+`04-verification/control/{no-network.cjs,kit-final-config-check.cjs}` (read, **not executed** — see §7),
+`04-verification/logs/*` (12 logs), `MANIFEST.md`, `README_AK.md`, and the targeted sections of
+`01-essential/MILESTONE1_REPORT.md` (2,171 lines: §1 status, §3 inventory, §4 commands, §5 facet reasoning) plus both
+patched handover bodies. **Deliberately not opened:** `01-essential/candidate-project/*.md` beyond hashing, and
+Dropbox's sibling `AO_NEW_CHAT_HANDOVER.md` (331 KB) — reading it could surface the prohibited link values, and AO
+did not request it.
+**Substrate re-read from Git:** `742c34a:{drizzle.config.json, package.json, package-lock.json, .gitignore,
+supabase/migrations/2026110{1,2}*.sql, supabase/seed.sql, src/db/index.ts, src/lib/catalog.ts, tests/unit/*}`.
+**Tool source read:** the installed `drizzle-kit@0.31.10` `bin.cjs` (config resolution, `flattenDatabaseCredentials`,
+the postgres connection schema, dotenv bundling, `TEST_CONFIG_PATH_PREFIX`).
 
-### Critical
-* **C-1 — Review target absent.** `MILESTONE1_FORWARD.patch` is not in the workspace, any branch, any ref, any GitHub
-  object. A milestone review cannot be produced. `[VERIFIED-AK]` (search matrix in §2). Owner: AO/AC (delivery).
+**Isolation of my experiments:** everything ran in `/home/user/m1/`. My patched tree was built as
+`git archive 742c34a` + the patch's five code operations (files copied byte-identically from the package, hashes
+verified), then `npm ci` (429 packages, registry only). **The original checkout was never used as a working
+directory, and no `.env` file exists in the sandbox** (checked by name only; never opened), so no command I ran could
+load a prohibited value.
 
-### High
-* **H-1 — Credential-bearing Drizzle config is committed in both `main` and AC's tip.** `drizzle.config.json` embeds
-  `postgres:postgres` in a tracked file. Even though it is loopback and the obvious local-dev default, it (a) puts a
-  credential in Git history where any future non-loopback copy of that value becomes a live secret, and (b) is
-  silently consumed by `npx drizzle-kit push` against whatever DB listens on `127.0.0.1:5432` — a *real* destructive
-  path in a developer environment that also happens to run Postgres for another project. Any Milestone 1 design must
-  make the *absence* of a URL a hard error, not fall back to the committed value. **This is the single most important
-  property to verify in the unseen patch** — a "DRIZZLE_DATABASE_URL required" gate that merely *prefers* the env var
-  and falls back to `dbCredentials.url` provides none of the intended protection. `[VERIFIED-AK baseline]`
-* **H-2 — A JSON config cannot read `DRIZZLE_DATABASE_URL`.** Verified from the pinned tool: `bin.cjs` resolves the
-  default config as `drizzle.config.ts` → else `drizzle.config.js` → else the literal `"drizzle.config.json"`, then
-  `drizzleConfigFromFile` → `preparePushConfig` → `flattenDatabaseCredentials`; there is **no `process.env.DATABASE_URL`
-  handling anywhere in `bin.cjs`** (grep returned 0 matches) and no interpolation for JSON. So unless the patch
-  introduces a `drizzle.config.ts`/`.js` (or a wrapper that materialises a config), "explicit `DRIZZLE_DATABASE_URL`
-  requirement" is unimplementable and any test asserting it can only be testing the patch's *own* module, not the
-  workflow Drizzle Kit performs. `[VERIFIED-AK]` → see §6.1 for the false-assurance risk this creates.
-* **H-3 — `get_catalog_facets()` cannot simply gain an `id` key in four of its aggregates.** Measured on this very
-  schema in PGlite: `jsonb_agg(distinct d.topic order by d.topic, d.id)` →
-  **`42P10 in an aggregate with DISTINCT, ORDER BY expressions must appear in argument list`**, likewise for
-  `order by d.id` alone. The `semesters`, `topics`, `types`, `platforms` aggregates in `202611010001_catalog.sql:105–109`
-  are all `jsonb_agg(distinct …)`; only `subjects`/`courses` can take `order by s.name, s.id` directly (verified OK).
-  The legal shapes are a `distinct on (col) … order by col, id` subselect (verified OK) or `group by` + a min/max
-  **on a sortable projection** — and note `min(uuid)` **does not exist** in this server
-  (`42883 function min(uuid) does not exist`, verified), so a `min(id)` "fix" is itself a build-breaker. `[VERIFIED-AK]`
+## 3. Patch inventory and integrity observations
 
-### Medium
-* **M-1 — Local tests cannot demonstrate the tie the migration exists to fix, if they rely on collation.** PGlite
-  0.5.14 here is `PostgreSQL 18.6`, `datcollate = C`, `datlocprovider = c`, and `pg_collation` offers only `C` with
-  `collisdeterministic = true` `[VERIFIED-AK]`. Under `C`, `order by name` ties only on **byte-identical** names;
-  hosted Supabase databases commonly use a non-deterministic libc/ICU collation where *distinct* names compare equal —
-  the case the added `id` key also resolves. Consequence: a facet-ordering test is meaningful only if the fixture has
-  literally duplicate names (e.g. two `subjects` named `Mathematics`); anything subtler silently passes for the wrong
-  reason, and the hosted-side benefit stays `[UNVERIFIABLE-LOCAL]`.
-* **M-2 — `create or replace function` preserves ACL and owner; `drop` + `create` does not.** If the migration's
-  "complete SQL replacement" uses `create or replace`, the `revoke all` / `grant execute to anon, authenticated` lines
-  at `:113–114` remain in force but must still be *re-asserted* for idempotency and to survive a future signature
-  change; if it uses `drop function` + `create function`, the function identity changes and **grants are lost**,
-  silently returning `42883`/permission errors for `anon` in production until someone notices. The exact ACL wording is
-  a primary item-B check. `[INFERRED from the applied file's shape; must be confirmed against the patch]`
-* **M-3 — The patch cannot land on `main` as-is.** `main` contains **no `supabase/`, no `tests/`, no `src/lib/`**
-  (only 9 root entries, §2). A migration that ALTERs a function created by
-  `supabase/migrations/202611010001_catalog.sql`, plus tests that import `src/lib/catalog.ts`, are only coherent on top
-  of AC's branch line. "Suitability for eventual reconciliation" therefore depends entirely on the base commit the
-  patch declares; a patch built against `742c34a` will not apply to `main`, and reconciliation must be a branch merge,
-  not a raw `git apply`. `[VERIFIED-AK]`
-* **M-4 — Drizzle Kit honours `TEST_CONFIG_PATH_PREFIX`.** `drizzleConfigFromFile` reads
-  `process.env.TEST_CONFIG_PATH_PREFIX` and joins it to the config path `bin.cjs` `[VERIFIED-AK]`. An env-var-controlled
-  config directory is an extra attack/poisoning surface in CI, and it also means "reject ambient `PG*`" is not
-  sufficient as an environment hygiene rule: `NODE_OPTIONS`, `DOTENV_KEY` (dotenv is bundled and reads it — visible in
-  `bin.cjs`) and this prefix are all in scope for a genuine hardening story. `[VERIFIED-AK baseline]`
+### 3.1 Format — the blocking issue
+`MILESTONE1_FORWARD.patch` is a **Codex `apply_patch` script** (`*** Begin Patch` / `*** Add File:` /
+`*** Update File:` / `@@` context), not a unified diff: no index hashes, no hunk line numbers, no base commit, no
+author/date, no `diff --git` headers. Measured on an isolated copy of AC's branch tip:
 
-### Low
-* **L-1 — No `db:*` npm scripts exist**, so every Drizzle workflow is a hand-run `npx drizzle-kit …`. A gate that
-  lives only in a TS/JS config is bypassed by anyone who passes `--config` or sets a different path; the gate must be
-  in code the wrapper *and* the tests share. `[VERIFIED-AK]`
-* **L-2 — Facet order is UI order.** `getFacets` returns `data as CatalogFacets` with no client-side sort
-  `[VERIFIED-AK]`, so the migration changes visible select-box ordering; conversely `deriveFacets` (compat/fixture
-  mode) sorts `name → id ?? slug → slug` in JS with `localeCompare` `[VERIFIED-AK]` — after the migration, SQL order
-  (deterministic collation on hosted) and JS order (ICU) can still disagree for accented/punctuation names. That
-  parity gap is a *design* consequence of the milestone and should be documented by it, not fixed by a silent
-  re-sort (AC already reasoned this way in `CATALOG_ORDERING_REVIEW.md:30`).
-* **L-3 — `@types/pg` is present while `src/db/schema.ts` is `export {}`** (per the pack's earlier audit of `main`), so
-  the "explicit driver connection properties" item has no application-side driver to govern yet; a config-only gate
-  protects `drizzle-kit` but not a future `node-postgres` path. `[VERIFIED-AK baseline; AC-branch state]`
-
-### Informational
-* **I-1 — AC's documentation is consistent with the intended milestone.** The tip's handovers state the facet tie
-  problem as gated, state `V1` as "byte-identical and unapplied", and record AO's decisions (accept V1, reject v2,
-  approve ID tie-breaks, defer narrow-fetch) — nothing in AC's docs claims a Drizzle config change, so the patch is
-  genuinely *new* work rather than something already reviewed. `[VERIFIED-SHARED]`
-* **I-2 — The repository's own Drizzle config predates this milestone**, so H-1 should not be attributed to AC's
-  Milestone 1; it is inherited from `main`. `[VERIFIED-AK]`
-
-## 4. Reproducible commands (all read-only; nothing in the checkout was modified)
-
-```bash
-# artefact absence
-find / -xdev \( -iname "*MILESTONE1*" -o -iname "*.patch" \) 2>/dev/null
-git ls-remote origin
-for r in 742c34a 64abe95 ae2d6a3 cac9c7f; do git grep -l "DRIZZLE_DATABASE_URL" $r; done   # → no output
-
-# baseline Drizzle config + scripts
-git show 742c34a:drizzle.config.json
-git show 742c34a:package.json | python3 -m json.tool
-
-# Drizzle Kit behaviour (downloaded outside the repo, into /home/user/m1)
-npm pack drizzle-kit@0.31.10 && tar -xzf drizzle-kit-0.31.10.tgz
-grep -c "process.env.DATABASE_URL" package/bin.cjs                      # 0
-grep -o "drizzle.config.\(ts\|js\|json\)" package/bin.cjs | sort -u      # ts, js, json
-grep -o "TEST_CONFIG_PATH_PREFIX" package/bin.cjs | head -1
-grep -o "dotenv@16.5.0" package/bin.cjs | head -1
-
-# facet SQL facts (in-memory PGlite over the applied migrations; no .env, no network, nothing applied anywhere)
-psql-equivalent: select jsonb_agg(distinct d.topic order by d.topic, d.id) …        # 42P10
-                 select min(id) from public.subjects                                 # 42883 no min(uuid)
-                 select distinct on (topic) topic, id … order by topic, id           # OK
-                 select datcollate, datlocprovider from pg_database …                # C, c
 ```
+$ git apply --check MILESTONE1_FORWARD.patch   → error: No valid patches in input (allow with "--allow-empty")
+$ patch -p1 --dry-run < MILESTONE1_FORWARD.patch → patch: **** Only garbage was found in the patch input.
+```
+`[VERIFIED-AK]` → **There is no mechanical way to verify, review or apply this patch outside the tool that wrote it.**
+No three-way merge, no `--3way`, no `git apply -R` reversal, no `git am`, and no context-length guarantees for the
+`+`-only bodies (my awk over the file shows `+` lines only: `580` added, `0` removed lines recorded).
 
-## 5. Security attack scenarios for the *described* design (the matrix I will run)
+### 3.2 Base state — 8 of 14 operations cannot land on any commit
+The report and every patched doc state the base is "branch `arena/c9d0d599-presentation`, HEAD `4307a68…`", the *same*
+commit as `main`, with "26 tracked modifications, 130 untracked" — and `README_AK.md` adds: "relative to the captured
+original working tree, **not HEAD**". I tested the `@@` context line of each update against the Git trees:
 
-For a loopback-only, env-gated Drizzle URL loader, these are the cases that actually break such code. Each is
-checkable in one test; I list them as **required evidence**, not as claims about the unseen patch.
+| Update target | file at `main`? | file at AC tip `742c34a`? | context line present at tip |
+|---|---|---|---|
+| `.env.example` | no | yes | **yes (1/1)** |
+| `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `DECISIONS.md`, `KNOWN_ISSUES.md`, `DEVELOPMENT_GUIDE.md`, `AC_HANDOVER.md`, `AO_HANDOVER.md` | **no** | yes | **no (0/1 each)** |
 
-1. **Host-shape bypasses of "loopback only":** `0.0.0.0` (as a *destination* on Linux means localhost and must be
-   rejected, not accepted), `::` likewise; `2130706433`, `0x7f000001`, `0177.0.0.1`, `127.1`, `127.0.1` (shorthand/octal/hex
-   IPv4 forms that `new URL()` will happily keep as a non-`localhost` hostname); `[::1]` vs `::1` (bracket handling);
-   `127.0.0.1.evil.example` DNS-suffix tricks; `localhost.localdomain`; trailing dot; `LOCALHOST`/`LocalHost` case;
-   `;`, `,`, `?`, `#`, `%2f`, backslash and userinfo tricks that make the parsed `hostname` differ from the driver's
-   (`@` in the user part is the classic); a URL with two `@`s where `URL.hostname` is the last one.
-2. **Unix sockets:** `postgresql:///db?host=/tmp` or `postgres://?host=%2Fvar%2Frun%2Fpostgresql` — no host at all,
-   yet a *filesystem path* the driver treats as the socket directory. A loopback check keyed on hostname must not
-   accept "empty host" by default, and must decide explicitly whether sockets are permitted.
-3. **Env-hygiene bypasses:** rejecting `PG*` case-insensitively is right but incomplete — `PGHOST`/`PGPASSWORD` are the
-   obvious ones; a `libpq`-driven path also reads `PGPASSFILE`, `PGSERVICEFILE`, `PGDATA`, `PGSSLMODE`, and `postgres`
-   accepts `options=`. Also: is rejection done on the *snapshot* taken at import time (so a test mutating
-   `process.env` afterwards bypasses it), and does the check run for **every** entry point (Kit config, wrapper script,
-   tests) rather than only one module?
-4. **`DATABASE_URL` separation:** the guarantee to verify is *directional* — `DRIZZLE_DATABASE_URL` must not be a
-   fallback *from* `DATABASE_URL`, and a hostile/ambient `DATABASE_URL` (Supabase ships one in some setups) must not
-   silently become the migration target. Given H-2, this must be enforced in code, not JSON.
-5. **Canonical encoding:** what exactly is compared after parsing — if the code canonicalises for the *check* but
-   hands the **original string** to the driver, the check is decorative (a `.invalid`/redirect-free example is
-   `postgresql://x@localhost.:5432/db`). Also whether percent-encoded characters survive the round trip identically
-   (`pct-encode → decode → encode` differs for `!`, `$`, `&`, `'`).
-6. **Redaction:** the two real leaks are (a) a *nested* cause (`AggregateError.cause[0].message` from `node-postgres`
-   embeds the connection string, and if the code redacts only the top-level message the secret escapes) and (b)
-   redaction by replacing a literal password substring that differs after normalisation (e.g. a percent-encoded
-   password in the URL vs the decoded one in the driver's message). A test must assert the *whole* error object tree,
-   `JSON.stringify(err)`, not `err.message` — and must use a password that is distinguishable from its own encoding.
-7. **TLS/local-only assumption:** `ssl`/`sslmode` appears **nowhere** in `bin.cjs` (verified: 0 matches), so Drizzle Kit
-   passes the URL to the driver and the default is **plaintext**. A "loopback ⇒ TLS optional" rule is sound only if
-   loopback is guaranteed *at connect time*, not merely at config-parse time — the gap between those two is a
-   TOCTOU-style weakness when `hosts`/`/etc/hosts` or a port-forward is attacker-influenced. Worth a line in the
-   milestone doc either way.
-8. **dotenv auto-loading:** Kit bundles `dotenv@16.5.0`, so `npx drizzle-kit push` in a developer home loads `.env`
-   before any gate runs. If the milestone's answer is "we reject ambient `PG*`", note that it does not cover values
-   dotenv injects *from the project's own* `.env` — and, directly relevant to this project's privacy restriction, any
-   review or CI step that runs Kit or `next` in a real environment **can load the four prohibited values**. Tests must
-   be provable without touching `.env` at all (which is what PGlite-based tests should be doing).
+`[VERIFIED-AK]` So the 9 updates are anchored to uncommitted mirror content, and `main` lacks all 9 files plus
+`supabase/` and `tests/` entirely (9 root entries). **Consequence, stated precisely:** the four *code* operations
+(1 delete + 3 adds + the new migration) are base-independent and *do* apply cleanly to AC's committed tip — that is
+how I built my tree, and it passed everything — whereas the eight documentation operations are append-only content
+whose duplication of a single identical paragraph across 8 files also makes them low-value in a source patch. The
+right reconciliation shape is therefore: **`git format-patch`/`git diff` limited to the 5 code paths against a declared
+commit**, with handover/doc updates carried separately as review artefacts (they are not part of the program).
 
-## 6. False-assurance patterns to look for in the 28 Drizzle tests (item C)
+### 3.3 What is *not* in the patch (checked, and correct)
+`package.json` and `package-lock.json` are byte-identical to `742c34a` (`cmp` clean) → no dependency, script or lockfile
+change — which also means **no `db:*` npm script is introduced** (see M-1). No `src/**` file is touched, no other
+migration, no config, no test infrastructure. `.gitignore` untouched (so `drizzle.config.ts` is tracked: it *contains*
+no secret, but a populated `.env` stays ignored ✓). The credential-bearing `drizzle.config.json` is deleted
+**by path only**: its contents appear nowhere in the patch (`grep -c 'postgres:' → 0`), consistent with
+`MILESTONE1_REPORT.md` §3 "old contents are not included or used" — a deliberate, verifiable privacy choice that also
+removes the H-1 exposure I flagged last round. `[VERIFIED-AK]`
+Package hygiene claims I spot-checked and confirmed: no `.env`, no `.pgp`, no key/token material, no private link
+literals in any of the 39 files (0 matches for `supabase.co`, `eyJ`, `service_role`, `ANON_KEY`, `PRIVATE`); the
+`.env.example` copy has 5 assignments, **all blank** (`DRIZZLE_DATABASE_URL=` present ✓); the SQL excerpt is a true
+byte slice — `catalog.sql[6595:8254] == get_catalog_facets.original.sql` ✓ — so it is a labelled extraction, not a
+reconstructed stand-in. `[VERIFIED-AK]`
 
-1. **Testing the wrapper instead of the workflow** (highest-value check, because of H-2): a unit test that calls
-   `resolveDrizzleUrl()` in isolation proves the module's logic, not that `drizzle-kit` cannot reach a non-loopback
-   database. A genuine test either drives the real config file Kit loads or states the limitation. `[DERIVED FROM §5.1–§5.2]`
-2. **`assert.throws(fn)` without inspecting the message** — passes when the code throws for an unrelated reason, and
-   never exercises redaction. Assert on `err.message`, `String(err)`, and `JSON.stringify(err)` with a password that
-   appears in the URL only in encoded form.
-3. **Positive-only loopback tests** — accepting `localhost`/`127.0.0.1`/`[::1]` is trivial; the *negative* half
-   (§5.1's shorthand/octal/DNS/userinfo/empty-host/socket cases) is where such a gate lives or dies. A suite with 28
-   tests can still be all-positive, and AO's brief asks me to say so if it is.
-4. **Shared-mutable-env false results:** `process.env` is process-global; if the 28 tests mutate it without save/restore
-   in a `finally`, order dependence appears and `tsx --test` (single process per file, but files run in one command
-   here) can report passes that a shuffled run wouldn't. A regression-proof suite restores env per test.
-5. **Any test that spawns `drizzle-kit` or imports a dotenv-loading entry point** — in a developer environment that
-   reads `.env`. Beyond the assurance question, it is precisely the class of action this review is forbidden to run.
-6. **Facet tests that don't create byte-identical duplicate names** → vacuous under `C` collation (M-1). Also: if the
-   test asserts "order changed" rather than "order is `(name, id)`", it can pass on a coincidental order.
-7. **PGlite vs server gaps to state explicitly, not discover later:** no real Supabase roles (they are simulated with
-   `set role`), no `anon`/`authenticated` PostgREST `jwt` claim plumbing, no default-privilege behaviour on
-   `alter default privileges`, no `auth.uid()`-backed RLS through the API layer, **no `min(uuid)`-style aggregate
-   differences to hide behind** (PGlite *is* a real server here — v18.6 — so the §3 H-3 errors are genuine, which is
-   useful), and collation as in M-1. Tests that pass "RLS is preserved" via `set role` do not evidence the hosted
-   policy; they evidence the local simulation.
+## 4. Drizzle and facet-migration assessment
 
-## 7. Migration risks for the facet-ordering change (item B, from the verified baseline)
+### 4.1 Requirement and separation (`drizzle.config.ts:4-10`)
+`process.env.DRIZZLE_DATABASE_URL` is mandatory (`:5-7`); the module **never** references `DATABASE_URL` (verified:
+the only occurrences of that name in the shipped files are inside tests asserting it is *not* used). Under real Kit, with
+only a hostile `DATABASE_URL=postgresql://x:y@db.example.invalid:5432/z` present, Kit printed
+`DRIZZLE_DATABASE_URL is required for the local Drizzle workflow.` → **no fallback, verified at the tool boundary, not
+just in unit tests.** The `PG*` rejection at `:8-10` fires over `Object.keys(process.env)` case-insensitively; I
+confirmed it trips on `PGPASSWORD`, `pgpassword`, `PgData`, `PGXID`, `PGOPTIO`, `PGSQL_URI`, `PGR`, `PG` and — matching
+AC's own test — on an **empty** `PGHOST=""`; `DSN` (not libpq-relevant) is correctly left alone. The over-strict
+consequence is honest and small: any variable *named* `PG…` blocks the workflow, including third-party tools that
+export, e.g., `PGXID`. `[VERIFIED-AK]`
 
-* **Target is an applied, hosted function.** `get_catalog_facets()` lives in `202611010001_catalog.sql:99` — already
-  applied. A new migration must not edit the old file (it would orphan hosted state), must be a complete replacement of
-  the function body, and must be additive-safe: `create or replace` + re-asserted `revoke all`/`grant execute`
-  (M-2), inside `begin`/`commit` like the existing file, with the same `language sql stable security invoker
-  set search_path = ''` header (a change to any of these four properties would be a silent privilege/perf semantic
-  change — worth a dedicated test, since `set search_path = ''` is what makes the fully-qualified `public.` prefixes
-  load-bearing).
-* **Missing-function guard.** A `do $$ begin … exception … end $$` or `if exists(select 1 from pg_proc …)` guard is the
-  difference between "reconcilable on a fresh database" and "fails on a database where the original migration was never
-  applied". Given `main` has no `supabase/` at all (M-3), the guard is not cosmetic for this project.
-* **Signature stability.** `get_catalog_facets()` takes **no arguments**, so `create or replace` can't accidentally
-  leave an orphan overload — but if the patch changes the signature in any way, the old overload survives and
-  PostgREST's `/rpc/` resolution can pick the wrong one; AO's "existing function signature" check should be about
-  *not* changing it.
-* **Behaviour must be invariant apart from tie order:** the `exists(...)` filters, the per-subject `count`, the nested
-  `topics` sub-aggregate and the `'[]'::jsonb` coalesces are what the app depends on (`getFacets` returns the payload
-  unvalidated, `data as CatalogFacets` `[VERIFIED-AK]`), so a rewrite that drops `coalesce` turns an empty catalog into
-  `null` in the UI. Any restructure to satisfy H-3 (`distinct on`) must preserve `distinct` semantics exactly —
-  e.g. verifying that two subjects with the same name still yield two entries while `topics` stays deduplicated.
-* **Hosted drift.** The hosted DB may already differ (AC's own docs repeatedly refuse to claim hosted state:
-  "Hosted inspection/migration are separately unauthorized"). Because the function was created by an applied
-  migration and never touched since, the risk is low, but the patch must declare its base commit and AO should require
-  a read-only hosted `pg_get_functiondef('public.get_catalog_facets()')` diff **before** applying — that is the single
-  cheapest way to rule out drift, and it needs no write access.
-* **No rollback path.** None of the repo's migrations has a `down`. An ordering-only change is idempotent enough to
-  re-apply, but the review should confirm the patch does not require a rollback story it doesn't provide.
+### 4.2 Parsing, canonical encoding, loopback (`:15-43`)
+The anchored regex requires `postgres|postgresql` + non-empty user **and** password + host in a 3-value allowlist +
+numeric port + exactly one path segment + no query/fragment; `decodePart` (`:19-35`) then forces canonical-uppercase
+percent-encoding, NFC-normalised decoded text, and no C0/C1 control characters; `:43` maps `localhost → 127.0.0.1` and
+`[::1] → ::1` so the driver never re-parses a bracketed literal. This design is why the classic attacks all fail — and
+I verified 37/38:
 
-## 8. Verification evidence — how I will adjudicate AC's numbers (item E)
+| Input (all against the shipped file, via `tsx`) | Result |
+|---|---|
+| `0.0.0.0` · `::` · `127.0.0.2` · `127.1` · `0x7f000001` · `0177.0.0.1` · `2130706433` | rejected |
+| `localhost.` · `LOCALHOST` · `localhost.localdomain` · `POSTGRESQL://` · `::1` unbracketed · `[0:0:0:0:0:0:0:1]` · `[::ffff:127.0.0.1]` | rejected |
+| `127.0.0.1.evil.example` · `evil.example/127.0.0.1` · `u:p@evil@127.0.0.1` · `u@127.0.0.1` · `:p@127.0.0.1` | rejected |
+| `postgresql:///d?host=/var/run/postgresql` · `…/d?host=/tmp` · `…/d#frag` · `…/d?sslmode=require` · `…/d?sslmode=disable` | rejected |
+| trailing/leading space · trailing newline · `../etc` db · two path segments · `:5432/d:extra` · port `0`/`055432`/`65536` | rejected |
+| `%ZZ` `%A` `%ff` `%C3%28` `%00` `%0A` `%41` `%65%CC%81` (decomposed é) | rejected |
+| **`…/d%2F..%2F..%2Fetc`** | **ACCEPTED → `database: "d/../../etc"`** (see M-3) |
+| valid: `postgres://` and `postgresql://`, `127.0.0.1`, `localhost`, `[::1]`, `u%40x` in user, `p%40s` in password | accepted, decoded exactly once, `ssl:false` |
 
-Nothing in this section is a result; it is the like-for-like protocol, and each row stays `[UNVERIFIED]` until the
-artefact exists. I will reproduce on AK's own `npm ci` of the patch tree, never on AC's output: `npx tsc --noEmit`,
-`npx eslint .`, `tsx --test tests/unit/*.test.ts` (expect 82), `tsx --test tests/database/*.test.ts` (expect 32),
-`npx next build` in an **isolated copy that contains no `.env` file**, and `npm audit --omit=dev` plus the full
-`npm audit` dev count reported separately (a `--omit=dev` "0 vulnerabilities" is not "clean", and AC's own prior
-commits disclosed ~20 moderate dev advisories). Where a number depends on the harness's *payload* or *page size* I
-will state the boundary — the mechanism behind my own retracted `−30 %` claim (C23 in
-`frontend-intelligence/phase2/VERIFICATION_LOG.md`) — and I will run at least one **negative control**: the new tests
-against the pre-patch tree, because a test that passes on both trees proves nothing (the value of that method is
-demonstrated by AC's tie test failing on the parent SQL, §5 of my last review).
+### 4.3 TLS, driver fields, and real Kit workflow — including a result AC did not have
+`ssl:false` is hard-coded, and because the host is numeric-loopback the "local plaintext" assumption holds; Kit's own
+credential handling (`const ssl = "ssl" in credentials ? credentials.ssl === "prefer"|"require"|"allow" ? …`) shows the
+string-mode semantics don't turn `false` into TLS. `dbCredentials` carries **no `url` key**, so nothing downstream can
+re-parse a looser connection string. Kit's postgres schema explicitly allows that shape —
+`Either "url" or "host", "database" are required for database connection` — and I confirmed the workflow works:
 
-## 9. Outstanding uncertainties
+```
+$ DRIZZLE_DATABASE_URL='postgresql://u:p@127.0.0.1:5432/d' npx drizzle-kit generate
+  Reading config file '/home/user/m1/tree/drizzle.config.ts' → 0 tables → No schema changes, nothing to migrate   (exit 0)
+```
+`[VERIFIED-AK]` **This is new evidence**: AC's Kit harness (`kit-final-config-check.cjs`) ran only
+`drizzle-kit check`, whose success criterion is `exitedNonzero && reachedCheckValidation` — i.e. it asserts the gate
+*ran*, never that the resulting config is *usable*, and its README attributes the nonzero exit to "missing `out`". My
+`check` reproductions show the Data-API params error occurs for **every** postgres config shape I tried — including a
+plain `{url}` config and an unrelated `--config` file — so it is a property of `check` in a repo without an
+`out`/migrations directory, **not** a defect of the new config; and `generate` (which is the command the milestone's
+"manual local development" comment targets) succeeds. `push`/`migrate`/`introspect` still require a real database and
+remain **UNVERIFIED by design**. `[VERIFIED-AK + REPORTED-AC]`
 
-1. **Everything about the patch's content** — 14 operations, the config module, the migration SQL, all 32 tests:
-   **NOT REVIEWED**. AO's items A, B, C, D, E are unanswerable until the artefact is delivered (§10).
-2. Which base commit the patch was generated from (`742c34a` is my inference from AC's tip, unverified).
-3. Whether the 28 Drizzle tests run without a `.env`-containing environment (drives both the assurance question and
-   the privacy constraint) — answerable only by reading them.
-4. Hosted collation and the hosted `get_catalog_facets()` definition (drift, M-1/M-2) — deliberately not probed:
-   read-only hosted inspection is also outside my authority here.
-5. `pglite` vs server behaviour for `min(uuid)`/`distinct on`/ACL is *not* uncertain (verified), but how the patch
-   works around H-3 is.
+### 4.4 Facet migration SQL (`202611040001_facet_ordering.sql`)
+`begin;` (1) → `to_regprocedure('public.get_catalog_facets()') is null → raise exception 'Expected
+public.get_catalog_facets() to exist; aborting'` (6-7) → `create or replace function … returns jsonb` (12) with the
+header `language sql stable security invoker set search_path = ''` (13) **byte-identical** to the applied definition →
+`order by s.name, s.id` (16) and `order by c.name, c.id` (18) → `commit;` (27). A character-level diff of the two
+bodies gives `1600 → 1612` chars, i.e. **two 6-character insertions and nothing else**: no filter, `coalesce`,
+`exists()`, `count` or `topics` sub-aggregate changed. `create or replace` (rather than drop+create) preserves
+function identity, owner and ACLs; the guard is the *right* polarity (abort, don't create) because creating it here
+would bypass `202611010002_least_privilege_catalog_grants.sql`'s grant policy. `[VERIFIED-AK]`
+Two operational nuances: (i) the four `jsonb_agg(distinct …)` aggregates (20-23) are left name-ordered only — correct,
+because `agg(DISTINCT x ORDER BY x, id)` is illegal (`42P10`, verified) and `DISTINCT` already merges
+collation-equal inputs so no tie can survive; (ii) when the guard fires, the raised exception leaves the file's
+`begin;` transaction aborted, so a runner that continues issuing statements fails until rollback — AC's own
+missing-function test must and does issue `rollback;` explicitly.
+
+### 4.5 Hosted-drift exposure
+`create or replace` requires the existing function to have the *same* argument list; on a hosted database whose
+definition drifted (e.g. an owner-added `security definer`, a `grant` to a service role, or Supabase-managed
+`alter default privileges`), the replacement inherits that state silently. **AC documents this accurately**
+("The reviewed migration existence guard does not detect hosted definition/ACL drift; verify separately before any
+future authorization" — patched `AC_HANDOVER.md`). My local check shows the *default* posture is right —
+`proacl = {postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}`, `proowner = postgres`,
+`prosecdef = false`, `provolatile = 's'`, `overloads = 1` — but PGlite's role model is not Supabase's, so **C4**
+(read-only `pg_get_functiondef` + `pg_proc` + `pg_policies` preflight, and the target's `datcollate`/`collisdeterministic`)
+remains mandatory before any authorisation. `[VERIFIED-AK local / REPORTED-AC wording]`
+
+### 4.6 Where the tie-break actually matters (my own measurement)
+On AC's fixture: old function → `subject-high, subject-low` (descending ids = insertion order); new → `subject-low,
+subject-high` (ascending) ✓. With **32 name-sharing subjects**, the old output was `tie-025, tie-017, tie-016,
+tie-011, tie-002, tie-004, …` — neither sorted nor insertion-ordered, i.e. **whatever the plan happened to produce**,
+while the new output is fully ascending under all four planner settings I forced. `[VERIFIED-AK]` Consistent with my
+standing caveat, I do **not** claim local plan-insensitivity proves hosted stability; the point is that pre-change the
+order was *unspecified*, and post-change it is a total order (`id` is `uuid primary key`, non-null and unique).
+
+## 5. Test-quality assessment
+
+### 5.1 Harness engineering (credit where due)
+Per case, `check()` (`tests/unit/drizzle-config.test.ts:74-96`) spawns a **fresh child process** with a
+seven-name env allowlist (`:76-77`, and explicitly not `NODE_OPTIONS`), so there is no cross-test `process.env`
+mutation at all — the failure mode I predicted in §6.4 of my earlier protocol does not apply. The child patches
+`net.Socket.prototype.connect`/`net.connect`/`net.createConnection`/`tls.connect`/`dns.lookup` and
+`pg.Pool|Client.prototype.connect`, counts attempts, and only permits tsx's IPC socket (`:30-44`) guarded against
+`..`; every result asserts `pgCalls === 0` **and** `attempts === 0`, so "the config never touches the network or a
+driver" is *measured*, not asserted rhetorically. Redaction is tested against stdout **and** stderr over seven
+marker strings. `accepted()` additionally constructs `pg/lib/connection-parameters.js` **after** injecting six
+conflicting `PG*` variables and asserts the explicit fields win — a genuinely sophisticated property to test, and the
+reason "we reject `PG*`" is not the only line of defence. `[VERIFIED-AK]`
+
+### 5.2 Mutation battery — what the 28 tests do and do not detect
+I weakened the shipped implementation 9 ways (each revert-verified) and re-ran the suite:
+
+| Mutation to `drizzle.config.ts` | Suite result | Verdict |
+|---|---|---|
+| M1 delete the `PG*` guard (`:8`) | 27/28 | detected |
+| M2 delete `parts[0] !== value` (`:17`) | **28/28** | survives — **but the clause is dead code**: the regex is fully anchored, so `parts[0]` is always the whole string. Report as a code-comment overstatement, not a coverage hole. |
+| M3 host set → `127\.[0-9.]+` (accepts `127.0.0.2`) | **28/28** + `127.0.0.2` accepted | **undetected (M-4)** |
+| M4 host set += `0.0.0.0` | **28/28** + `0.0.0.0` accepted | **undetected (M-4)** |
+| M5 skip the canonical-encoding check (`:27`) | 27/28 | detected |
+| M6 drop the `> 65535` bound (`:17`) | 27/28 | detected |
+| M7 hand Kit `dbCredentials:{url:value}` instead of fields | 23/28 | detected (5 tests) |
+| M8 interpolate the offending value into the error (`:13`) | **11/28** | strongly detected |
+| M9 omit `ssl:false` (`:48`) | 23/28 | detected (5 tests) |
+
+| Mutation to the facet migration | Suite result | Verdict |
+|---|---|---|
+| F1 revert `order by s.name, s.id` → `s.name` | 0/4 | detected |
+| F2 neutralise the `to_regprocedure` guard | 0/4 | detected |
+| F3 reverse the tie-break (`s.id desc`) | 0/4 | detected |
+| F4 delete a `publication_status` filter from the count subquery | 0/4 | detected |
+| F5 change the signature (`x int default 1`) | 0/4 | detected |
+
+So the facet suite is a **total detector** for the five properties it claims, and the Drizzle suite detects 7 of 9
+realistic weakenings, with the two survivors being either dead code (M2) or a genuine gap (M3/M4).
+
+### 5.3 Weak tests, precisely identified
+1. **`rejected()` accepts a generic reason** — `assert.match(result.error, /DRIZZLE_DATABASE_URL|PG\*/)`
+   (`:101`) is satisfied by *three different* messages, so a case that fails for the wrong reason still "passes". With
+   28 cases this is mostly harmless (each has a distinct intended message), but pinning `:required`/`:Unset PG\*`/
+   `:valid explicit` per case would make the suite explain *why* it rejected. **Low**, 1-line-per-case fix.
+2. **The loopback boundary is not pinned** (M3/M4 survive). Add `127.0.0.2` and `0.0.0.0` to the rejected list.
+   **Low.**
+3. **`database` shape is untested beyond exact `"."`/`".."`** — hence M-3 below. **Low, fix with a pattern test.**
+4. **Course-side tie assertion is behaviourally vacuous.** I measured the **old** function returning
+   `course-low, course-high` — i.e. *equal to the new expected order* — so only the subjects half of test 1 fails on
+   unpatched SQL. The courses assertions still pin the definition regex, but a future change that breaks course
+   tie-ordering while leaving `order by c.name, c.id` in the text would not be caught behaviourally. AC's own
+   diagnostic says the same thing (`course IDs ascending=true`, "neither old result is treated as a guaranteed
+   ordering"), so this is a *known* limit, correctly disclosed. **Low.** Fix: add a second course pair whose insertion
+   order also defeats a naive `Merge Append`/index path, or assert `= expected` for the definition **and** for a
+   reverse-inserted duplicate.
+
+### 5.4 Coverage gaps that matter (item C)
+No test executes the real CLI beyond the shipped harness's `check` (so M-2's `generate` evidence is absent), and none
+covers: `--config`/`TEST_CONFIG_PATH_PREFIX` bypass (M-1), a `PG*` variable *added after* the config evaluates
+("late environment mutation" — AC lists it as UNVERIFIED ✓), `PGPASSFILE` pointing at a hostile file *in addition* to
+being rejected (defence-in-depth), a URL whose password contains only characters where `encodeURIComponent` and the
+canonical rule differ in *both* directions, or the interaction with the app's own `dotenv@17.3.1` runtime loading.
+**Missing integration coverage:** the milestone never runs a *real* `pg` client against a *real* server with these
+fields (`push`-equivalent), which is out of bounds here — recorded, not criticised.
+
+## 6. Verification-evidence assessment
+
+| Claim (AC) | My independent status | Evidence |
+|---|---|---|
+| targeted Drizzle tests **28/28** | **REPRODUCED** | `# tests 28 / # pass 28 / # fail 0` in my tree |
+| facet regression **4/4** | **REPRODUCED** | `# tests 4 / # pass 4` |
+| **32/32** PGlite database | **REPRODUCED exactly** | `81`-unit run: `# tests 32 # pass 32 # fail 0`; per file `facet-ordering 4, hosted-plan-review 1, least-privilege-grants 7, policies 10, search-ranking 10` |
+| **82/82** unit | **NOT REPRODUCED — 81** | per file `admin-authorization 8, ambient-color 2, auth-cookies 3, catalog-ordering 6, catalog-search-fallback 5, drizzle-config 28, loading-boundaries 1, logout 4, review-catalog 2, search-ranking 4, search 5, supabase-config 4, urls 5, validation 4 = 81`, 0 failures. Name-level diff of AC's `ao-unit-recheck.log` (82 names) vs my run: the sole extra is **`admin editor associates select and description errors with their controls`**, which I then searched for in `742c34a`, `c5c6ce3`, `3ffd555`, `cac9c7f` and `main` — **present in none** ⇒ an implementation-adjacent test lived only in AC's mirror. Either the patch omits a change or the count is stale. **Medium (C2).** |
+| lint, typecheck exit 0 | **REPRODUCED** | `npx eslint .` silent exit 0; `npx tsc --noEmit` exit 0 |
+| production build passes (synthetic mirror) | **REPRODUCED** | `npx next build` exit 0 in a tree with **no `.env` at all** — so the milestone neither requires nor breaks env at build time |
+| registry-only prod audit = 0 | **REPRODUCED, and environment-matched** | mine: `info 0 low 0 moderate 0 high 0 critical 0`; deps `prod 61 / dev 473 / total 572` — **identical to the counts in their log**, so same lockfile/resolution. Full audit (dev): **20 moderate**, matching AC's disclosed `~20`. |
+| "first typecheck failed on facet metadata typing, corrected" / "build first failed on symlink layout, bind retry passed" | **REPORTED-AC, plausible, not re-derivable** | retained failure logs are included (`milestone1-typecheck-first.log`, `milestone1-build-synthetic.log`) — retaining failures rather than only the pass is good practice |
+| Kit check harness exit 0 with 5 sub-checks | **PARTIALLY CORRECT-AS-LABELLED** | `kit-final-config-check.cjs` requires `valid.exitedNonzero && reachedCheckValidation` ⇒ by construction it *cannot* demonstrate a usable config; and its README attribution "exited nonzero due to missing `out`" is **inaccurate** (my §4.3 shows the driver-params error precedes `out` handling, for every config shape). The substantive result AC wanted is nevertheless true — I proved it with `generate` |
+| Browser blocked | **AGREES WITH MY ENVIRONMENT** | `~/.cache/ms-playwright` absent; `npx playwright --version` had to fetch the `playwright` npm package itself (registry is allowlisted; the browser CDN is not, so no browser could ever be installed here). No browser was downloaded by me. **UNAVAILABLE — never reported as passed** |
+
+### 6.1 Additional integrity notes
+- **`[VERIFIED-AK]` the SQL hash pin is honest**: `expectedHash` (`facet-ordering.test.ts:19`) equals the SHA-256 of the
+  migration **both** as packaged and as embedded in the patch (`c24de37060a89e1f…`), so the test cannot silently drift
+  from the shipped SQL — an anti-substitution measure I would have recommended had AC not already built it.
+- **`[VERIFIED-AK]` two audit logs are byte-identical** (`milestone1-audit-offline.json.log` ==
+  `milestone1-audit-registry.json.log`, same SHA-256, 380 B). An offline audit *can* legitimately produce the same JSON
+  from a warm cache, but the two labels are then indistinguishable, so they must count as **one** observation (C5). The
+  registry one is the meaningful label, since the report notes an `npm` debug `HTTP 200` for it.
+- **`[VERIFIED-AK]` `README_AK.md`'s provenance discipline is accurate**, and I checked its strongest claims:
+  0 hidden members, `.env.example` blank, excerpt = exact slice, no credential material, "28/28 and 4/4 are subsets
+  of the full suites" (true — they are not additive totals).
+
+## 7. Security and operational risks (findings)
+
+**Critical: none.** I found no way to make this configuration connect to a non-loopback database, no credential or
+input echo, no privilege escalation in the migration, and no RLS/ACL regression. The severities below are, in every
+case, either reconciliation-shape or hardening-of-an-already-defensible-design issues.
+
+| # | Sev | Finding (evidence in §) |
+|---|---|---|
+| M-1 | **Medium** | **The gate is advisory, not structural.** `drizzle-kit check --config=/tmp/evil2.ts` read my remote-URL config with *no* gate output, and `TEST_CONFIG_PATH_PREFIX=/tmp/pfx npx drizzle-kit check` printed `No config path provided, using default 'drizzle.config.ts'` then `Reading config file '/tmp/pfx/drizzle.config.ts'` ⇒ both routes bypass the validator entirely (§4.3, verified on the pinned Kit 0.31.10). With no `db:*` script (patch leaves `package.json` untouched), the documented workflow is a hand-typed `npx drizzle-kit …`, so the protection is "the default file is safe", not "the workflow is safe". Impact is developer-mistake and CI-poisoning class, not remote. Fix: add a pinned script (e.g. `"db:generate": "drizzle-kit generate --config=drizzle.config.ts"`), and state the caveat next to the "Manual local development only" comment. |
+| M-2 | **Medium** | **Reported unit total not reproducible from the artefact** (82 vs 81; the extra test exists in no Git ref). Blocks "trust the evidence" and hints at an omitted change (§6). |
+| M-3 | **Medium** | **`database` validation is weaker than its comment claims.** `…%2F..` is accepted and reaches `pg` as `dbname="d/../../etc"` (I traced it through `pg/lib/connection-parameters.js`). `:42` only rejects the literal strings `.`/`..`, while `:15` advertises "one database path". No traversal consequence in the pure-JS driver — Postgres will treat it as an identifier — but the *stated* property is false, and any future code path that formats these fields into a `psql`/libpq URI would inherit a raw `../`. Fix: `if (!/^[A-Za-z0-9_][A-Za-z0-9_.\-]*$/.test(database)) invalid();` + a test with `%2F`. |
+| M-4 | **Medium** | **The loopback set is not a tested invariant.** Broadening the alternation to `127\.[0-9.]+` or adding `0.0.0.0` leaves 28/28 green and those hosts accepted (§5.2 M3/M4). Benign today, but the test suite gives false confidence that "loopback-only" is enforced by CI. Fix: 2 added cases + `127.0.0.2` documented as deliberately rejected (it is a legitimate second-instance loopback; rejecting it is a compatibility cost worth a doc line). |
+| M-5 | **Low** | **Course-side behavioural vacuity** in the tie test (§5.3.4) — disclosed by AC's own diagnostic. |
+| M-6 | **Low** | **`rejected()` matches a disjunctive message pattern**, so reason-of-rejection is under-specified across ~20 cases (§5.3.1). |
+| M-7 | **Low** | **Kit `check` used as the compatibility probe; `generate` not probed.** AC's log attributes the nonzero exit to a missing `out`, which my runs contradict; the useful, safe probe is `generate` (no connection), which passes. Evidence-quality issue, now corrected by me (§4.3). |
+| M-8 | **Low** | **Trust boundary of `.env` is unstated.** The app depends on `dotenv@17.3.1` and Kit bundles `dotenv@16.5.0`; AC verified (in `kit-final-config-check.cjs`, `dotenvValid`/`dotenvAmbient`) that a `.env`-supplied `DRIZZLE_DATABASE_URL` loads and that the `PG*` guard still fires *after* dotenv injection ✓. What is not stated is that a *repo-local `.env`* is therefore inside the trusted computing base — i.e. the gate defends against ambient shell state, not against committed-project state. One sentence in `DEVELOPMENT_GUIDE.md` closes it. |
+| M-9 | **Informational** | **App runtime asymmetry (by design):** `src/db/index.ts` still builds its health pool from `process.env.DATABASE_URL` with no loopback rule and TLS left to the connection string — correct for a hosted DB, but reviewers should not read the new gate as app-wide URL policy. |
+| M-10 | **Informational** | **Dead clause** `parts[0] !== value` (`:17`); harmless, but M2-survival is not evidence of a gap (§5.2). |
+| M-11 | **Informational** | **Guard failure leaves an aborted transaction** (`begin;` + `raise`, §4.4(ii)); AC's test handles it, a naive runner may not. Consider `on_sql_error` documentation or relying on the runner's transaction wrapper. |
+| M-12 | **Informational** | **PGlite ≠ hosted:** my local server is `PostgreSQL 18.6` with `datcollate = C` and only the deterministic `C` collation, `proowner = postgres`, roles simulated by `set role`; target version/collation/ownership are unverified (AC says so ✓). Note also that the *fixture* is correctly shaped for that environment (byte-identical duplicate names). |
+| M-13 | **Informational** | Audit-log duplication (§6.1); `npm audit --omit=dev` zero is a production-snapshot statement, and the dev tree carries 20 moderate advisories (unchanged by this patch, which adds no dependency). |
+| M-14 | **Informational** | Package transport: container SHA-256 ≠ Dropbox `content_hash` while every member hash matched (`§1.1`) — worth a `MANIFEST.sha256` *inside* future archives, since a manifest that cannot self-describe its own container is a small gap in an otherwise careful integrity story. |
+
+**Attack scenarios considered and closed by this design** (each with my verification): DNS-rebinding/hostname-trick
+targets (`127.0.0.1.evil.example`, `localhost.localdomain`, trailing dot) — rejected; numeric-encoding bypasses
+(`0x7f…`, `0177…`, `2130706433`, `127.1`) — rejected; IPv6 literal variants and v4-mapped forms — rejected;
+`?host=`/`?hostaddr=`/duplicate/percent-encoded parameter names — rejected (and query strings are disallowed
+outright); unix-socket redirection with empty host — rejected; authority confusion via a second `@` — rejected;
+`%`-mismatch credential smuggling — rejected (canonical-uppercase requirement); ambient `PG*` takeover — rejected, and
+separately neutralised because the driver receives discrete fields; secret disclosure through error text — impossible by
+construction (constant messages) and tested (M8 → 17 failures); connection made "just to look" — `pgCalls/attempts`
+counters make that a test failure; migration applied to a database lacking the function — guard aborts (verified);
+silent privilege widening via `create or replace` — verified no change to `proacl`/`prosecdef`/`policies`/table grants.
+
+**Attack scenarios the milestone does not close** (all pre-existing, none introduced): anyone able to write
+`drizzle.config.ts` or a project `.env` controls the local migration target (M-1, M-8); the app's *runtime* pool takes
+an unvalidated `DATABASE_URL` (M-9); hosted drift can silently change what `create or replace` inherits (C4); and
+`ssl:false` means the local DB must never hold data you would not put in a laptop (which, for a local dev mirror, is the
+intended trade-off).
+
+## 8. Required corrections and unresolved questions
+
+**Must be resolved before AO makes an acceptance recommendation (all cheap; none is a redesign):**
+1. **C1 — Reconcilability.** Re-emit the code delta as `git diff`/`git format-patch` **against a declared commit**, and
+   move the eight continuity-document hunks out of the source patch (they are review artefacts, and their contexts do
+   not exist in Git). *Or* keep `apply_patch` but attach, for each `Update File`, the exact base blob hash so the
+   context is verifiable. (Verified: `git apply`/`patch` both reject the current form; 8 of 9 update contexts match no
+   Git tree.)
+2. **C2 — Evidence closure on 82 vs 81.** Either include the `admin editor associates select and description errors
+   with their controls` test (if it is real work in progress, it belongs in the patch or a stated follow-up) or amend
+   the report/handovers to 81 with a one-line note on the mirror's extra file. Silent divergence between a verified
+   tree and a shipped artefact is exactly what milestone gates exist to prevent.
+3. **C3 — Three test additions** (≈10 lines total): reject `127.0.0.2` and `0.0.0.0`; reject `…%2F…` in the database
+   position (or accept it deliberately and drop the "one database path" comment); pin at least one distinct error
+   message per rejected class instead of the `/DRIZZLE_DATABASE_URL|PG\*/` disjunction.
+4. **C4 — Hosted preflight, read-only, before any future authorisation:** `pg_get_functiondef`, `proacl`, `proowner`,
+   `pg_policies`, table grants, and the database's `datcollate`/`datlocprovider` + `pg_collation.collisdeterministic`.
+   Rationale is concrete: under a non-deterministic collation `order by name` can tie *distinct* names — the very case
+   the tie-break serves — and **no local PGlite run can reproduce it** (M-12).
+5. **C5 — Stop double-counting the audit**, and label the two 380-byte logs as one observation.
+6. **C6 — Add the `--config` pinning** (script or doc line) so M-1 stops being a documented-by-omission risk, and
+   state the `.env` trust boundary (M-8).
+
+**Nice-to-have / future:** `drizzle.config.ts` currently throws at import, so any tool that *imports* the config in a
+context without the variable fails hard — intended, but a `DRIZZLE_DATABASE_URL_ALLOW_REMOTE`-style escape hatch was
+explicitly rejected by `DECISIONS.md` ✓ keep it that way; consider a `pre-commit`-time check that `drizzle.config.json`
+never returns (it is deleted here, but `main` still carries it, and `main` also still carries the credential-bearing
+URL in Git history — out of scope for this patch, in scope for a separate owner decision); optionally revisit whether
+`package.json` should grow the `db:*` scripts, since the deletion of the JSON config makes the "no scripted workflow"
+state more visible.
+
+**Unresolved questions for AO/AC**
+1. Which tree produced `82`, and does it contain other uncommitted implementation files (my diff can only see the one
+   test)? Please state the mirror's full `tests/unit/` inventory.
+2. Was the *old* `drizzle.config.json` ever used against a live database in this project? The credential in it is a
+   local-dev default; if the same user/password was ever reused on a reachable host, that is an owner decision under
+   the credential-rotation policy, not a patch defect. (I did not and will not read the file's contents here.)
+3. Should the patch also retire `drizzle.config.json` in the *original* checkout as a distinct, explicitly authorised
+   step, or is reconciliation the moment for it? (`README_AK.md`: "Retire legacy credential-bearing configuration only
+   if separately reconciled".)
+4. Is there an intended follow-up for the four `jsonb_agg(distinct …)` facet lists (semesters/topics/types/platforms)?
+   My analysis says they cannot carry an id key and do not need one; a one-line note in `CATALOG_ORDERING_REVIEW.md`
+   would stop a future reviewer re-opening it.
+5. Do you want the facet test's course half strengthened (M-5), given AC already discloses the diagnostic?
+
+## 9. Privacy and operational compliance statement
+
+I did not inspect, print, hash, copy, test, visit or load the four private link values, and did not request them.
+Mechanically: no `.env*` file was opened (none exists in this sandbox — verified by name only, with `find`); I ran no
+command that could load one **in or from the original checkout**, and my experiments ran in `/home/user/m1/tree`, a
+tree built from a `git archive` of a commit (which cannot contain gitignored files) plus the package's own verified
+bytes; I did **not** execute AC's `04-verification/control/*.sh|cjs` helpers, because `kit-final-config-check.cjs`
+spawns real `drizzle-kit` and writes temporary `.env` files, and the offline/build helpers assume their `/work` bind
+layout — running them here would neither add evidence nor be provably side-effect-free; I read them instead and
+assessed their design (their network guard is sound: TLS denied, `dns.lookup` denied, loopback TCP allowed only for
+`/work/.next/build/chunks/pool_entry-*` with `1024 < port < 65536` and `port !== 5432`). I did not read
+`AO_NEW_CHAT_HANDOVER.md` in the same Dropbox folder for the same reason, nor `candidate-project/` handover bodies
+beyond hashing, and I did not touch the sibling `.pgp` backups. I did not re-run any disclosure-screening against those
+values — the point AC discloses in "Privacy-boundary exception during AO packaging": local screening scripts read the
+four values into process memory to check for their presence in the artefacts, printing/copying/vising/transmitting
+none of them; the package README states plainly that **external exposure has not been independently ruled out**. My
+review neither confirms nor excludes that; it notes that the disclosure is prompt, scoped, and that this package
+contains no link-bearing file at all.
+
+Also enforced: no patch application (only an isolated copy was modified, in `/home/user/m1`), no reconciliation, no
+merge/branch switch/history change, no hosted Supabase/Vercel/production access or change, no credential rotation, no
+deployment, no browser download, and — as instructed — no final preservation backup. `git status --porcelain` in the
+checkout is empty; `main` remains `4307a68…` and AC's branch remains `742c34a…`; my work is committed only on
+`arena/9d055deb-presentation`, and only under `frontend-intelligence/`.
 
 ## 10. Final recommendation
 
-> ### **REJECT PENDING CORRECTIONS** — on delivery grounds only.
+> ### **APPROVE WITH CONDITIONS FOR AO REVIEW**
 >
-> **This is not a technical judgement about AC's Milestone 1 implementation**, which I have not been able to see.
-> It records that the artefact named as the review target is not present in a reviewable form, so no further
-> progression to AO/PO acceptance is possible until it is. Of the three permitted verdicts, it is the only one that can
-> honestly be issued without inventing findings — `APPROVE…` would assert review of unseen code.
+> **Code:** accept as-written. The Drizzle configuration's fail-closed validator, `PG*` rejection, discrete-field
+> hand-off and constant-message redaction are correct under 38 hostile inputs, work inside the real Kit `generate`
+> path, and remove the credential-bearing JSON from the project's default workflow. The facet migration is a
+> 12-character, tie-break-only, guard-protected, ACL-preserving `create or replace` that leaves signature, volatility,
+> invoker semantics, `search_path`, counts, filters and RLS provably untouched; its regression suite detected 5 of 5
+> of my mutations, and its SQL is hash-pinned to the shipped bytes.
 >
-> **To convert this review into a real one, AO needs one of:** the patch file placed in the workspace (e.g.
-> `MILESTONE1_FORWARD.patch` at the repo root or any path, and told to me); a commit/branch containing the
-> Milestone 1 work; or a message body paste. On receipt, §5–§8 become a checklist I can execute in a single pass, and
-> this file is completed in place with the 12 required sections and a genuine verdict.
+> **Conditions:** C1 reconcilability (patch form + 8 unmatched doc contexts), C2 the 82-vs-81 unit discrepancy, C3 the
+> three test additions, C4 the read-only hosted preflight before any future authorisation, C5 audit-log
+> double-counting, C6 `--config` pinning + `.env` trust-boundary wording.
 >
-> **Recommended AC corrections (conditional, pre-submission hygiene for the artefact itself):**
-> (1) ship the patch **with its base commit and a `git apply --check` transcript** against that base, given `main`
-> lacks `supabase/` and `tests/` (M-3); (2) put the URL gate in code shared by the Kit path, and add a **`drizzle.config.ts`**
-> or generated-config wrapper, since JSON cannot read `DRIZZLE_DATABASE_URL` (H-2); (3) implement the facet ordering as
-> `create or replace` + re-asserted `revoke`/`grant` with a missing-function guard, and restructure the four `distinct`
-> aggregates via `distinct on (…) … order by col, id` rather than `agg(distinct … order by …, id)` or `min(id)`
-> (H-3); (4) make the loopback suite negative-case-heavy per §5.1–§5.3 and assert the whole error tree for redaction
-> (§5.6); (5) include byte-identical duplicate facet names in the fixture so the migration's property is actually
-> exercised under the `C` collation (M-1); (6) state in the milestone doc that `drizzle-kit` auto-loads `.env`
-> (dotenv bundled) and that `TEST_CONFIG_PATH_PREFIX` exists, so reviewers know which environment hygiene the gate
-> does *not* cover (M-4, §5.8); (7) confirm no test or review command needs the four prohibited private values.
+> **Unverified, unchanged by this review:** browser/device/AT behaviour (blocked, no binaries — not passed); real
+> `push`/`migrate` against a live server; hosted schema state, collation and ownership; unsanitised real-data build;
+> production CSP/HSTS/MFA/preview isolation. **AO retains technical acceptance; the PO alone authorises integration;
+> I recommend no integration, migration or hosted action at this time.**
 
 ---
-*AK performed read-only analysis. No file in the original checkout was created, modified, moved or deleted by this
-review beyond this document and the two handover notes inside `frontend-intelligence/`; no patch was applied or
-reconciled; no branch was switched or merged; nothing was deployed; no hosted Supabase resource was contacted; no
-credential was rotated; no private link value was read, printed, hashed, copied or visited; the final preservation
-backup was intentionally not created, as instructed. Downloaded research artefacts live outside the repository, in
-`/home/user/m1`.*
+*AK performed an independent review. The original checkout was not modified (the connector's temporary
+`dropbox/` staging directory was relocated and removed; the tree is clean). No patch was applied to the repository,
+nothing was merged, no branch was created or switched, no hosted service was contacted, no credential was rotated or
+read, no deployment occurred, no browser was installed, and no final preservation backup was created. All build,
+lint, test, Kit and PGlite activity happened in an isolated `/home/user/m1` scratch tree using files copied byte-for-
+byte from the reviewed package, verified against `MANIFEST.md`.*
