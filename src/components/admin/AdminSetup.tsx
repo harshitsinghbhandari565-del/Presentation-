@@ -1,0 +1,5 @@
+import Link from "next/link";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
+export default function AdminSetup() {
+  return <section className="admin-setup"><ShieldCheck size={33} strokeWidth={1.4} /><div className="eyebrow" style={{ marginTop: 20 }}>PRIVATE ADMINISTRATION</div><h2>A secure home for your collection.</h2><p>The public library is running in read-only compatibility mode. Publishing and editing are intentionally disabled until a Supabase project is connected. No changes are being saved to a temporary or mock database.</p><ol><li>Connect a Supabase project and apply the reviewed catalog migration.</li><li>Add its public URL and publishable key to the server environment.</li><li>Create an owner-controlled administrator account and authorize its user ID.</li></ol><p>The complete setup procedure is in <code>DEVELOPMENT_GUIDE.md</code>. Students can continue browsing without an account.</p><Link href="/library" className="button button-secondary" style={{ marginTop: 24 }}><ArrowLeft size={16} />Back to the public library</Link></section>;
+}

@@ -1,18 +1,5 @@
 import Link from "next/link";
-
+import { BookOpen, ArrowLeft } from "lucide-react";
 export default function NotFound() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-6">
-      <h1 className="font-[family-name:var(--font-editorial)] text-5xl font-bold text-[#f8fafc]">
-        404
-      </h1>
-      <p className="text-[#94a3b8] text-lg">Page not found.</p>
-      <Link
-        href="/"
-        className="px-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium transition-colors"
-      >
-        Back to Hub
-      </Link>
-    </div>
-  );
+  return <div className="container inner-page"><div className="empty-state" style={{ minHeight: "55vh" }}><BookOpen size={38} strokeWidth={1.2} /><div className="eyebrow" style={{ marginBottom: 17 }}>404 · A PAGE OUT OF PLACE</div><h1 style={{ fontSize: 36, fontWeight: 450 }}>This page isn’t on the shelf.</h1><p>The resource may have moved or been archived. There’s still plenty to discover in the library.</p><Link href="/library" className="button button-primary"><ArrowLeft size={16} />Back to the library</Link></div></div>;
 }

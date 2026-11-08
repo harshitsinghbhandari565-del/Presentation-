@@ -1,182 +1,63 @@
 # Harshit Presentation Hub
 
-A premium, dark-first presentation hub designed for classroom use. Built with a merged design language combining **Like 2 identity** (minimalist dark aesthetic) with **Curated Bento** (grid-based dashboard layout).
+A premium educational resource discovery hub for students. Find presentations, notes and practice material by subject, course, topic and source — then open the original document directly. **No uploads, no cloud sync, no student accounts.**
 
-![Harshit Presentation Hub](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)
+## What works locally
 
-## ✨ Features
+- Editorial animated landing page with real featured resources and subject previews
+- Searchable library with composable filters, sorting, pagination and shareable URL state
+- Canonical document pages with metadata, original/presentation/backup links and opt-in preview
+- Subject/course browsing, command palette, dark/light/system themes and projector mode
+- Responsive mobile navigation/filter disclosure and reduced-motion support
+- Private admin source with server-side administrator checks, CRUD/archive/confirmed delete, categories and preview
+- SEO metadata, canonical/OG routes, robots/sitemap and LearningResource structured data
+- Supabase migration/seed with RLS, constraints, indexes and full-text search
 
-### Core Functionality
-- **Featured Presentation Hero** — Pinned presentation with one-click start
-- **Backup Links** — Fallback options (Dropbox, etc.) if primary fails
-- **Search & Filter** — Real-time search by title, subject, topic, or tags
-- **Subject Chips** — Quick filter by subject category
+Without Supabase configuration, the app honestly serves the original single-resource JSON compatibility catalog. Admin shows setup instructions rather than fake persistence.
 
-### Command Palette
-- **⌘K / Ctrl+K** — Quick search and navigation
-- **Keyboard Navigation** — Arrow keys to navigate, Enter to select, Escape to close
-- **Recent Presentations** — Shows pinned/recent when no query
+## Stack
 
-### Display Modes
-- **Theme Toggle** — Dark / Light / System preference
-- **Projector Mode** — Larger text, stronger borders, high-contrast visibility for classroom projection
+Next.js 16.4.3 · React 19.2.6 · TypeScript 5.9.3 · Tailwind CSS 4 · Framer Motion · Lucide · local Geist/Newsreader fonts · Supabase JS/SSR · PostgreSQL/RLS · Playwright/axe · PGlite policy tests. The existing optional Drizzle/PostgreSQL health scaffold is retained.
 
-### Visual Design
-- **Dark-First** — `#050505` background with glass card surfaces
-- **Ambient Mesh Background** — Floating gradient blobs with CSS animations
-- **Motion Polish** — Staggered entry animations, hover beam effects on featured card
-- **Editorial Typography** — Geist Sans (UI) + Newsreader Italic (headings)
-
-### Accessibility
-- **Focus Visible Rings** — Visible focus indicators on all interactive elements
-- **Skip Link** — "Skip to main content" for keyboard users
-- **ARIA Labels** — Proper labeling for screen readers
-- **Reduced Motion** — Respects `prefers-reduced-motion` preference
-- **Contrast Compliance** — WCAG-compliant text contrast ratios
-
-### Responsive
-- **Mobile-First Grid** — Stacks gracefully on small screens
-- **Touch Targets** — Minimum 48px button height
-- **Projector Mode** — Enhanced visibility for large displays
-
-## 🛠 Tech Stack
-
-- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
-- **Animation:** [Framer Motion](https://www.framer.com/motion/)
-- **Icons:** [Lucide React](https://lucide.dev/)
-- **Fonts:** Google Fonts (Geist, Newsreader)
-- **Database:** PostgreSQL with Drizzle ORM (health check endpoint)
-- **Deployment:** Vercel-ready
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Installation
+## Quick start
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd presentation-hub
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+npm ci
+cp .env.example .env.local   # optional; fill only real values
+npm run dev -- --hostname 0.0.0.0 --port 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open http://localhost:3000. Node 22+ is required.
 
-### Available Scripts
+## Verify
 
 ```bash
-npm run dev       # Start development server
-npm run build     # Build for production
-npm run start     # Start production server
-npm run lint      # Run ESLint
-npm run typecheck # Run TypeScript type checking
+npm run check          # lint, typecheck, unit + PostgreSQL policy tests, production build
+npx playwright install chromium
+npm run test:e2e       # browser + axe checks
+npm audit --omit=dev --audit-level=high
 ```
 
-## 📁 Project Structure
+Local results: 14 unit tests, 8 PostgreSQL/RLS tests and 11 production-server E2E tests passed; axe found zero automated WCAG A/AA violations on landing/library/detail in both themes; production build and production dependency audit passed. See `VERIFICATION.md` for scope and limits.
 
-```
-src/
-├── app/
-│   ├── globals.css          # Design system & theme
-│   ├── layout.tsx           # Root layout with providers
-│   ├── page.tsx             # Dashboard (home)
-│   ├── loading.tsx          # Loading state
-│   ├── not-found.tsx        # 404 page
-│   └── presentation/
-│       └── [id]/
-│           └── page.tsx     # Focus mode for single presentation
-├── components/
-│   ├── command/             # Command palette
-│   ├── dashboard/           # Dashboard-specific components
-│   ├── layout/              # Layout components (AmbientBackground)
-│   ├── presentation/        # Presentation components (BackupLinks)
-│   ├── projector/           # Projector mode toggle
-│   ├── theme/               # Theme toggle
-│   └── ui/                  # Reusable UI components
-├── data/
-│   └── presentations.json   # Presentation data
-├── lib/
-│   ├── presentations.ts     # Data helpers
-│   ├── search.ts            # Search utilities
-│   └── utils.ts             # General utilities
-└── types/
-    └── presentation.ts      # TypeScript types
-```
+## External setup still required
 
-## 🎨 Design Tokens
+No hosted Supabase project, administrator identity, applied migration, Vercel project or production deployment exists yet. Follow `DEVELOPMENT_GUIDE.md` to configure Supabase/Auth, apply the reviewed migration/seed, grant administrator membership, verify original sharing permissions, set `NEXT_PUBLIC_SITE_URL` and deploy only after approval. Never expose a service-role/secret key in frontend code.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-midnight` | `#050505` | Background |
-| `--color-surface` | `#121212` | Card surfaces |
-| `--color-text-primary` | `#f8fafc` | Primary text |
-| `--color-text-secondary` | `#94a3b8` | Secondary text |
-| `--color-text-muted` | `#475569` | Muted text |
-| `--color-accent-indigo` | `#6366f1` | Primary accent |
-| `--color-accent-emerald` | `#34d399` | Success/status |
+## Project map
 
-## 📝 Adding Presentations
+- `src/lib/catalog.ts` — centralized public catalog boundary
+- `src/lib/urls.ts`, `search.ts`, `document-validation.ts` — safety and discovery logic
+- `src/app/` — public, admin, SEO and API routes
+- `src/components/` — landing, library, documents, admin, theme/projector and layout
+- `supabase/` — reviewed migration and idempotent real-resource seed
+- `src/data/presentations.json` — untouched original compatibility source
+- `tests/` — unit, PostgreSQL policy and browser/accessibility tests
 
-Edit `src/data/presentations.json`:
+## Continuity docs
 
-```json
-{
-  "presentations": [
-    {
-      "id": "unique-slug",
-      "title": "Presentation Title",
-      "subject": "English",
-      "topic": "Chapter Topic",
-      "description": "Description of the presentation.",
-      "platform": "Google Slides",
-      "url": "https://docs.google.com/presentation/...",
-      "presentUrl": "https://docs.google.com/presentation/.../present",
-      "backupLinks": [
-        {
-          "label": "Backup PPTX",
-          "platform": "Dropbox",
-          "url": "https://dropbox.com/...",
-          "description": "Backup file description"
-        }
-      ],
-      "tags": ["tag1", "tag2"],
-      "pinned": true,
-      "accent": "indigo"
-    }
-  ]
-}
-```
+`REPOSITORY_AUDIT.md` · `PROJECT_CONTEXT.md` · `IMPLEMENTATION_PLAN.md` · `PROGRESS.md` · `DECISIONS.md` · `KNOWN_ISSUES.md` · `DEVELOPMENT_GUIDE.md` · `VERIFICATION.md`
 
-## 🔧 Configuration
+## License
 
-### Theme Persistence
-Themes are stored in `localStorage` under `presentation-hub-theme`.
-
-### Projector Mode
-Projector mode state is stored in `localStorage` under `presentation-hub-projector`.
-
-## 📱 Browser Support
-
-- Chrome 90+
-- Firefox 90+
-- Safari 14+
-- Edge 90+
-
-## 📄 License
-
-MIT License - feel free to use for your own classroom presentations!
-
----
-
-Built with ❤️ for classroom presentations
+MIT, as in the original repository.
