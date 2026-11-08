@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, Check, FileText, FolderOpen, Layers3, Link2, Search, ShieldCheck, Sparkles, Presentation, Table2, FileType2 } from "lucide-react";
 import { getCatalogHighlights, getFacets, getCatalogMode } from "@/lib/catalog";
-import HeroVisual from "@/components/landing/HeroVisual";
+import HeroScene from "@/components/landing/HeroScene";
 import Reveal from "@/components/layout/Reveal";
 import DocumentCard from "@/components/documents/DocumentCard";
 import ExternalLink from "@/components/documents/ExternalLink";
@@ -21,7 +21,7 @@ export default async function HomePage() {
         <div className="hero-reassurance"><span><Check size={14} />No student sign-up</span><span><Check size={14} />Original sources, directly</span></div>
         <div className="hero-stats"><div><strong>{total.toString().padStart(2, "0")}</strong><span>Curated resource{total !== 1 ? "s" : ""}</span></div><div><strong>{facets.subjects.length.toString().padStart(2, "0")}</strong><span>Subject{facets.subjects.length !== 1 ? "s" : ""} to explore</span></div><div><strong>01</strong><span>Place to start</span></div></div>
       </div>
-      <HeroVisual document={featured[0] ?? recent[0]} />
+      <HeroScene document={featured[0] ?? recent[0]} />
     </section>
 
     <section className="compatibility container" aria-label="Compatible source platforms"><p>YOUR RESOURCES, RIGHT WHERE THEY BELONG</p><div className="platform-list"><span><FolderOpen size={22} />Google Drive</span><span><FileText size={21} />Google Docs</span><span><Presentation size={22} />Google Slides</span><span><Table2 size={21} />Google Sheets</span><span><Layers3 size={22} />Dropbox</span></div></section>
