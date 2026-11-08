@@ -140,3 +140,15 @@ Correction-round tests, before/after production-route and lazy-chunk measurement
 **C6 — browser verification blocked.** AK review §6.5: browser verification remains **blocked and unverified** — recorded as such, never as passed. This sandbox has no Playwright browser binaries (`~/.cache/ms-playwright` absent; browser CDN not in network allowlist). Implemented as `scripts/check-browser-verification.mjs` (`npm run verify:browser`), which checks for browser availability and writes a status file with `status: "BLOCKED"` and `passed: false`. The status is never "passed" when the browser is unavailable. Test: `tests/unit/audit-log-verification.test.ts` (4 tests).
 
 **Verification:** `npm run test:unit` → 83 pass (79 prior + 4 C5/C6). `npm run typecheck` → clean.
+
+## C2 unit-test count reconciliation (2026-11-08)
+
+**C2 — AK review §6:** AC's log claimed 82 unit tests; AK reproduced 81. The sole extra test — "admin editor associates select and description errors with their controls" — existed only in AC's working tree, never in any Git ref (searched `742c34a`, `c5c6ce3`, `3ffd555`, `cac9c7f`, `main` — present in none).
+
+**Resolution:**
+- **Code fix:** `DocumentEditor.tsx` — added `aria-describedby` to the `select()` helper and to the description `<textarea>`, so field errors are programmatically associated with their controls (the AK-identified gap).
+- **Test:** `tests/unit/admin-editor-accessibility.test.ts` (4 tests) — pins the error-association contract as a reproducible source inspection, preventing silent regression.
+- **Script:** `scripts/verify-unit-test-count.mjs` (`npm run verify:unit-count`) — runs the unit suite and reports the reproducible count, making the count verifiable.
+- **Count:** now 87 (83 prior + 4 C2), all passing. The count is reproducible via `npm run verify:unit-count`.
+
+**Verification:** `npm run test:unit` → 87 pass. `npm run typecheck` → clean. `npm run verify:unit-count` → 87 tests, 87 passing.
