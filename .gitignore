@@ -13,3 +13,4 @@ playwright-report/
 test-results/
 .vercel/
 .DS_Store
+drizzle/meta/
