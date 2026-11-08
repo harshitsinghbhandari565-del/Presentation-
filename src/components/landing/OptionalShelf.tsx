@@ -93,11 +93,11 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
     setState("fallback");
   }), [teardown]);
 
-  // Auto-activate when scrolled near viewport on desktop (when motion is allowed)
+  // Auto-activate when scrolled near viewport on both mobile and desktop
   useEffect(() => {
     const el = host.current;
     if (!el || projectorMode) return;
-    const media = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
+    const media = window.matchMedia("(prefers-reduced-motion: no-preference)");
     if (!media.matches) return;
 
     if (typeof IntersectionObserver === "undefined") {

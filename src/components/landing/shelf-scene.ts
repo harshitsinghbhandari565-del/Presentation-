@@ -308,6 +308,7 @@ export function mountShelf(
   let dragging = false;
   let lastX = 0;
   let userRotation = 0;
+  let scrollOrbit = 0;
   let targetRotation = folios[0]?.angleOffset ?? 0;
   let currentRotation = targetRotation;
   let elapsed = 0;
@@ -318,9 +319,10 @@ export function mountShelf(
     if (disposed) return;
     const width = Math.max(1, host.clientWidth);
     const height = Math.max(1, host.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.position.z = 6.2 / Math.min(1, Math.max(0.75, camera.aspect / 1.45));
+    camera.position.z = 6.2 / Math.min(1, Math.max(0.68, camera.aspect / 1.45));
     camera.updateProjectionMatrix();
   };
 
@@ -328,7 +330,8 @@ export function mountShelf(
     if (!paused) elapsed += dt;
 
     const autoSway = paused || dragging ? 0 : Math.sin(elapsed * 0.45) * 0.14;
-    const desiredRot = targetRotation + userRotation + autoSway;
+    const scrollSpin = paused ? 0 : scrollOrbit;
+    const desiredRot = targetRotation + userRotation + scrollSpin + autoSway;
     currentRotation += (desiredRot - currentRotation) * 0.09;
     turntable.rotation.y = currentRotation;
 
@@ -419,14 +422,24 @@ export function mountShelf(
     wake();
   });
 
+  const onScroll = () => {
+    const rect = host.getBoundingClientRect();
+    const vh = Math.max(1, window.innerHeight);
+    const norm = 1 - (rect.top + rect.height / 2) / vh; // -0.5 entering -> +1.5 leaving
+    scrollOrbit = MathUtils.clamp((norm - 0.5) * 1.15, -0.85, 0.85);
+    if (!paused && inView) wake();
+  };
+
   renderer.domElement.addEventListener("pointerdown", down);
   renderer.domElement.addEventListener("pointermove", move);
   renderer.domElement.addEventListener("pointerup", up);
   renderer.domElement.addEventListener("pointercancel", up);
   renderer.domElement.addEventListener("webglcontextlost", lost);
   window.addEventListener("resize", resize);
+  window.addEventListener("scroll", onScroll, { passive: true });
   document.addEventListener("visibilitychange", onVisibility);
 
+  onScroll();
   resize();
   renderFrame(0.016);
   wake();
@@ -439,6 +452,7 @@ export function mountShelf(
     io?.disconnect();
     ro?.disconnect();
     window.removeEventListener("resize", resize);
+    window.removeEventListener("scroll", onScroll);
     document.removeEventListener("visibilitychange", onVisibility);
     renderer.domElement.removeEventListener("pointerdown", down);
     renderer.domElement.removeEventListener("pointermove", move);

@@ -20,7 +20,7 @@ export default function HeroScene({ document: resource }: { document?: Education
   useEffect(() => {
     const host = stageRef.current;
     if (!host) return;
-    const media = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
+    const media = window.matchMedia("(prefers-reduced-motion: no-preference)");
     let cleanup: (() => void) | undefined;
     let cancelled = false;
     let revision = 0;

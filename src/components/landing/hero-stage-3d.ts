@@ -595,6 +595,7 @@ export function mountHeroStage(
   let targetOrbitY = 0;
   let targetOrbitX = 0;
   let scrollDepth = 0;
+  let smoothScroll = 0;
 
   let elapsed = 0;
   let lastNow = performance.now();
@@ -604,9 +605,10 @@ export function mountHeroStage(
     if (disposed) return;
     const width = Math.max(1, host.clientWidth);
     const height = Math.max(1, host.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    baseCameraZ = 6.25 / Math.min(1, Math.max(0.72, camera.aspect / 1.12));
+    baseCameraZ = 6.25 / Math.min(1, Math.max(0.66, camera.aspect / 1.12));
     camera.updateProjectionMatrix();
   };
 
@@ -617,6 +619,7 @@ export function mountHeroStage(
 
     smoothPointerX += (pointerX - smoothPointerX) * 0.07;
     smoothPointerY += (pointerY - smoothPointerY) * 0.07;
+    smoothScroll += (scrollDepth - smoothScroll) * 0.14;
 
     if (!dragging) {
       targetOrbitY *= 0.94;
@@ -625,19 +628,20 @@ export function mountHeroStage(
     orbitY += (targetOrbitY - orbitY) * 0.12;
     orbitX += (targetOrbitX - orbitX) * 0.12;
 
-    const parallaxY = paused ? 0 : smoothPointerX * 0.24;
-    const parallaxX = paused ? 0 : -smoothPointerY * 0.16;
-    const dolly = paused ? 0 : scrollDepth;
+    const parallaxY = paused ? 0 : smoothPointerX * 0.26;
+    const parallaxX = paused ? 0 : -smoothPointerY * 0.17;
+    const dolly = paused ? 0 : smoothScroll;
 
-    rig.rotation.y = MathUtils.clamp(parallaxY + orbitY, -0.78, 0.78);
-    rig.rotation.x = MathUtils.clamp(parallaxX + orbitX + dolly * 0.16, -0.45, 0.45);
-    rig.position.y = -dolly * 0.35;
+    rig.rotation.y = parallaxY + orbitY - dolly * 1.18;
+    rig.rotation.x = MathUtils.clamp(parallaxX + orbitX + dolly * 0.44, -0.65, 0.72);
+    rig.rotation.z = dolly * -0.14;
+    rig.position.y = dolly * 0.18;
 
-    camera.position.z = baseCameraZ + dolly * 0.95;
-    camera.lookAt(0, -dolly * 0.12, 0);
+    camera.position.z = baseCameraZ - dolly * 0.55;
+    camera.lookAt(0, 0, 0);
 
     cursorLight.position.set(
-      smoothPointerX * 2.6,
+      smoothPointerX * 2.6 + dolly * 1.4,
       -smoothPointerY * 2.0 + 0.5,
       3.1,
     );
@@ -645,23 +649,24 @@ export function mountHeroStage(
     cardGroups.forEach(({ group, basePos, baseRot, depthFactor, phase }, idx) => {
       const floatY = Math.sin(elapsed * 0.95 + phase) * 0.075;
       const floatRotZ = Math.cos(elapsed * 0.7 + phase) * 0.014;
-      const spreadX = dolly * (idx === 1 ? -0.32 : idx === 2 ? 0.32 : 0);
-      const spreadZ = dolly * depthFactor * 0.35;
+      const spreadX = dolly * (idx === 1 ? -0.78 : idx === 2 ? 0.78 : 0);
+      const spreadY = dolly * (idx === 1 ? 0.28 : idx === 2 ? -0.28 : 0);
+      const spreadZ = dolly * depthFactor * 1.05;
 
       group.position.set(
         basePos[0] + spreadX + smoothPointerX * depthFactor * 0.11,
-        basePos[1] + floatY - smoothPointerY * depthFactor * 0.08,
+        basePos[1] + spreadY + floatY - smoothPointerY * depthFactor * 0.08,
         basePos[2] + spreadZ,
       );
       group.rotation.set(
-        baseRot[0] + smoothPointerY * 0.04,
-        baseRot[1] + smoothPointerX * 0.06,
+        baseRot[0] + smoothPointerY * 0.04 + dolly * idx * 0.08,
+        baseRot[1] + smoothPointerX * 0.06 + dolly * (idx === 1 ? 0.25 : idx === 2 ? -0.25 : 0),
         baseRot[2] + floatRotZ,
       );
     });
 
-    orbitalGroup.rotation.z = elapsed * 0.09;
-    orbitalGroup.rotation.y = Math.sin(elapsed * 0.25) * 0.14;
+    orbitalGroup.rotation.z = elapsed * 0.09 + dolly * 1.85;
+    orbitalGroup.rotation.y = Math.sin(elapsed * 0.25) * 0.14 + dolly * 0.95;
     gems.forEach((gem, i) => {
       const a = elapsed * 0.55 + (i * Math.PI * 2) / 3;
       gem.position.set(Math.cos(a) * 2.55, Math.sin(a) * 1.15, Math.sin(a * 1.3) * 0.95);
@@ -730,7 +735,8 @@ export function mountHeroStage(
   };
 
   const onScroll = () => {
-    scrollDepth = MathUtils.clamp(window.scrollY / 620, 0, 1);
+    scrollDepth = MathUtils.clamp(window.scrollY / 520, 0, 1);
+    if (!paused && inView) wakeLoop();
   };
 
   const onVisibility = () => {

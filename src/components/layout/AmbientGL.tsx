@@ -12,7 +12,7 @@ export default function AmbientGL() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const media = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
+    const media = window.matchMedia("(prefers-reduced-motion: no-preference)");
     let cleanup: (() => void) | undefined;
     let cancelled = false;
     let revision = 0;

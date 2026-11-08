@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, Check, FileText, FolderOpen, Layers3, Link2, Search, ShieldCheck, Sparkles, Presentation, Table2, FileType2 } from "lucide-react";
 import { getCatalogHighlights, getFacets, getCatalogMode } from "@/lib/catalog";
 import HeroScene from "@/components/landing/HeroScene";
+import ScrollShowcase3D from "@/components/landing/ScrollShowcase3D";
 import Reveal from "@/components/layout/Reveal";
 import DocumentCard from "@/components/documents/DocumentCard";
 import ExternalLink from "@/components/documents/ExternalLink";
@@ -25,6 +26,8 @@ export default async function HomePage() {
     </section>
 
     <section className="compatibility container" aria-label="Compatible source platforms"><p>YOUR RESOURCES, RIGHT WHERE THEY BELONG</p><div className="platform-list"><span><FolderOpen size={22} />Google Drive</span><span><FileText size={21} />Google Docs</span><span><Presentation size={22} />Google Slides</span><span><Table2 size={21} />Google Sheets</span><span><Layers3 size={22} />Dropbox</span></div></section>
+
+    <ScrollShowcase3D document={featured[0] ?? recent[0]} />
 
     <section className="section container" id="featured"><Reveal><div className="section-heading"><div><div className="eyebrow"><Sparkles size={14} />THE GOOD STUFF</div><h2>Worth your <em>attention.</em></h2><p>A small, considered collection. A great place to begin.</p></div><Link href="/library" className="text-link">Browse all resources <ArrowRight size={16} /></Link></div></Reveal>
       <div className={`featured-grid ${featured.length === 1 ? "single-feature" : ""}`}>{featured.length ? featured.map((document, index) => <Reveal key={document.id}><DocumentCard document={document} /></Reveal>) : <div className="empty-state"><BookOpen size={28} /><h3>A fresh chapter is coming.</h3><p>Resources will appear here when an administrator publishes them.</p></div>}
