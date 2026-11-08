@@ -178,3 +178,13 @@ Correction-round tests, before/after production-route and lazy-chunk measurement
 **Build failure root cause (fixed):** the first deployment failed at SSG prerender of `/` with `CatalogUnavailableError` / `Facet read failed` (empty `error.code`). The Supabase URL env var had a one-character typo — `nypojddjzzycicfinxbq` instead of the correct ref `nypojddjzzycicfinxbv`. The app therefore tried to reach a non-existent `nypojddjzzycicfinxbq.supabase.co`, which fails at the DNS/network level (no PostgREST response, hence no `error.code`). Verified the function itself is healthy: `SELECT public.get_catalog_facets()` returns 1 subject + 1 course on the correct ref. Corrected the env var URL and redeployed.
 
 **Note on `NEXT_PUBLIC_*` vars:** they are inlined into the client bundle at build time, so changing them requires a fresh deployment (not just an env-var update on the existing deployment).
+
+**Deployment verification (live, 2026-11-08):** Production deployment `dpl_3yRVFWQ3YjsqDidQ8mCLnVSuKqUb` is READY/PROMOTED at `harshit-presentation-hub-preview.vercel.app`. Fetched the live site and confirmed it serves real Supabase data (supabase mode, not compatibility mode):
+
+- **Home `/`**: featured "MCQs Practice" (English, Class 12, Ch 2 – The Lost Spring); stats "01 Curated resource", "01 Subject to explore". No compatibility-note → supabase mode confirmed.
+- **Library `/library`**: "1 resource", sort options, featured badge → `queryCatalog` + facets.
+- **Search `/library?q=mcqs`**: "1 resource for mcqs" → `search_catalog` RPC works end-to-end.
+- **Subjects `/subjects`**: English subject + Class 12 course, "1 resource" → `get_catalog_facets` (facet_ordering tie-break) works.
+- **Resource detail `/resources/english-lost-spring-mcqs`**: full document view, original Google Slides links, tags, Dropbox backup → `getDocumentBySlug` + `getRelatedDocuments`.
+
+**Not yet verified (require the AO gate):** admin CRUD and a direct RLS write-denial probe. The `administrators` table is empty — no admin UUID inserted. RLS write-denial requires a live write request against the Supabase REST API (not reachable from this sandbox); the RLS policies themselves were verified in the C4 preflight.
