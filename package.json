@@ -15,7 +15,9 @@
     "measure:bundle": "node scripts/measure-bundle.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "verify:audit-logs": "node scripts/verify-audit-logs.mjs",
+    "verify:browser": "node scripts/check-browser-verification.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",

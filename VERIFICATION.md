@@ -132,3 +132,11 @@ Starting HEAD `71d6fb9`. `npm ci`, lint, typecheck, unit 35/35, DB 21/21, produc
 ## Frontend correction round — MEASURED-AC (2026-11-02)
 
 Correction-round tests, before/after production-route and lazy-chunk measurements, screenshot methodology, initially failed runs and their fixes are recorded in `FRONTEND_CORRECTIONS.md`. Summary: lint/typecheck/build passed; unit 47/47; PGlite DB 26/26; production-server Chromium 23 passed/1 dev-only skipped; development fixture Chromium 1/1; production audit 0. GIN eligibility is proven only under an explicit local planner switch, not a hosted plan. Browser successful-WebGL testing used a test-only software override. Real device/GPU/AT/Lighthouse and AK/AO acceptance remain unverified.
+
+## C5/C6 evidence-closure (2026-11-08)
+
+**C5 — audit-log deduplication.** AK review §6.4 found `milestone1-audit-offline.json.log` and `milestone1-audit-registry.json.log` byte-identical (same SHA-256, 380 B). They are counted as **one** observation, not two. Implemented as `scripts/verify-audit-logs.mjs` (`npm run verify:audit-logs`), which scans a directory for audit logs, groups byte-identical files by SHA-256, and reports the deduplicated observation count. Test: `tests/unit/audit-log-verification.test.ts` (4 tests).
+
+**C6 — browser verification blocked.** AK review §6.5: browser verification remains **blocked and unverified** — recorded as such, never as passed. This sandbox has no Playwright browser binaries (`~/.cache/ms-playwright` absent; browser CDN not in network allowlist). Implemented as `scripts/check-browser-verification.mjs` (`npm run verify:browser`), which checks for browser availability and writes a status file with `status: "BLOCKED"` and `passed: false`. The status is never "passed" when the browser is unavailable. Test: `tests/unit/audit-log-verification.test.ts` (4 tests).
+
+**Verification:** `npm run test:unit` → 83 pass (79 prior + 4 C5/C6). `npm run typecheck` → clean.
