@@ -187,4 +187,12 @@ Correction-round tests, before/after production-route and lazy-chunk measurement
 - **Subjects `/subjects`**: English subject + Class 12 course, "1 resource" → `get_catalog_facets` (facet_ordering tie-break) works.
 - **Resource detail `/resources/english-lost-spring-mcqs`**: full document view, original Google Slides links, tags, Dropbox backup → `getDocumentBySlug` + `getRelatedDocuments`.
 
-**Admin path — configured, live CRUD not yet exercised:** the `administrators` table already contains the owner admin UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` (email `harshitsinghbhandari565@gmail.com`, Auth user present since 2026-11-01), so `is_administrator()` + the RLS policies that gate admin writes are wired up. A **live admin CRUD** create/edit/delete test is not yet run: it needs either a browser session (login at `/admin/login`) or a direct write request against the Supabase REST API with an admin JWT — neither is reachable from this sandbox (supabase.co is outside the network allowlist; browser verification is blocked per C6). A **direct RLS write-denial** probe (anon POST → expect 403) is likewise blocked for the same reason; the RLS policies themselves were verified correct in the C4 preflight.
+**Admin path — configured; RLS write-denial probes completed (2026-11-08):** the `administrators` table contains the owner admin UUID `978a7ac3-7385-4d3d-8b83-51855c8eb25a` (email `harshitsinghbhandari565@gmail.com`, Auth user present since 2026-11-01). The Supabase connector runs as `postgres` (superuser, bypasses RLS), so RLS was tested by dropping privileges with `SET ROLE` inside transactions (all rolled back; verified zero leftover probe rows):
+
+| Probe | Role / auth context | Write attempt | Result |
+|---|---|---|---|
+| anon write | `SET ROLE anon` | INSERT documents | **DENIED** — `permission denied for table documents` (ACL/grant level; anon holds only SELECT) |
+| authenticated non-admin | `SET ROLE authenticated`, no `request.jwt.claim.sub` | INSERT documents | **DENIED by RLS** — `new row violates row-level security policy for table "documents"` |
+| authenticated admin | `SET ROLE authenticated` + `SET LOCAL request.jwt.claim.sub = <admin-uuid>` | INSERT documents | **SUCCEEDED** — row inserted, then rolled back |
+
+The admin context is simulated by setting `request.jwt.claim.sub` — the GUC that `auth.uid()` actually reads (confirmed via `pg_get_functiondef`). This exercises the RLS enforcement path end-to-end. A full browser-driven admin CRUD session remains unexercised (no browser in sandbox; C6), but the access-control gate itself is verified.
