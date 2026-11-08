@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import AmbientBackground from "@/components/layout/AmbientBackground";
 import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import "./globals.css";
@@ -41,7 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <body>
       <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('presentation-hub-theme')||'dark';var e=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;if(e!=='light'&&e!=='dark')e='dark';document.documentElement.dataset.theme=e;document.documentElement.classList.toggle('dark',e==='dark');if(localStorage.getItem('presentation-hub-projector')==='true')document.documentElement.classList.add('projector-mode');}catch(e){}})();` }} />
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <AmbientBackground />
       <SiteHeader />
       <main id="main-content" tabIndex={-1}>{children}</main>
       <SiteFooter />
