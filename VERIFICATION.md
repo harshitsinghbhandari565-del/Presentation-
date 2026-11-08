@@ -152,3 +152,16 @@ Correction-round tests, before/after production-route and lazy-chunk measurement
 - **Count:** now 87 (83 prior + 4 C2), all passing. The count is reproducible via `npm run verify:unit-count`.
 
 **Verification:** `npm run test:unit` → 87 pass. `npm run typecheck` → clean. `npm run verify:unit-count` → 87 tests, 87 passing.
+
+## Gated migration application (2026-11-08)
+
+**Authorization:** The owner authorised all migrations ("Do autonomously tackle C2 and Authorize all migrations"). Both gated migrations were applied to the hosted Supabase instance `nypojddjzzycicfinxbv` via direct SQL execution (`supabase__execute_query`). Both are `create or replace function` and therefore idempotent.
+
+**Applied migrations:**
+
+- `202611040001_facet_ordering.sql` — **APPLIED**. `get_catalog_facets()` now orders subjects by `s.name, s.id` and courses by `c.name, c.id` (deterministic tie-break on primary key). Verified via `pg_get_functiondef`.
+- `202611020001_search_ranking.sql` — **APPLIED**. `public.search_catalog(...)` created (`security invoker`, grants to `anon`/`authenticated`). Smoke-tested: `search_catalog('')` → 1 document (browse mode); `search_catalog('presentation')` → 1 document (`MCQs Practice`) ranked by relevance.
+
+**Hosted migration-history state:** `supabase__list_migrations` records `catalog_schema` (`20261101134604`), `original_resource_seed` (`20261101135344`), and `least_privilege_catalog_grants` (`20261101153928`) as tracked migrations. The two gated migrations were applied outside the tracked-migration pipeline (direct SQL), so they do not appear in that list; their effects are confirmed present in the live schema.
+
+**Note:** This closes the migration-application portion of Milestone 1. The `documents_search_idx` GIN index (created by the catalog migration) is now used by the applied `search_ranking` migration.

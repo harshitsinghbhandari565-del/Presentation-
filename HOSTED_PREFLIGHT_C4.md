@@ -34,7 +34,7 @@ Every object on the hosted instance matches the migrations in
 catalog migration body (modulo `pg_get_functiondef` canonical formatting).
 
 - `document_terms(terms text[]) returns text` — `array_to_string(terms, ' ')`
-- `get_catalog_facets() returns jsonb` — facet aggregation (orders subjects by `s.name`, courses by `c.name`; facet-ordering migration NOT yet applied to hosted)
+- `get_catalog_facets() returns jsonb` — facet aggregation (orders subjects by `s.name, s.id`, courses by `c.name, c.id`; facet-ordering migration APPLIED — see §8)
 - `is_administrator() returns boolean` — `exists(select 1 from public.administrators where user_id = (select auth.uid()))`, SECURITY DEFINER
 - `set_updated_at() returns trigger` — plpgsql, `new.updated_at = now()`
 
@@ -80,8 +80,7 @@ membership).
 
 All indexes match the catalog migration. The `documents_search_idx` GIN index
 exists (created by the catalog migration for the `search_vector` generated
-column) but is not yet used — the `search_ranking` migration that would use it
-is confirmed NOT applied.
+column) and is now used by the applied `search_ranking` migration.
 
 ## 6. Extensions (5)
 
@@ -93,12 +92,19 @@ all standard Supabase extensions, no unexpected additions.
 Database default `en_US.UTF-8`. **No column-level collation overrides** — all
 text columns use the database default. No drift.
 
-## 8. Unapplied migrations
+## 8. Migration application state
 
-`202611020001_search_ranking.sql` is confirmed NOT applied: no `search_catalog`
-or `search_ranking` function exists on the hosted instance. The
-`202611040001_facet_ordering.sql` migration (created in this session) is also
-NOT yet applied to hosted.
+As of 2026-11-08, both gated migrations have been applied to the hosted
+instance after CRITICAL-op authorisation (see §10 for the application log):
+
+- `202611020001_search_ranking.sql` — **APPLIED**. `public.search_catalog(...)`
+  exists, is `security invoker`, and grants `anon`/`authenticated` execute.
+  Smoke-tested: `search_catalog('')` returns 1 document (browse mode);
+  `search_catalog('presentation')` returns 1 document (`MCQs Practice`) ranked
+  by relevance.
+- `202611040001_facet_ordering.sql` — **APPLIED**. `get_catalog_facets()` now
+  orders subjects by `s.name, s.id` and courses by `c.name, c.id` (deterministic
+  tie-break on primary key).
 
 ## 9. Column-level checks
 
@@ -108,19 +114,40 @@ NOT yet applied to hosted.
 
 ---
 
+## 10. Migration application log
+
+Both gated migrations were applied to the hosted instance (`nypojddjzzycicfinxbv`)
+after the owner authorised all migrations. They were applied via direct SQL
+execution (`supabase__execute_query`); both are `create or replace function`
+and therefore idempotent.
+
+| Migration | Applied | Verified | Smoke test |
+|---|---|---|---|
+| `202611040001_facet_ordering.sql` | yes | `pg_get_functiondef(get_catalog_facets)` shows `order by s.name, s.id` and `order by c.name, c.id` | — |
+| `202611020001_search_ranking.sql` | yes | `pg_proc` shows `search_catalog` with `security invoker`, grants to `anon`/`authenticated` | `search_catalog('')` → 1 doc; `search_catalog('presentation')` → 1 doc (`MCQs Practice`) |
+
+The Supabase migration-history list (`supabase__list_migrations`) records
+`catalog_schema`, `original_resource_seed`, and `least_privilege_catalog_grants`
+as tracked migrations. The two gated migrations were applied outside the
+tracked-migration pipeline (direct SQL), so they do not appear in that list;
+their effects are confirmed present in the live schema.
+
+---
+
 ## Conclusion
 
 The hosted preflight is **clean**. The hosted Supabase instance matches the
 migration baseline exactly:
 
-- **Definitions**: all 4 functions match
+- **Definitions**: all 4 original functions match; `search_catalog` added by
+  the applied `search_ranking` migration
 - **ACLs**: all function and table grants match least-privilege
 - **Owners**: all objects owned by `postgres`
 - **Collation**: `en_US.UTF-8`, no column-level drift
 - **RLS**: all 4 tables enabled, 7 permissive policies correct
-- **Unapplied**: `search_ranking` confirmed absent
+- **Applied**: `search_ranking` and `facet_ordering` both applied (see §8, §10)
 
 **This preflight satisfies C4.** Any future authorisation (grant/revoke/DDL
 mutation on the hosted instance) must be preceded by re-verifying this
-baseline. The two pending migrations (`search_ranking`, `facet_ordering`)
-require separate CRITICAL-op authorisation before application.
+baseline. The two gated migrations (`search_ranking`, `facet_ordering`) were
+applied after separate CRITICAL-op authorisation (see §10).
