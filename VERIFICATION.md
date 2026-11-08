@@ -165,3 +165,16 @@ Correction-round tests, before/after production-route and lazy-chunk measurement
 **Hosted migration-history state:** `supabase__list_migrations` records `catalog_schema` (`20261101134604`), `original_resource_seed` (`20261101135344`), and `least_privilege_catalog_grants` (`20261101153928`) as tracked migrations. The two gated migrations were applied outside the tracked-migration pipeline (direct SQL), so they do not appear in that list; their effects are confirmed present in the live schema.
 
 **Note:** This closes the migration-application portion of Milestone 1. The `documents_search_idx` GIN index (created by the catalog migration) is now used by the applied `search_ranking` migration.
+
+## Vercel deployment — env var + build fix (2026-11-08)
+
+**Goal:** deploy the app to Vercel (`harshit-presentation-hub-preview`) so hosted RLS/CRUD/public-propagation can be verified against a live deployment.
+
+**Env vars set on the Vercel project** (production + preview):
+- `NEXT_PUBLIC_SUPABASE_URL` = `https://nypojddjzzycicfinxbv.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = the project anon/publishable key
+- `NEXT_PUBLIC_SITE_URL` was already set.
+
+**Build failure root cause (fixed):** the first deployment failed at SSG prerender of `/` with `CatalogUnavailableError` / `Facet read failed` (empty `error.code`). The Supabase URL env var had a one-character typo — `nypojddjzzycicfinxbq` instead of the correct ref `nypojddjzzycicfinxbv`. The app therefore tried to reach a non-existent `nypojddjzzycicfinxbq.supabase.co`, which fails at the DNS/network level (no PostgREST response, hence no `error.code`). Verified the function itself is healthy: `SELECT public.get_catalog_facets()` returns 1 subject + 1 course on the correct ref. Corrected the env var URL and redeployed.
+
+**Note on `NEXT_PUBLIC_*` vars:** they are inlined into the client bundle at build time, so changing them requires a fresh deployment (not just an env-var update on the existing deployment).
