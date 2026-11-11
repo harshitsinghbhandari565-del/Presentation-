@@ -585,18 +585,21 @@ export function mountScrollShowcase(
     const stageOffsetY = isPortrait ? 0.82 : 0.04;
     world.position.set(stageOffsetX, stageOffsetY + (paused ? 0 : Math.sin(elapsed * 0.9) * 0.05), 0);
 
-    // Z-axis plate separation + subtle fan staircase
+    // X + Y + Z diagonal 3D plate explosion + staircase fan so every scroll tick bursts visibly
     const tightSpacing = 0.11;
-    const explodedSpacing = 0.92;
+    const explodedSpacing = 1.14;
     const spacing = MathUtils.lerp(tightSpacing, explodedSpacing, explode);
     const totalSpan = spacing * (plates.length - 1);
 
     plates.forEach((plate, idx) => {
       const centered = (plates.length - 1) / 2 - idx;
       const zPos = centered * spacing;
-      const yWave = explode * Math.sin(p * Math.PI * 2 + idx * 0.9) * 0.09;
-      plate.position.set(0, yWave, zPos);
-      plate.rotation.z = explode * (idx - 1.5) * 0.025;
+      const xSpread = explode * centered * (isPortrait ? 0.24 : 0.42);
+      const yStair = explode * centered * -0.22;
+      const yWave = explode * Math.sin(p * Math.PI * 2 + idx * 0.9) * 0.08;
+      plate.position.set(xSpread, yStair + yWave, zPos);
+      plate.rotation.z = explode * (idx - 1.5) * 0.045;
+      plate.rotation.y = explode * centered * 0.06;
     });
 
     // Laser guide rails stretch across the exact exploded span
