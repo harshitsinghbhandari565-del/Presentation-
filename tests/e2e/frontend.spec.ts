@@ -192,10 +192,14 @@ test("Geist heading roles, grid stacking and both theme tokens stay in sync", as
   await expect.poll(() => hasColor([248 / 255, 249 / 255, 252 / 255])).toBe(true);
 });
 
-test("production ignores fixture flags and keeps the catalog empty", async ({ page }) => {
+test("production ignores fixture flags", async ({ page }) => {
   await page.goto("/library?fixture=1");
   await expect(page.locator(".review-banner")).toHaveCount(0);
-  await expect(page.locator(".resource-card")).toHaveCount(0);
+  if (process.env.TEST_MATH_PAPERS === "1") {
+    await expect(page.getByRole("link", { name: /Download .* as PDF/ }).first()).toBeVisible();
+  } else {
+    await expect(page.locator(".resource-card")).toHaveCount(0);
+  }
   const response = await page.request.get("/fixtures/review-catalog.json");
   expect(response.status()).toBe(404);
 });

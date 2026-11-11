@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, BookOpen, ExternalLink as ExternalIcon, ShieldCheck, Sparkles } from "lucide-react";
 import { getDocumentBySlug, compatibilityDocuments, getRelatedDocuments } from "@/lib/catalog";
 import { displayHost } from "@/lib/urls";
+import { mathPaperDownload } from "@/lib/math-papers";
 import DocumentCover from "@/components/documents/DocumentCover";
 import DetailFolio3D from "@/components/documents/DetailFolio3D";
 import DocumentCard from "@/components/documents/DocumentCard";
@@ -42,13 +43,14 @@ export default async function DocumentPage({ params }: Props) {
   const document = await getDocumentBySlug(slug);
   if (!document) notFound();
   const related = await getRelatedDocuments(document);
+  const paper = mathPaperDownload(document);
   const facts = [
     ["Subject", document.subject],
     ["Course", document.course],
     ["Semester", document.semester],
     ["Topic", document.topic],
     ["Document type", document.documentType],
-    ["Original platform", document.platform],
+    ...(paper ? [] : [["Original platform", document.platform]]),
   ];
   const structuredData = {
     "@context": "https://schema.org",
@@ -62,7 +64,7 @@ export default async function DocumentPage({ params }: Props) {
     educationalLevel: document.course ?? undefined,
     about: { "@type": "Thing", name: document.subject },
     keywords: document.keywords.join(", "),
-    sameAs: document.originalUrl,
+    sameAs: paper ? undefined : document.originalUrl,
     isAccessibleForFree: true,
   };
 
@@ -109,16 +111,16 @@ export default async function DocumentPage({ params }: Props) {
                 <ExternalIcon size={22} strokeWidth={1.5} />
               </span>
               <div>
-                <h2>Straight to the source.</h2>
+                <h2>{paper ? "Ready to practise?" : "Straight to the source."}</h2>
                 <p>
-                  Hosted on {document.platform} · {displayHost(document.originalUrl)}
+                  {paper ? "Download the PDF in one click." : <>Hosted on {document.platform} · {displayHost(document.originalUrl)}</>}
                 </p>
               </div>
             </div>
             <BackupLinks document={document} />
             <p className="source-permission">
               <ShieldCheck size={15} />
-              Opens the original link. The owner’s sharing permissions apply.
+              {paper ? "Save this paper to study offline." : "Opens the original link. The owner’s sharing permissions apply."}
             </p>
           </section>
 

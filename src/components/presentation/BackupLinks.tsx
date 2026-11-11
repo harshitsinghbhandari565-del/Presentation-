@@ -1,10 +1,13 @@
-import { Play } from "lucide-react";
+import { Play, Download } from "lucide-react";
+import { mathPaperDownload } from "@/lib/math-papers";
 import type { EducationalDocument } from "@/types/document";
 import ExternalLink from "@/components/documents/ExternalLink";
 import CopyLink from "@/components/documents/CopyLink";
 import ShareCitationBar from "@/components/documents/ShareCitationBar";
 
 export default function BackupLinks({ document }: { document: EducationalDocument }) {
+  const paper = mathPaperDownload(document);
+  if (paper) return <div className="document-actions"><a className="button button-primary" href={paper.downloadUrl} download={paper.filename} aria-label={`Download ${document.title} as PDF`}><Download size={15} />Download PDF</a></div>;
   return (
     <div className="document-actions">
       <ExternalLink href={document.originalUrl} label={`Open document: ${document.title}`}>

@@ -1,4 +1,5 @@
 "use client";
+import { mathPaperDownload } from "@/lib/math-papers";
 import { useRef, useState, type ReactNode } from "react";
 import { Rotate3d, ShieldCheck, Layers3 } from "lucide-react";
 import type { EducationalDocument } from "@/types/document";
@@ -100,9 +101,9 @@ export default function DetailFolio3D({ document, children }: DetailFolio3DProps
             <div className="folio-back-footer">
               <span>
                 <ShieldCheck size={13} aria-hidden="true" />
-                {displayHost(document.originalUrl)}
+                {mathPaperDownload(document) ? "PDF download" : displayHost(document.originalUrl)}
               </span>
-              <span>{document.platform}</span>
+              <span>{mathPaperDownload(document) ? "Mathematics" : document.platform}</span>
             </div>
           </div>
         </div>

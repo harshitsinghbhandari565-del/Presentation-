@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Download } from "lucide-react";
 import type { EducationalDocument } from "@/types/document";
 import DocumentCover from "./DocumentCover";
 import { displayHost } from "@/lib/urls";
+import { mathPaperDownload } from "@/lib/math-papers";
 
 /** Editorial card: type → title → subject/course → semester/topic → source host. */
 export default function DocumentCard({ document }: { document: EducationalDocument }) {
+  const paper = mathPaperDownload(document);
   const context = [document.semester, document.topic].filter(Boolean).join(" · ");
   return <article className="resource-card">
     <DocumentCover document={document} />
@@ -16,7 +18,7 @@ export default function DocumentCard({ document }: { document: EducationalDocume
       {context && <p className="resource-topic">{context}</p>}
       <p className="resource-description">{document.description}</p>
       <div className="resource-card-footer">
-        <span className="resource-host">{displayHost(document.originalUrl)}</span>
+        {paper ? <a href={paper.downloadUrl} download={paper.filename} aria-label={`Download ${document.title} as PDF`}><Download size={14} aria-hidden="true" /> Download PDF</a> : <span className="resource-host">{displayHost(document.originalUrl)}</span>}
         <Link href={`/resources/${document.slug}`} aria-label={`View ${document.title}`}>View resource <ArrowUpRight size={14} aria-hidden="true" /></Link>
       </div>
     </div>

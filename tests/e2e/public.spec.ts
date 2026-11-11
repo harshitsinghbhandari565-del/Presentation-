@@ -1,22 +1,34 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+const mathPapersLive = process.env.TEST_MATH_PAPERS === "1";
+
 test("landing communicates purpose and reports an empty catalog", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Less searching.More learning.");
   await expect(page.getByRole("link", { name: "Explore the library", exact: true })).toBeVisible();
-  await expect(page.locator(".hero-stats")).toContainText("00");
-  await expect(page.locator(".resource-card")).toHaveCount(0);
-  await expect(page.getByText("A fresh chapter is coming.")).toBeVisible();
+  if (mathPapersLive) {
+    await expect(page.getByRole("link", { name: /Download .* as PDF/ }).first()).toBeVisible();
+  } else {
+    await expect(page.locator(".hero-stats")).toContainText("00");
+    await expect(page.locator(".resource-card")).toHaveCount(0);
+    await expect(page.getByText("A fresh chapter is coming.")).toBeVisible();
+  }
   await expect(page.locator("body")).not.toContainText("MCQs Practice");
 });
 test("library and subjects show genuine empty states", async ({ page }) => {
   await page.goto("/library");
-  await expect(page.locator(".resource-card")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "No resources on this shelf. Yet." })).toBeVisible();
-  await page.goto("/subjects");
-  await expect(page.locator(".subject-card")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "A new shelf, ready to grow." })).toBeVisible();
+  if (mathPapersLive) {
+    await expect(page.getByRole("link", { name: /Download .* as PDF/ }).first()).toBeVisible();
+    await page.goto("/subjects");
+    await expect(page.getByRole("heading", { name: "Mathematics" })).toBeVisible();
+  } else {
+    await expect(page.locator(".resource-card")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "No resources on this shelf. Yet." })).toBeVisible();
+    await page.goto("/subjects");
+    await expect(page.locator(".subject-card")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "A new shelf, ready to grow." })).toBeVisible();
+  }
 });
 test("deleted resource and its legacy URL return 404", async ({ page }) => {
   for (const route of ["/resources/english-lost-spring-mcqs", "/presentation/english-lost-spring-mcqs"]) {
@@ -119,4 +131,16 @@ test("unconfirmed logout shows an honest recovery state without private data or 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(accessibility.violations).toEqual([]);
+});
+
+test("math papers offer direct PDF attachments", async ({ page, request }) => {
+  test.skip(!mathPapersLive, "Requires the published math-paper catalog");
+  await page.goto("/resources/maths-paper-01");
+  await expect(page.getByRole("link", { name: /Download .* as PDF/ }).first()).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("github.com");
+  const response = await request.get("/api/download/maths-paper-01");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("application/pdf");
+  expect(response.headers()["content-disposition"]).toContain('attachment; filename="Paper_01.pdf"');
+  expect((await response.body()).subarray(0, 5).toString()).toBe("%PDF-");
 });
