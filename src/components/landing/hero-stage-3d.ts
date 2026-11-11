@@ -19,12 +19,20 @@ import {
   PointsMaterial,
   Scene,
   Shape,
-  SRGBColorSpace,
   TorusGeometry,
   WebGLRenderer,
 } from "three";
 import type { EducationalDocument } from "@/types/document";
 import { isMotionPaused, subscribeMotionPaused } from "@/components/layout/motion-state";
+import {
+  SANS_FONT_STACK,
+  SERIF_FONT_STACK,
+  computeCrispPixelRatio,
+  configureSharpTexture,
+  createHiResCanvas,
+  onWebFontsReady,
+  subscribeViewportZoom,
+} from "./webgl-quality";
 
 interface CardSpec {
   badge: string;
@@ -82,13 +90,13 @@ function wrapLines(
   return lines.slice(0, maxLines);
 }
 
-function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 768;
-  canvas.height = 1024;
-  const ctx = canvas.getContext("2d")!;
-  const W = canvas.width;
-  const H = canvas.height;
+function paintCardFace(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  spec: CardSpec,
+  isLight: boolean,
+) {
   const pad = 20;
   const radius = 52;
 
@@ -102,11 +110,11 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   // Studio surface gradient
   const bgGrad = ctx.createLinearGradient(0, 0, W, H);
   if (isLight) {
-    bgGrad.addColorStop(0, spec.variant === "primary" ? "#ffffff" : "#f6f8ff");
-    bgGrad.addColorStop(1, spec.variant === "primary" ? "#eef1fb" : "#e5eaf8");
+    bgGrad.addColorStop(0, spec.variant === "primary" ? "#ffffff" : "#f7f9ff");
+    bgGrad.addColorStop(1, spec.variant === "primary" ? "#eef1fc" : "#e6ebf9");
   } else {
-    bgGrad.addColorStop(0, spec.variant === "primary" ? "#1a2033" : "#151a2a");
-    bgGrad.addColorStop(0.55, spec.variant === "primary" ? "#111624" : "#0f1320");
+    bgGrad.addColorStop(0, spec.variant === "primary" ? "#1b2236" : "#161b2c");
+    bgGrad.addColorStop(0.55, spec.variant === "primary" ? "#121726" : "#0f1422");
     bgGrad.addColorStop(1, "#0b0e18");
   }
   ctx.fillStyle = bgGrad;
@@ -114,14 +122,14 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
 
   // Top-right radial studio glow
   const glow = ctx.createRadialGradient(W * 0.82, H * 0.14, 10, W * 0.82, H * 0.14, W * 0.72);
-  glow.addColorStop(0, isLight ? "rgba(81,87,196,0.16)" : "rgba(165,170,255,0.22)");
+  glow.addColorStop(0, isLight ? "rgba(81,87,196,0.15)" : "rgba(165,170,255,0.22)");
   glow.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle architectural grid lines in header zone
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.06)" : "rgba(255,255,255,0.035)";
-  ctx.lineWidth = 1.5;
+  // Crisp architectural grid hairlines in header zone
+  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.065)" : "rgba(255,255,255,0.042)";
+  ctx.lineWidth = 1.25;
   for (let gx = 80; gx < W; gx += 76) {
     ctx.beginPath();
     ctx.moveTo(gx, 0);
@@ -131,8 +139,8 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
 
   // Header bar
   const headerH = 136;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.1)" : "rgba(255,255,255,0.09)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.1)";
+  ctx.lineWidth = 1.75;
   ctx.beginPath();
   ctx.moveTo(pad, pad + headerH);
   ctx.lineTo(W - pad, pad + headerH);
@@ -140,15 +148,17 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
 
   // Icon badge box
   drawRoundedRect(ctx, 66, 58, 68, 68, 18);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.10)" : "rgba(165,170,255,0.14)";
+  ctx.fillStyle = isLight ? "rgba(81,87,196,0.10)" : "rgba(165,170,255,0.15)";
   ctx.fill();
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.28)" : "rgba(165,170,255,0.34)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.3)" : "rgba(165,170,255,0.38)";
+  ctx.lineWidth = 1.8;
   ctx.stroke();
 
   // Document glyph inside icon box
   ctx.strokeStyle = spec.accentHex;
-  ctx.lineWidth = 3.5;
+  ctx.lineWidth = 3.2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   drawRoundedRect(ctx, 85, 73, 30, 38, 5);
   ctx.stroke();
   ctx.beginPath();
@@ -159,8 +169,8 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   ctx.stroke();
 
   // Platform label + status dot
-  ctx.fillStyle = isLight ? "#1a2031" : "#f2f3f8";
-  ctx.font = "600 25px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = isLight ? "#141a2b" : "#f7f8fc";
+  ctx.font = `600 25px ${SANS_FONT_STACK}`;
   ctx.fillText(spec.badge, 154, 88);
 
   ctx.fillStyle = "#91d8bd";
@@ -168,13 +178,13 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   ctx.arc(162, 113, 5.5, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = isLight ? "#586176" : "#9ca5bc";
-  ctx.font = "500 19px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = isLight ? "#505a70" : "#a8b1c8";
+  ctx.font = `500 19px ${SANS_FONT_STACK}`;
   ctx.fillText("Verified classroom source", 176, 119);
 
   // Window dots on right
   for (let d = 0; d < 3; d++) {
-    ctx.fillStyle = isLight ? "rgba(30,41,75,0.2)" : "rgba(255,255,255,0.22)";
+    ctx.fillStyle = isLight ? "rgba(30,41,75,0.22)" : "rgba(255,255,255,0.26)";
     ctx.beginPath();
     ctx.arc(W - 118 + d * 20, 92, 4.5, 0, Math.PI * 2);
     ctx.fill();
@@ -183,12 +193,12 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   // Eyebrow pill
   const bodyTop = 216;
   ctx.fillStyle = spec.accentHex;
-  ctx.font = "700 20px system-ui, -apple-system, sans-serif";
+  ctx.font = `700 20px ${SANS_FONT_STACK}`;
   ctx.fillText(spec.eyebrow.toUpperCase(), 68, bodyTop);
 
   // Title
-  ctx.fillStyle = isLight ? "#151b2c" : "#f5f6fb";
-  ctx.font = "600 54px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = isLight ? "#111728" : "#f9faff";
+  ctx.font = `600 54px ${SANS_FONT_STACK}`;
   const titleLines = wrapLines(ctx, spec.title, W - 136, 2);
   titleLines.forEach((line, idx) => {
     ctx.fillText(line, 68, bodyTop + 68 + idx * 62);
@@ -196,8 +206,8 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
 
   // Editorial italic subtitle
   const subY = bodyTop + 68 + titleLines.length * 62 + 16;
-  ctx.fillStyle = isLight ? "#4b556d" : "#b2bad0";
-  ctx.font = "italic 30px Georgia, serif";
+  ctx.fillStyle = isLight ? "#444e66" : "#bcc4da";
+  ctx.font = `italic 30px ${SERIF_FONT_STACK}`;
   const subLines = wrapLines(ctx, spec.subtitle, W - 136, 2);
   subLines.forEach((line, idx) => {
     ctx.fillText(line, 68, subY + idx * 38);
@@ -207,10 +217,10 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   const deckY = 530;
   const deckH = 310;
   drawRoundedRect(ctx, 68, deckY, W - 136, deckH, 28);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.055)" : "rgba(255,255,255,0.035)";
+  ctx.fillStyle = isLight ? "rgba(81,87,196,0.055)" : "rgba(255,255,255,0.04)";
   ctx.fill();
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.18)" : "rgba(165,170,255,0.18)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.2)" : "rgba(165,170,255,0.22)";
+  ctx.lineWidth = 1.8;
   ctx.stroke();
 
   // Miniature slide modules inside preview box
@@ -218,14 +228,12 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   const widths = [0.78, 0.58, 0.42];
   for (let i = 0; i < 3; i++) {
     const by = deckY + 46 + i * 64;
-    // Track
     drawRoundedRect(ctx, 104, by, W - 320, 22, 11);
-    ctx.fillStyle = isLight ? "rgba(30,41,75,0.07)" : "rgba(255,255,255,0.06)";
+    ctx.fillStyle = isLight ? "rgba(30,41,75,0.08)" : "rgba(255,255,255,0.07)";
     ctx.fill();
-    // Active bar
     drawRoundedRect(ctx, 104, by, (W - 320) * widths[i], 22, 11);
     ctx.fillStyle = barColors[i];
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.88;
     ctx.fill();
     ctx.globalAlpha = 1;
   }
@@ -233,7 +241,7 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   // Circular radial stat dial on right side of deck box
   const cx = W - 166;
   const cy = deckY + 136;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.1)" : "rgba(255,255,255,0.1)";
+  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.11)";
   ctx.lineWidth = 10;
   ctx.beginPath();
   ctx.arc(cx, cy, 52, 0, Math.PI * 2);
@@ -246,24 +254,24 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   ctx.stroke();
   ctx.lineCap = "butt";
 
-  ctx.fillStyle = isLight ? "#1a2031" : "#f2f3f8";
-  ctx.font = "600 24px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = isLight ? "#141a2b" : "#f7f8fc";
+  ctx.font = `600 24px ${SANS_FONT_STACK}`;
   ctx.textAlign = "center";
   ctx.fillText(spec.variant === "primary" ? "01" : spec.variant === "secondary" ? "A+" : "↗", cx, cy + 9);
   ctx.textAlign = "left";
 
   // Bottom callout chip inside deck box
   drawRoundedRect(ctx, 104, deckY + 236, W - 208, 46, 14);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.09)" : "rgba(165,170,255,0.11)";
+  ctx.fillStyle = isLight ? "rgba(81,87,196,0.095)" : "rgba(165,170,255,0.12)";
   ctx.fill();
   ctx.fillStyle = spec.accentHex;
-  ctx.font = "500 20px system-ui, -apple-system, sans-serif";
+  ctx.font = `500 20px ${SANS_FONT_STACK}`;
   ctx.fillText("✦  Instant classroom access — zero sign-up wall", 126, deckY + 266);
 
   // Footer divider + metadata
   const footerY = H - 118;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.1)" : "rgba(255,255,255,0.08)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.09)";
+  ctx.lineWidth = 1.75;
   ctx.beginPath();
   ctx.moveTo(pad, footerY);
   ctx.lineTo(W - pad, footerY);
@@ -274,29 +282,46 @@ function createCardTexture(spec: CardSpec, isLight: boolean): CanvasTexture {
   ctx.arc(76, footerY + 50, 6, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = isLight ? "#586176" : "#9ca5bc";
-  ctx.font = "500 21px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = isLight ? "#505a70" : "#a8b1c8";
+  ctx.font = `500 21px ${SANS_FONT_STACK}`;
   ctx.fillText(spec.footerLeft, 94, footerY + 57);
 
   ctx.fillStyle = spec.accentHex;
-  ctx.font = "600 21px system-ui, -apple-system, sans-serif";
+  ctx.font = `600 21px ${SANS_FONT_STACK}`;
   ctx.textAlign = "right";
   ctx.fillText(spec.footerRight, W - 68, footerY + 57);
   ctx.textAlign = "left";
 
   ctx.restore();
 
-  // Crisp glass rim stroke
-  drawRoundedRect(ctx, pad, pad, W - pad * 2, H - pad * 2, radius);
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.28)" : "rgba(185,192,255,0.32)";
-  ctx.lineWidth = 3.5;
+  // Inner subtle sapphire highlight + outer crisp glass rim stroke
+  drawRoundedRect(ctx, pad + 2.5, pad + 2.5, W - (pad + 2.5) * 2, H - (pad + 2.5) * 2, radius - 2);
+  ctx.strokeStyle = isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 4;
-  texture.needsUpdate = true;
-  return texture;
+  drawRoundedRect(ctx, pad, pad, W - pad * 2, H - pad * 2, radius);
+  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.32)" : "rgba(185,192,255,0.38)";
+  ctx.lineWidth = 3.2;
+  ctx.stroke();
+}
+
+function createCardTexture(
+  spec: CardSpec,
+  isLight: boolean,
+  renderer: WebGLRenderer,
+): { texture: CanvasTexture; repaint: () => void } {
+  const logicalW = 768;
+  const logicalH = 1024;
+  const { canvas, ctx } = createHiResCanvas(logicalW, logicalH);
+  paintCardFace(ctx, logicalW, logicalH, spec, isLight);
+
+  const texture = configureSharpTexture(new CanvasTexture(canvas), renderer);
+  const repaint = () => {
+    paintCardFace(ctx, logicalW, logicalH, spec, isLight);
+    texture.needsUpdate = true;
+  };
+  return { texture, repaint };
 }
 
 function createBokehSpriteTexture(): CanvasTexture {
@@ -321,7 +346,7 @@ function createBeveledChassisGeometry(width: number, height: number, radius: num
   const y = -height / 2;
   shape.moveTo(x + radius, y);
   shape.lineTo(x + width - radius, y);
-  shape.quadraticCurveTo(x + width, y, x + width, y + radius);
+  shape.quadraticCurveTo(x + width, y, x + width, y + rClamp(radius, width, height));
   shape.lineTo(x + width, y + height - radius);
   shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
   shape.lineTo(x + radius, y + height);
@@ -334,11 +359,15 @@ function createBeveledChassisGeometry(width: number, height: number, radius: num
     bevelEnabled: true,
     bevelThickness: 0.028,
     bevelSize: 0.026,
-    bevelSegments: 4,
-    curveSegments: 16,
+    bevelSegments: 6,
+    curveSegments: 32,
   });
   geo.center();
   return geo;
+}
+
+function rClamp(r: number, w: number, h: number): number {
+  return Math.min(r, w * 0.45, h * 0.45);
 }
 
 export function mountHeroStage(
@@ -369,10 +398,10 @@ export function mountHeroStage(
   const isLight = document.documentElement.dataset.theme === "light";
   const accentHex = isLight ? "#5157c4" : "#a5aaff";
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(computeCrispPixelRatio(host.clientWidth || 560, host.clientHeight || 470, renderer));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = isLight ? 1.08 : 1.16;
+  renderer.toneMappingExposure = isLight ? 1.05 : 1.12;
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
@@ -384,22 +413,23 @@ export function mountHeroStage(
   scene.add(rig);
 
   // Studio 3-point PBR lighting + cursor-tracking specular light
-  const ambient = new AmbientLight(isLight ? 0xffffff : 0xdde2ff, isLight ? 1.35 : 0.9);
+  const ambient = new AmbientLight(isLight ? 0xffffff : 0xdde2ff, isLight ? 1.38 : 0.96);
   scene.add(ambient);
 
-  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.6 : 1.9);
+  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.5 : 1.78);
   keyLight.position.set(-3.5, 4.5, 5.5);
   scene.add(keyLight);
 
-  const rimLight = new DirectionalLight(isLight ? 0x6168d8 : 0x9aa2ff, 1.5);
+  const rimLight = new DirectionalLight(isLight ? 0x6168d8 : 0x9aa2ff, 1.45);
   rimLight.position.set(4.2, -2.2, 3.2);
   scene.add(rimLight);
 
-  const cursorLight = new PointLight(isLight ? 0x5157c4 : 0xb8beff, isLight ? 2.4 : 4.2, 9.5, 1.6);
+  const cursorLight = new PointLight(isLight ? 0x5157c4 : 0xb8beff, isLight ? 2.1 : 3.6, 9.5, 1.6);
   cursorLight.position.set(0.6, 0.6, 3.2);
   scene.add(cursorLight);
 
   const disposables: { dispose: () => void }[] = [];
+  const textureRepainters: (() => void)[] = [];
 
   const specs: {
     spec: CardSpec;
@@ -488,13 +518,15 @@ export function mountHeroStage(
     cardGroup.add(chassisMesh);
     disposables.push(chassisGeo);
 
-    const tex = createCardTexture(spec, isLight);
+    const { texture: tex, repaint } = createCardTexture(spec, isLight, renderer);
+    textureRepainters.push(repaint);
     const faceGeo = new PlaneGeometry(w, h);
     const faceMat = new MeshStandardMaterial({
       map: tex,
       transparent: true,
-      roughness: 0.28,
-      metalness: 0.08,
+      alphaTest: 0.02,
+      roughness: 0.34,
+      metalness: 0.04,
     });
     const frontFace = new Mesh(faceGeo, faceMat);
     frontFace.position.z = slabDepth / 2 + 0.031;
@@ -527,12 +559,12 @@ export function mountHeroStage(
     transparent: true,
     opacity: isLight ? 0.28 : 0.36,
   });
-  const ringGeo1 = new TorusGeometry(2.55, 0.011, 12, 96);
+  const ringGeo1 = new TorusGeometry(2.55, 0.011, 16, 128);
   const ring1 = new Mesh(ringGeo1, ringMat);
   ring1.rotation.set(1.12, 0.28, -0.2);
   orbitalGroup.add(ring1);
 
-  const ringGeo2 = new TorusGeometry(2.95, 0.008, 12, 96);
+  const ringGeo2 = new TorusGeometry(2.95, 0.008, 16, 128);
   const ring2 = new Mesh(ringGeo2, ringMat);
   ring2.rotation.set(-0.95, -0.42, 0.35);
   orbitalGroup.add(ring2);
@@ -602,18 +634,7 @@ export function mountHeroStage(
 
   let elapsed = 0;
   let lastNow = performance.now();
-
   let baseCameraZ = 6.25;
-  const resize = () => {
-    if (disposed) return;
-    const width = Math.max(1, host.clientWidth);
-    const height = Math.max(1, host.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2));
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    baseCameraZ = 6.25 / Math.min(1, Math.max(0.66, camera.aspect / 1.12));
-    camera.updateProjectionMatrix();
-  };
 
   const renderScene = (dt: number) => {
     if (!paused) {
@@ -685,6 +706,18 @@ export function mountHeroStage(
     renderer.render(scene, camera);
   };
 
+  const resize = () => {
+    if (disposed) return;
+    const width = Math.max(1, host.clientWidth);
+    const height = Math.max(1, host.clientHeight);
+    renderer.setPixelRatio(computeCrispPixelRatio(width, height, renderer));
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    baseCameraZ = 6.25 / Math.min(1, Math.max(0.66, camera.aspect / 1.12));
+    camera.updateProjectionMatrix();
+    if (inView) renderScene(0);
+  };
+
   const loop = (now: number) => {
     if (disposed) return;
     const dt = Math.min(0.05, Math.max(0, (now - lastNow) / 1000));
@@ -707,6 +740,14 @@ export function mountHeroStage(
     lastNow = performance.now();
     raf = requestAnimationFrame(loop);
   };
+
+  const unsubFonts = onWebFontsReady(() => {
+    if (disposed) return;
+    textureRepainters.forEach(fn => fn());
+    if (inView) renderScene(0);
+  });
+
+  const unsubZoom = subscribeViewportZoom(resize);
 
   const onWindowPointerMove = (event: PointerEvent) => {
     const rect = host.getBoundingClientRect();
@@ -807,6 +848,8 @@ export function mountHeroStage(
     if (disposed) return;
     disposed = true;
     cancelAnimationFrame(raf);
+    unsubFonts();
+    unsubZoom();
     unsubPause();
     io?.disconnect();
     ro?.disconnect();

@@ -10,13 +10,11 @@ const SCROLL_3D_SELECTOR = [
   ".featured-editorial",
   ".subject-preview",
   ".subject-coming",
-  ".optional-shelf",
   ".how-intro",
   ".how-step",
   ".final-cta",
   ".source-strip",
   ".page-intro",
-  ".inner-sculpture",
   ".library-search-form",
   ".results-toolbar",
   ".subject-card",
@@ -27,7 +25,6 @@ const SCROLL_3D_SELECTOR = [
   ".empty-state",
   ".detail-title",
   ".source-panel",
-  ".detail-folio-3d",
   ".detail-sidebar > .document-cover",
   ".resource-facts",
   ".optional-preview",
@@ -92,6 +89,7 @@ export default function ImmersiveDepthRig() {
     const resetAllScrollTransforms = () => {
       const root = document.documentElement;
       root.removeAttribute("data-s3d-ready");
+      root.removeAttribute("data-s3d-moving");
       root.style.setProperty("--hero-scroll", "0");
       root.style.setProperty("--hero-p", "0");
       root.style.setProperty("--hero-vel", "0");
@@ -277,8 +275,8 @@ export default function ImmersiveDepthRig() {
           rz = side * shaped * 3.1 + side * smoothVel * 1.35;
           tx = side * absT * (isMobile ? 22 : 44);
           ty = shaped * (isMobile ? 40 : 56) + lagOffset;
-          tz = -absT * (isMobile ? 98 : 152) + focus * 14;
-          scale = Math.max(0.87, 1 - absT * 0.072 + focus * 0.014);
+          tz = -absT * (isMobile ? 98 : 152);
+          scale = Math.max(0.88, 1 - absT * 0.072);
         }
 
         const glintX = 50 - side * clampedT * 36;
@@ -300,7 +298,10 @@ export default function ImmersiveDepthRig() {
       });
 
       if (Math.abs(rawY - smoothY) > 0.2 || Math.abs(smoothVel) > 0.0035) {
+        root.dataset.s3dMoving = "true";
         raf = requestAnimationFrame(stepFrame);
+      } else {
+        delete root.dataset.s3dMoving;
       }
     };
 

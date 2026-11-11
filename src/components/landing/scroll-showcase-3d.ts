@@ -20,12 +20,20 @@ import {
   PointsMaterial,
   Scene,
   Shape,
-  SRGBColorSpace,
   TorusGeometry,
   WebGLRenderer,
 } from "three";
 import type { EducationalDocument } from "@/types/document";
 import { isMotionPaused, subscribeMotionPaused } from "@/components/layout/motion-state";
+import {
+  SANS_FONT_STACK,
+  SERIF_FONT_STACK,
+  computeCrispPixelRatio,
+  configureSharpTexture,
+  createHiResCanvas,
+  onWebFontsReady,
+  subscribeViewportZoom,
+} from "./webgl-quality";
 
 export interface ShowcaseController {
   dispose: () => void;
@@ -81,13 +89,14 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, max
   return lines.slice(0, maxLines);
 }
 
-function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = false): CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 800;
-  canvas.height = 540;
-  const ctx = canvas.getContext("2d")!;
-  const W = canvas.width;
-  const H = canvas.height;
+function paintLayerFace(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  spec: LayerSpec,
+  isLight: boolean,
+  isBackFace: boolean,
+) {
   const pad = 16;
   const radius = 38;
 
@@ -99,11 +108,11 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
   // Rich glass/studio plate gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   if (isLight) {
-    grad.addColorStop(0, isBackFace ? "#eef1fb" : "#ffffff");
-    grad.addColorStop(1, isBackFace ? "#dfe5f6" : "#eaeeff");
+    grad.addColorStop(0, isBackFace ? "#eff2fc" : "#ffffff");
+    grad.addColorStop(1, isBackFace ? "#e1e7f7" : "#ebeffd");
   } else {
-    grad.addColorStop(0, isBackFace ? "#151b2c" : "#1c233a");
-    grad.addColorStop(0.55, "#111625");
+    grad.addColorStop(0, isBackFace ? "#161d2f" : "#1d253d");
+    grad.addColorStop(0.55, "#121727");
     grad.addColorStop(1, "#0b0e18");
   }
   ctx.fillStyle = grad;
@@ -111,17 +120,18 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
 
   // Corner glow
   const glow = ctx.createRadialGradient(W * 0.82, H * 0.18, 8, W * 0.82, H * 0.18, W * 0.65);
-  glow.addColorStop(0, isLight ? "rgba(81,87,196,0.16)" : "rgba(165,170,255,0.22)");
+  glow.addColorStop(0, isLight ? "rgba(81,87,196,0.15)" : "rgba(165,170,255,0.22)");
   glow.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
   // Top chrome bar
   ctx.fillStyle = spec.accent;
-  ctx.fillRect(54, 46, 78, 6);
+  roundedRect(ctx, 54, 46, 78, 6, 3);
+  ctx.fill();
 
   ctx.fillStyle = spec.accent;
-  ctx.font = "700 20px system-ui, -apple-system, sans-serif";
+  ctx.font = `700 20px ${SANS_FONT_STACK}`;
   ctx.fillText(`LAYER ${spec.step}  •  ${spec.tag.toUpperCase()}`, 54, 92);
 
   // Status orb on top-right
@@ -132,8 +142,8 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
 
   if (isBackFace) {
     // Clean architectural backplate emblem when viewed from 180° orbit
-    ctx.strokeStyle = isLight ? "rgba(81,87,196,0.2)" : "rgba(165,170,255,0.22)";
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = isLight ? "rgba(81,87,196,0.22)" : "rgba(165,170,255,0.26)";
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
     ctx.arc(W / 2, H / 2 + 12, 110, 0, Math.PI * 2);
     ctx.stroke();
@@ -141,31 +151,30 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
     ctx.arc(W / 2, H / 2 + 12, 72, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = isLight ? "#1a2031" : "#f2f3f8";
-    ctx.font = "600 34px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = isLight ? "#141a2b" : "#f7f8fc";
+    ctx.font = `600 34px ${SANS_FONT_STACK}`;
     ctx.textAlign = "center";
     ctx.fillText(spec.tag, W / 2, H / 2 + 10);
     ctx.fillStyle = spec.accent;
-    ctx.font = "500 20px system-ui, -apple-system, sans-serif";
+    ctx.font = `500 20px ${SANS_FONT_STACK}`;
     ctx.fillText(`HARSHIT PRESENTATION HUB • ${spec.step}`, W / 2, H / 2 + 46);
     ctx.textAlign = "left";
   } else {
     // Primary title
-    ctx.fillStyle = isLight ? "#151b2c" : "#f5f6fc";
-    ctx.font = "600 44px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = isLight ? "#111728" : "#f9faff";
+    ctx.font = `600 44px ${SANS_FONT_STACK}`;
     const lines = wrapText(ctx, spec.title, W - 112, 2);
     lines.forEach((l, i) => ctx.fillText(l, 54, 158 + i * 50));
 
     // Subtitle
     const subY = 162 + lines.length * 50;
-    ctx.fillStyle = isLight ? "#525c73" : "#a8b1c7";
-    ctx.font = "italic 25px Georgia, serif";
+    ctx.fillStyle = isLight ? "#48526a" : "#b4bdd3";
+    ctx.font = `italic 25px ${SERIF_FONT_STACK}`;
     ctx.fillText(spec.detail, 54, subY);
 
     // Bespoke layer diagram in lower half
     const boxY = 300;
     if (spec.kind === "cover") {
-      // Presentation hero bars + slide ratio badge
       const widths = [0.82, 0.64, 0.48];
       const cols = [spec.accent, "#91d8bd", "#e2c58c"];
       widths.forEach((wFrac, idx) => {
@@ -176,13 +185,15 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
       roundedRect(ctx, W - 186, boxY, 132, 120, 22);
       ctx.fillStyle = isLight ? "rgba(81,87,196,0.1)" : "rgba(165,170,255,0.14)";
       ctx.fill();
+      ctx.strokeStyle = isLight ? "rgba(81,87,196,0.24)" : "rgba(165,170,255,0.28)";
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
       ctx.fillStyle = spec.accent;
-      ctx.font = "700 34px system-ui, -apple-system, sans-serif";
+      ctx.font = `700 34px ${SANS_FONT_STACK}`;
       ctx.textAlign = "center";
       ctx.fillText("16:9", W - 120, boxY + 72);
       ctx.textAlign = "left";
     } else if (spec.kind === "taxonomy") {
-      // Structured taxonomy pills
       const chips = ["Subject: English", "Course: Class 12", "Type: Slides Deck", "Topic: Lost Spring"];
       chips.forEach((chip, idx) => {
         const col = idx % 2;
@@ -190,67 +201,86 @@ function createLayerTexture(spec: LayerSpec, isLight: boolean, isBackFace = fals
         const cx = 54 + col * 352;
         const cy = boxY + row * 74;
         roundedRect(ctx, cx, cy, 332, 56, 16);
-        ctx.fillStyle = isLight ? "rgba(35,116,87,0.09)" : "rgba(145,216,189,0.11)";
+        ctx.fillStyle = isLight ? "rgba(35,116,87,0.09)" : "rgba(145,216,189,0.12)";
         ctx.fill();
-        ctx.strokeStyle = isLight ? "rgba(35,116,87,0.3)" : "rgba(145,216,189,0.32)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isLight ? "rgba(35,116,87,0.32)" : "rgba(145,216,189,0.36)";
+        ctx.lineWidth = 1.8;
         ctx.stroke();
-        ctx.fillStyle = isLight ? "#1a2031" : "#eef2fa";
-        ctx.font = "600 21px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = isLight ? "#141a2b" : "#f4f6fc";
+        ctx.font = `600 21px ${SANS_FONT_STACK}`;
         ctx.fillText(chip, cx + 22, cy + 35);
       });
     } else if (spec.kind === "slides") {
-      // 3-up miniature slide cards
       for (let s = 0; s < 3; s++) {
         const sx = 54 + s * 236;
         roundedRect(ctx, sx, boxY, 214, 146, 18);
-        ctx.fillStyle = isLight ? "rgba(81,87,196,0.07)" : "rgba(255,255,255,0.05)";
+        ctx.fillStyle = isLight ? "rgba(81,87,196,0.07)" : "rgba(255,255,255,0.055)";
         ctx.fill();
-        ctx.strokeStyle = isLight ? "rgba(81,87,196,0.24)" : "rgba(226,197,140,0.32)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isLight ? "rgba(81,87,196,0.25)" : "rgba(226,197,140,0.36)";
+        ctx.lineWidth = 1.8;
         ctx.stroke();
         ctx.fillStyle = spec.accent;
-        ctx.font = "700 18px system-ui, -apple-system, sans-serif";
+        ctx.font = `700 18px ${SANS_FONT_STACK}`;
         ctx.fillText(`SLIDE 0${s + 1}`, sx + 20, boxY + 38);
-        ctx.fillStyle = isLight ? "rgba(30,41,75,0.18)" : "rgba(255,255,255,0.18)";
-        ctx.fillRect(sx + 20, boxY + 62, 160, 10);
-        ctx.fillRect(sx + 20, boxY + 84, 120, 10);
-        ctx.fillRect(sx + 20, boxY + 106, 90, 10);
+        ctx.fillStyle = isLight ? "rgba(30,41,75,0.2)" : "rgba(255,255,255,0.22)";
+        roundedRect(ctx, sx + 20, boxY + 62, 160, 10, 5);
+        ctx.fill();
+        roundedRect(ctx, sx + 20, boxY + 84, 120, 10, 5);
+        ctx.fill();
+        roundedRect(ctx, sx + 20, boxY + 106, 90, 10, 5);
+        ctx.fill();
       }
     } else {
-      // Verified direct cloud link badge
       roundedRect(ctx, 54, boxY + 8, W - 108, 132, 24);
-      ctx.fillStyle = isLight ? "rgba(81,87,196,0.09)" : "rgba(165,170,255,0.12)";
+      ctx.fillStyle = isLight ? "rgba(81,87,196,0.095)" : "rgba(165,170,255,0.13)";
       ctx.fill();
       ctx.strokeStyle = spec.accent;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2.2;
       ctx.stroke();
       ctx.fillStyle = "#91d8bd";
       ctx.beginPath();
       ctx.arc(104, boxY + 74, 14, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = isLight ? "#1a2031" : "#f5f6fc";
-      ctx.font = "600 26px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = isLight ? "#141a2b" : "#f8f9fe";
+      ctx.font = `600 26px ${SANS_FONT_STACK}`;
       ctx.fillText("Opens Original Cloud Source Directly  ↗", 136, boxY + 68);
-      ctx.fillStyle = isLight ? "#586176" : "#a6adbf";
-      ctx.font = "500 20px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = isLight ? "#505a70" : "#b0b8ce";
+      ctx.font = `500 20px ${SANS_FONT_STACK}`;
       ctx.fillText("Google Slides • Docs • Sheets • Drive • Dropbox", 136, boxY + 104);
     }
   }
 
   ctx.restore();
 
-  // Outer specular border
-  roundedRect(ctx, pad, pad, W - pad * 2, H - pad * 2, radius);
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.32)" : "rgba(185,192,255,0.38)";
-  ctx.lineWidth = 3.5;
+  // Inner subtle highlight + outer specular border
+  roundedRect(ctx, pad + 2, pad + 2, W - (pad + 2) * 2, H - (pad + 2) * 2, radius - 2);
+  ctx.strokeStyle = isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 1.4;
   ctx.stroke();
 
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 4;
-  tex.needsUpdate = true;
-  return tex;
+  roundedRect(ctx, pad, pad, W - pad * 2, H - pad * 2, radius);
+  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.34)" : "rgba(185,192,255,0.42)";
+  ctx.lineWidth = 3.2;
+  ctx.stroke();
+}
+
+function createLayerTexture(
+  spec: LayerSpec,
+  isLight: boolean,
+  renderer: WebGLRenderer,
+  isBackFace = false,
+): { texture: CanvasTexture; repaint: () => void } {
+  const logicalW = 800;
+  const logicalH = 540;
+  const { canvas, ctx } = createHiResCanvas(logicalW, logicalH);
+  paintLayerFace(ctx, logicalW, logicalH, spec, isLight, isBackFace);
+
+  const texture = configureSharpTexture(new CanvasTexture(canvas), renderer);
+  const repaint = () => {
+    paintLayerFace(ctx, logicalW, logicalH, spec, isLight, isBackFace);
+    texture.needsUpdate = true;
+  };
+  return { texture, repaint };
 }
 
 function createBokehTexture(): CanvasTexture {
@@ -288,8 +318,8 @@ function createWideSlabGeometry(width: number, height: number, radius: number, d
     bevelEnabled: true,
     bevelThickness: 0.025,
     bevelSize: 0.025,
-    bevelSegments: 3,
-    curveSegments: 14,
+    bevelSegments: 6,
+    curveSegments: 32,
   });
   geo.center();
   return geo;
@@ -330,10 +360,10 @@ export function mountScrollShowcase(
   const accentEmerald = isLight ? "#237457" : "#91d8bd";
   const accentAmber = isLight ? "#866020" : "#e2c58c";
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+  renderer.setPixelRatio(computeCrispPixelRatio(host.clientWidth || 1200, host.clientHeight || 720, renderer));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = isLight ? 1.08 : 1.18;
+  renderer.toneMappingExposure = isLight ? 1.05 : 1.13;
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
@@ -346,21 +376,22 @@ export function mountScrollShowcase(
   const deckCluster = new Group();
   world.add(deckCluster);
 
-  scene.add(new AmbientLight(isLight ? 0xffffff : 0xdde2ff, isLight ? 1.35 : 0.92));
+  scene.add(new AmbientLight(isLight ? 0xffffff : 0xdde2ff, isLight ? 1.38 : 0.98));
 
-  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.65 : 2.0);
+  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.55 : 1.85);
   keyLight.position.set(-4, 5, 6);
   scene.add(keyLight);
 
-  const rimLight = new DirectionalLight(isLight ? 0x5157c4 : 0x9aa2ff, 1.65);
+  const rimLight = new DirectionalLight(isLight ? 0x5157c4 : 0x9aa2ff, 1.55);
   rimLight.position.set(4.5, -2.5, -3.5);
   scene.add(rimLight);
 
-  const coreLight = new PointLight(isLight ? 0x5157c4 : 0x91d8bd, isLight ? 2.2 : 4.4, 9, 1.5);
+  const coreLight = new PointLight(isLight ? 0x5157c4 : 0x91d8bd, isLight ? 2.0 : 3.8, 9, 1.5);
   coreLight.position.set(0, 0, 0);
   deckCluster.add(coreLight);
 
   const disposables: { dispose: () => void }[] = [];
+  const textureRepainters: (() => void)[] = [];
 
   const layerSpecs: LayerSpec[] = [
     {
@@ -415,20 +446,23 @@ export function mountScrollShowcase(
     const chassis = new Mesh(sharedChassisGeo, chassisMat);
     group.add(chassis);
 
-    const frontTex = createLayerTexture(spec, isLight, false);
-    const backTex = createLayerTexture(spec, isLight, true);
+    const frontTexBundle = createLayerTexture(spec, isLight, renderer, false);
+    const backTexBundle = createLayerTexture(spec, isLight, renderer, true);
+    textureRepainters.push(frontTexBundle.repaint, backTexBundle.repaint);
 
     const frontMat = new MeshStandardMaterial({
-      map: frontTex,
+      map: frontTexBundle.texture,
       transparent: true,
-      roughness: 0.26,
-      metalness: 0.08,
+      alphaTest: 0.02,
+      roughness: 0.34,
+      metalness: 0.04,
     });
     const backMat = new MeshStandardMaterial({
-      map: backTex,
+      map: backTexBundle.texture,
       transparent: true,
-      roughness: 0.3,
-      metalness: 0.1,
+      alphaTest: 0.02,
+      roughness: 0.36,
+      metalness: 0.06,
     });
 
     const front = new Mesh(sharedFaceGeo, frontMat);
@@ -440,13 +474,13 @@ export function mountScrollShowcase(
     back.position.z = -(slabDepth / 2 + 0.027);
     group.add(back);
 
-    disposables.push(frontTex, backTex, frontMat, backMat);
+    disposables.push(frontTexBundle.texture, backTexBundle.texture, frontMat, backMat);
     deckCluster.add(group);
     plates.push(group);
   });
 
   // 4 glowing laser alignment rails connecting corners of the exploded stack
-  const railGeo = new CylinderGeometry(0.012, 0.012, 1, 10);
+  const railGeo = new CylinderGeometry(0.012, 0.012, 1, 12);
   railGeo.rotateX(Math.PI / 2);
   const railMat = new MeshStandardMaterial({
     color: new Color(isLight ? 0x5157c4 : 0x91d8bd),
@@ -482,12 +516,12 @@ export function mountScrollShowcase(
     transparent: true,
     opacity: isLight ? 0.32 : 0.42,
   });
-  const outerRingGeo = new TorusGeometry(2.85, 0.014, 12, 110);
+  const outerRingGeo = new TorusGeometry(2.85, 0.014, 16, 128);
   const outerRing = new Mesh(outerRingGeo, ringMat);
   outerRing.rotation.set(1.08, 0.25, 0);
   gyroGroup.add(outerRing);
 
-  const innerRingGeo = new TorusGeometry(2.35, 0.01, 12, 96);
+  const innerRingGeo = new TorusGeometry(2.35, 0.01, 16, 128);
   const innerRing = new Mesh(innerRingGeo, ringMat);
   innerRing.rotation.set(-0.85, -0.4, 0.3);
   gyroGroup.add(innerRing);
@@ -556,19 +590,6 @@ export function mountScrollShowcase(
   let lastNow = performance.now();
   let raf = 0;
 
-  const resize = () => {
-    if (disposed) return;
-    const width = Math.max(1, host.clientWidth);
-    const height = Math.max(1, host.clientHeight);
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    isPortrait = width < 860;
-    baseCamZ = isPortrait
-      ? 7.8 / Math.min(1, Math.max(0.58, camera.aspect / 0.78))
-      : 6.35 / Math.min(1, Math.max(0.76, camera.aspect / 1.35));
-    camera.updateProjectionMatrix();
-  };
-
   const renderFrame = (dt: number) => {
     if (!paused) elapsed += dt;
 
@@ -597,12 +618,10 @@ export function mountScrollShowcase(
 
     deckCluster.rotation.set(sweepX, sweepY, sweepZ);
 
-    // Offset cluster right on wide desktop so left HUD never overlaps; upper-half on mobile portrait
     const stageOffsetX = isPortrait ? 0 : MathUtils.lerp(1.15, 0.95, explode);
     const stageOffsetY = isPortrait ? 0.82 : 0.04;
     world.position.set(stageOffsetX, stageOffsetY + (paused ? 0 : Math.sin(elapsed * 0.9) * 0.05), 0);
 
-    // X + Y + Z diagonal 3D plate explosion + staircase fan so every scroll tick bursts visibly
     const tightSpacing = 0.11;
     const explodedSpacing = 1.14;
     const spacing = MathUtils.lerp(tightSpacing, explodedSpacing, explode);
@@ -619,14 +638,12 @@ export function mountScrollShowcase(
       plate.rotation.y = explode * centered * 0.06;
     });
 
-    // Laser guide rails stretch across the exact exploded span
     railMat.opacity = explode * (isLight ? 0.55 : 0.78);
     rails.forEach(rail => {
       rail.scale.set(1, 1, Math.max(0.05, totalSpan));
     });
-    coreLight.intensity = (isLight ? 1.4 : 2.6) + explode * 2.8;
+    coreLight.intensity = (isLight ? 1.3 : 2.3) + explode * 2.4;
 
-    // Gyroscopic rings spin aggressively with scroll velocity & progress
     gyroGroup.rotation.y = -p * Math.PI * 1.6 + elapsed * 0.08;
     gyroGroup.rotation.x = p * Math.PI * 0.75;
     outerRing.scale.setScalar(1 + explode * 0.12);
@@ -639,16 +656,29 @@ export function mountScrollShowcase(
       gem.rotation.set(a, a * 0.7, 0);
     });
 
-    // Camera dollies dynamically through Z-space as you scroll
     const camDolly = Math.sin(p * Math.PI) * -0.55;
     camera.position.set(0, 0, baseCamZ + camDolly);
     camera.lookAt(0, 0, 0);
 
-    // Bokeh field flies past vertically & rotationally on scroll
     bokeh.position.y = (p - 0.5) * 2.4;
     bokeh.rotation.y = p * 0.85 + elapsed * 0.02;
 
     renderer.render(scene, camera);
+  };
+
+  const resize = () => {
+    if (disposed) return;
+    const width = Math.max(1, host.clientWidth);
+    const height = Math.max(1, host.clientHeight);
+    renderer.setPixelRatio(computeCrispPixelRatio(width, height, renderer));
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    isPortrait = width < 860;
+    baseCamZ = isPortrait
+      ? 7.8 / Math.min(1, Math.max(0.58, camera.aspect / 0.78))
+      : 6.35 / Math.min(1, Math.max(0.76, camera.aspect / 1.35));
+    camera.updateProjectionMatrix();
+    if (inView) renderFrame(0);
   };
 
   const loop = (now: number) => {
@@ -676,6 +706,14 @@ export function mountScrollShowcase(
     lastNow = performance.now();
     raf = requestAnimationFrame(loop);
   };
+
+  const unsubFonts = onWebFontsReady(() => {
+    if (disposed) return;
+    textureRepainters.forEach(fn => fn());
+    if (inView) renderFrame(0);
+  });
+
+  const unsubZoom = subscribeViewportZoom(resize);
 
   const onPointerMove = (event: PointerEvent) => {
     const rect = host.getBoundingClientRect();
@@ -772,6 +810,8 @@ export function mountScrollShowcase(
     if (disposed) return;
     disposed = true;
     cancelAnimationFrame(raf);
+    unsubFonts();
+    unsubZoom();
     unsubPause();
     io?.disconnect();
     ro?.disconnect();

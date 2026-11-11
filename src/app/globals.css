@@ -217,7 +217,7 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 .hero-stats strong { font-size: 23px; font-weight: 500; letter-spacing: -.7px; line-height: 1.2; }
 .hero-stats span { font-size: 10px; color: var(--text-muted); margin-top: 7px; }
 .hero-visual { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; }
-:root[data-s3d-ready="true"] .hero-visual { transform: perspective(1050px) translate3d(calc(var(--hero-p, 0) * 42px * var(--hero-x-mult)), calc(var(--hero-p, 0) * -52px), calc(var(--hero-p, 0) * -65px)) rotateY(calc(var(--hero-p, 0) * 24deg)) rotateX(calc(var(--hero-p, 0) * 18deg - var(--hero-vel, 0) * 7deg)) rotateZ(calc(var(--hero-p, 0) * 2.8deg)) scale(calc(1 - var(--hero-p, 0) * 0.055)); will-change: transform; }
+:root[data-s3d-ready="true"] .hero-visual:not([data-scene-state="ready"]) { transform: perspective(1050px) translate3d(calc(var(--hero-p, 0) * 42px * var(--hero-x-mult)), calc(var(--hero-p, 0) * -52px), calc(var(--hero-p, 0) * -65px)) rotateY(calc(var(--hero-p, 0) * 24deg)) rotateX(calc(var(--hero-p, 0) * 18deg - var(--hero-vel, 0) * 7deg)) rotateZ(calc(var(--hero-p, 0) * 2.8deg)) scale(calc(1 - var(--hero-p, 0) * 0.055)); }
 .hero-scene-3d { width: 100%; height: 470px; position: relative; display: grid; place-items: center; isolation: isolate; }
 .hero-stage-aura { position: absolute; inset: 8% 10%; border-radius: 50%; pointer-events: none; z-index: 0; background: radial-gradient(circle, rgba(143,149,255,.18) 0%, rgba(143,149,255,.04) 48%, transparent 72%); filter: blur(18px); }
 :root[data-theme="light"] .hero-stage-aura { background: radial-gradient(circle, rgba(81,87,196,.13) 0%, rgba(81,87,196,.03) 48%, transparent 72%); }
@@ -500,7 +500,7 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 .css-exploded-scene { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding-left: 34%; perspective: 1200px; transition: opacity 300ms ease; }
 .scroll-3d-stage[data-state="ready"] .css-exploded-scene { opacity: 0; pointer-events: none; }
 .css-exploded-rig { position: relative; width: min(340px, 78vw); height: 220px; transform-style: preserve-3d; transform: rotateX(calc(14deg + var(--sc3d-explode) * 14deg)) rotateY(calc(-26deg + var(--sc3d-p) * 210deg)) rotateZ(calc(var(--sc3d-explode) * -5deg)); }
-.css-deck-layer { position: absolute; inset: 0; border-radius: 16px; border: 1px solid var(--border-strong); background: color-mix(in oklab, var(--surface-raised) 92%, transparent); box-shadow: 0 22px 50px rgba(0,0,0,.28); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between; backface-visibility: visible; }
+.css-deck-layer { position: absolute; inset: 0; border-radius: 16px; border: 1px solid var(--border-strong); background: linear-gradient(155deg, var(--surface-raised) 0%, var(--surface) 100%); box-shadow: 0 22px 50px rgba(0,0,0,.28); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between; backface-visibility: visible; -webkit-font-smoothing: antialiased; }
 .css-deck-layer span { font-size: 9px; letter-spacing: .15em; color: var(--accent); font-weight: 600; }
 .css-deck-layer strong { font-size: 20px; font-weight: 550; color: var(--text); letter-spacing: -.02em; }
 .css-deck-layer small { font-size: 11px; color: var(--text-secondary); }
@@ -510,7 +510,7 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 .css-deck-layer.layer-4 { transform: translate3d(calc(var(--sc3d-explode) * -54px), calc(var(--sc3d-explode) * 36px), calc(-18px - var(--sc3d-explode) * 125px)); }
 
 .scroll-3d-overlay { position: relative; z-index: 3; pointer-events: none; display: flex; align-items: center; height: 100%; perspective: 1000px; }
-.scroll-3d-hud { pointer-events: auto; width: min(435px, 100%); padding: 28px 30px; border: 1px solid var(--border-strong); border-radius: 18px; background: color-mix(in oklab, var(--surface) 84%, transparent); backdrop-filter: blur(18px); box-shadow: var(--shadow); transform: perspective(950px) translate3d(0, calc((0.5 - var(--sc3d-p, 0)) * 38px), 0) rotateX(calc((0.5 - var(--sc3d-p, 0)) * 16deg)) rotateY(calc(-7deg + var(--sc3d-p, 0) * 14deg)); will-change: transform; }
+.scroll-3d-hud { pointer-events: auto; width: min(435px, 100%); padding: 28px 30px; border: 1px solid var(--border-strong); border-radius: 18px; background: color-mix(in oklab, var(--surface) 84%, transparent); backdrop-filter: blur(18px); box-shadow: var(--shadow); transform: perspective(950px) translate3d(0, calc((0.5 - var(--sc3d-p, 0)) * 38px), 0) rotateX(calc((0.5 - var(--sc3d-p, 0)) * 16deg)) rotateY(calc(-7deg + var(--sc3d-p, 0) * 14deg)); }
 .scroll-3d-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .scroll-3d-skip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); min-height: 34px; padding-inline: 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-soft); transition: border-color .18s ease, color .18s ease; }
 .scroll-3d-skip:hover { border-color: var(--accent); color: var(--accent); }
@@ -532,7 +532,6 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 .compatibility { perspective: 900px; }
 [data-s3d-badge="true"] {
   transform: perspective(750px) translate3d(var(--s3d-tx, 0px), var(--s3d-ty, 0px), var(--s3d-tz, 0px)) rotateX(var(--s3d-rx, 0deg)) rotateY(var(--s3d-ry, 0deg)) rotateZ(var(--s3d-rz, 0deg));
-  will-change: transform;
 }
 
 [data-s3d="true"] {
@@ -540,6 +539,10 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
   transition: border-color .2s ease, box-shadow .2s ease !important;
   transform: perspective(920px) translate3d(var(--s3d-tx, 0px), var(--s3d-ty, 0px), var(--s3d-tz, 0px)) rotateX(var(--s3d-rx, 0deg)) rotateY(var(--s3d-ry, 0deg)) rotateZ(var(--s3d-rz, 0deg)) scale(var(--s3d-scale, 1));
   transform-origin: center center;
+}
+
+:root[data-s3d-moving="true"] [data-s3d="true"],
+:root[data-s3d-moving="true"] [data-s3d-badge="true"] {
   will-change: transform;
 }
 
@@ -578,8 +581,7 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 /* Inner sub-component 3D parallax: elements inside cards float at independent 3D depths */
 [data-s3d="true"] .cover-paper {
   transition: none;
-  transform: perspective(520px) translate3d(calc(var(--s3d-t, 0) * -20px), calc(18px + var(--s3d-t, 0) * 24px), 24px) rotateZ(calc(-6deg + var(--s3d-t, 0) * 11deg)) rotateY(calc(var(--s3d-t, 0) * -18deg)) rotateX(calc(var(--s3d-t, 0) * 12deg));
-  will-change: transform;
+  transform: perspective(520px) translate3d(calc(var(--s3d-t, 0) * -20px), calc(18px + var(--s3d-t, 0) * 24px), 0px) rotateZ(calc(-6deg + var(--s3d-t, 0) * 11deg)) rotateY(calc(var(--s3d-t, 0) * -18deg)) rotateX(calc(var(--s3d-t, 0) * 12deg));
 }
 [data-s3d="true"] .orbit-one {
   transform: translate3d(calc(var(--s3d-t, 0) * 34px), calc(var(--s3d-t, 0) * -28px), 0);
@@ -589,26 +591,22 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 }
 [data-s3d="true"] .featured-badge,
 [data-s3d="true"] .cover-type {
-  transform: translate3d(calc(var(--s3d-t, 0) * 8px), calc(var(--s3d-t, 0) * -11px), 16px);
+  transform: translate3d(calc(var(--s3d-t, 0) * 8px), calc(var(--s3d-t, 0) * -11px), 0);
 }
 .featured-editorial[data-s3d="true"] .editorial-icon,
 .subject-preview[data-s3d="true"] .subject-icon,
 .subject-card[data-s3d="true"] .subject-icon {
-  transform: perspective(420px) translate3d(calc(var(--s3d-t, 0) * -10px), calc(var(--s3d-t, 0) * -16px), 24px) rotateY(calc(var(--s3d-t, 0) * 28deg)) rotateX(calc(var(--s3d-t, 0) * -18deg));
-  will-change: transform;
+  transform: perspective(420px) translate3d(calc(var(--s3d-t, 0) * -10px), calc(var(--s3d-t, 0) * -16px), 0) rotateY(calc(var(--s3d-t, 0) * 28deg)) rotateX(calc(var(--s3d-t, 0) * -18deg));
 }
 .how-step[data-s3d="true"] .step-number {
   display: inline-block;
-  transform: translate3d(calc(var(--s3d-t, 0) * -10px), calc(var(--s3d-t, 0) * -16px), 22px) scale(calc(1.08 - var(--s3d-abs, 0) * 0.1));
-  will-change: transform;
+  transform: translate3d(calc(var(--s3d-t, 0) * -10px), calc(var(--s3d-t, 0) * -16px), 0);
 }
 .section-heading[data-s3d="true"] > .text-link {
   transform: translate3d(calc(var(--s3d-t, 0) * 28px), calc(var(--s3d-t, 0) * 12px), 0);
-  will-change: transform;
 }
 .final-cta[data-s3d="true"] .cta-decoration {
   transform: perspective(600px) translate3d(calc(var(--s3d-t, 0) * 52px), calc(var(--s3d-t, 0) * -42px), 0) rotateZ(calc(-12deg + var(--s3d-t, 0) * 26deg)) rotateY(calc(var(--s3d-t, 0) * 34deg));
-  will-change: transform;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) and (min-width: 768px) {
@@ -617,7 +615,7 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
   .subject-card[data-tilting="true"],
   .how-step[data-tilting="true"],
   .featured-editorial[data-tilting="true"] {
-    transform: perspective(920px) translate3d(var(--s3d-tx, 0px), calc(var(--s3d-ty, 0px) - 4px), 12px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) scale(1.015);
+    transform: perspective(920px) translate3d(var(--s3d-tx, 0px), calc(var(--s3d-ty, 0px) - 5px), 0px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     background-image: radial-gradient(380px circle at var(--spot-x, 50%) var(--spot-y, 0%), var(--accent-soft), transparent 72%);
   }
 }
@@ -881,12 +879,12 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
   padding: 15px 17px;
   border-radius: 14px;
   border: 1px solid var(--border-strong);
-  background: color-mix(in oklab, var(--surface-raised) 90%, transparent);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(155deg, var(--surface-raised) 0%, var(--surface) 100%);
   box-shadow: 0 18px 40px rgba(0,0,0,.22);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  -webkit-font-smoothing: antialiased;
 }
 :root[data-theme="light"] .sculp-plate {
   box-shadow: 0 16px 34px rgba(30,41,75,.09);
