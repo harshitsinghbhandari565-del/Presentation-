@@ -12,7 +12,6 @@ import {
   MathUtils,
   Mesh,
   MeshStandardMaterial,
-  OctahedronGeometry,
   PerspectiveCamera,
   PlaneGeometry,
   PointLight,
@@ -20,9 +19,9 @@ import {
   PointsMaterial,
   Scene,
   Shape,
-  TorusGeometry,
   WebGLRenderer,
 } from "three";
+import { createOrbitalInstrument } from "./orbital-instruments";
 import type { EducationalDocument } from "@/types/document";
 import { isMotionPaused, subscribeMotionPaused } from "@/components/layout/motion-state";
 import {
@@ -543,54 +542,11 @@ export function mountScrollShowcase(
   });
   disposables.push(railGeo, railMat);
 
-  // Dual Ice-Blue & Solar-Gold gyroscopic orbital rings + telemetry beacons
-  const gyroGroup = new Group();
+  // A restrained orbital instrument frames the deck without obscuring it.
+  const instrument = createOrbitalInstrument(isLight);
+  const gyroGroup = instrument.group;
   world.add(gyroGroup);
-
-  const iceRingMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x036296 : 0x7dd3fc),
-    emissive: new Color(isLight ? 0x024469 : 0x256b96),
-    emissiveIntensity: 0.42,
-    metalness: 0.85,
-    roughness: 0.18,
-    transparent: true,
-    opacity: isLight ? 0.34 : 0.48,
-  });
-  const goldRingMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x8a5d10 : 0xf3c979),
-    emissive: new Color(isLight ? 0x5e3e08 : 0x8c641e),
-    emissiveIntensity: 0.45,
-    metalness: 0.88,
-    roughness: 0.18,
-    transparent: true,
-    opacity: isLight ? 0.32 : 0.46,
-  });
-
-  const outerRingGeo = new TorusGeometry(2.85, 0.014, 16, 128);
-  const outerRing = new Mesh(outerRingGeo, iceRingMat);
-  outerRing.rotation.set(1.08, 0.25, 0);
-  gyroGroup.add(outerRing);
-
-  const innerRingGeo = new TorusGeometry(2.35, 0.011, 16, 128);
-  const innerRing = new Mesh(innerRingGeo, goldRingMat);
-  innerRing.rotation.set(-0.85, -0.4, 0.3);
-  gyroGroup.add(innerRing);
-
-  const gemGeo = new OctahedronGeometry(0.09, 0);
-  const gemMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x8a5d10 : 0xf3c979),
-    emissive: new Color(isLight ? 0x5e3e08 : 0x9c6d1c),
-    emissiveIntensity: 0.6,
-    metalness: 0.75,
-    roughness: 0.16,
-  });
-  const gems: Mesh[] = [];
-  for (let i = 0; i < 4; i++) {
-    const gem = new Mesh(gemGeo, gemMat);
-    gyroGroup.add(gem);
-    gems.push(gem);
-  }
-  disposables.push(iceRingMat, goldRingMat, outerRingGeo, innerRingGeo, gemGeo, gemMat);
+  disposables.push(instrument);
 
   // Dual-tone Interstellar Starfield that rushes past on scroll
   const makeWarpStars = (count: number, size: number, color: number, core: string, mid: string) => {
@@ -608,7 +564,7 @@ export function mountScrollShowcase(
       map: tex,
       size,
       transparent: true,
-      opacity: isLight ? 0.42 : 0.78,
+      opacity: isLight ? 0.26 : 0.48,
       depthWrite: false,
     });
     const pts = new Points(geo, mat);
@@ -619,14 +575,14 @@ export function mountScrollShowcase(
 
   const iceBokeh = makeWarpStars(
     72,
-    0.16,
+    0.055,
     isLight ? 0x036296 : 0xbae6fd,
     "rgba(255,255,255,1)",
     "rgba(125,211,252,0.7)",
   );
   const goldBokeh = makeWarpStars(
     36,
-    0.18,
+    0.06,
     isLight ? 0x8a5d10 : 0xf3c979,
     "rgba(255,250,235,1)",
     "rgba(243,201,121,0.72)",
@@ -703,7 +659,7 @@ export function mountScrollShowcase(
       plate.rotation.y = explode * centered * 0.06;
     });
 
-    railMat.opacity = explode * (isLight ? 0.58 : 0.82);
+    railMat.opacity = explode * (isLight ? 0.38 : 0.54);
     rails.forEach(rail => {
       rail.scale.set(1, 1, Math.max(0.05, totalSpan));
     });
@@ -711,15 +667,8 @@ export function mountScrollShowcase(
 
     gyroGroup.rotation.y = -p * Math.PI * 1.6 + elapsed * 0.08;
     gyroGroup.rotation.x = p * Math.PI * 0.75;
-    outerRing.scale.setScalar(1 + explode * 0.12);
-    innerRing.scale.setScalar(1 - explode * 0.06);
-
-    gems.forEach((gem, i) => {
-      const a = p * Math.PI * 3 + elapsed * 0.5 + (i * Math.PI) / 2;
-      const r = 2.65 + explode * 0.25;
-      gem.position.set(Math.cos(a) * r, Math.sin(a * 1.3) * 1.25, Math.sin(a) * r * 0.55);
-      gem.rotation.set(a, a * 0.7, 0);
-    });
+    instrument.outer.scale.setScalar(1 + explode * 0.06);
+    instrument.inner.scale.setScalar(1 - explode * 0.04);
 
     const camDolly = Math.sin(p * Math.PI) * -0.55;
     camera.position.set(0, 0, baseCamZ + camDolly);

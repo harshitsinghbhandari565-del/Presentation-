@@ -11,7 +11,6 @@ import {
   MathUtils,
   Mesh,
   MeshStandardMaterial,
-  OctahedronGeometry,
   PerspectiveCamera,
   PlaneGeometry,
   PointLight,
@@ -19,10 +18,9 @@ import {
   PointsMaterial,
   Scene,
   Shape,
-  SphereGeometry,
-  TorusGeometry,
   WebGLRenderer,
 } from "three";
+import { createOrbitalInstrument } from "./orbital-instruments";
 import type { EducationalDocument } from "@/types/document";
 import { isMotionPaused, subscribeMotionPaused } from "@/components/layout/motion-state";
 import {
@@ -625,84 +623,11 @@ export function mountHeroStage(
     });
   });
 
-  // Dual Ice-Blue & Solar-Gold orbital astrolabe rings + orbiting ringed exoplanet + telemetry satellites
-  const orbitalGroup = new Group();
+  // Fine orbital scales sit behind the cards instead of oversized satellites.
+  const instrument = createOrbitalInstrument(isLight);
+  const orbitalGroup = instrument.group;
   rig.add(orbitalGroup);
-
-  const iceRingMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x036296 : 0x7dd3fc),
-    emissive: new Color(isLight ? 0x024469 : 0x256b96),
-    emissiveIntensity: 0.42,
-    metalness: 0.85,
-    roughness: 0.18,
-    transparent: true,
-    opacity: isLight ? 0.34 : 0.48,
-  });
-  const goldRingMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x8a5d10 : 0xf3c979),
-    emissive: new Color(isLight ? 0x5e3e08 : 0x8c641e),
-    emissiveIntensity: 0.42,
-    metalness: 0.88,
-    roughness: 0.18,
-    transparent: true,
-    opacity: isLight ? 0.32 : 0.44,
-  });
-
-  const ringGeo1 = new TorusGeometry(2.58, 0.012, 16, 128);
-  const ring1 = new Mesh(ringGeo1, iceRingMat);
-  ring1.rotation.set(1.12, 0.28, -0.2);
-  orbitalGroup.add(ring1);
-
-  const ringGeo2 = new TorusGeometry(2.98, 0.009, 16, 128);
-  const ring2 = new Mesh(ringGeo2, goldRingMat);
-  ring2.rotation.set(-0.95, -0.42, 0.35);
-  orbitalGroup.add(ring2);
-
-  // Orbiting ringed miniature exoplanet satellite
-  const planetGroup = new Group();
-  const planetGeo = new SphereGeometry(0.125, 24, 24);
-  const planetMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x036296 : 0xf3c979),
-    emissive: new Color(isLight ? 0x023e61 : 0x8f6219),
-    emissiveIntensity: 0.55,
-    metalness: 0.55,
-    roughness: 0.25,
-  });
-  const planetCore = new Mesh(planetGeo, planetMat);
-  planetGroup.add(planetCore);
-
-  const saturnRingGeo = new TorusGeometry(0.24, 0.014, 12, 64);
-  const saturnRing = new Mesh(saturnRingGeo, iceRingMat);
-  saturnRing.rotation.x = Math.PI * 0.38;
-  saturnRing.rotation.y = 0.25;
-  planetGroup.add(saturnRing);
-  orbitalGroup.add(planetGroup);
-
-  const gemGeo = new OctahedronGeometry(0.082, 0);
-  const gemMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x036296 : 0xbae6fd),
-    emissive: new Color(isLight ? 0x024469 : 0x38bdf8),
-    emissiveIntensity: 0.52,
-    metalness: 0.78,
-    roughness: 0.14,
-  });
-  const gems: Mesh[] = [];
-  for (let g = 0; g < 3; g++) {
-    const gem = new Mesh(gemGeo, gemMat);
-    orbitalGroup.add(gem);
-    gems.push(gem);
-  }
-  disposables.push(
-    iceRingMat,
-    goldRingMat,
-    ringGeo1,
-    ringGeo2,
-    planetGeo,
-    planetMat,
-    saturnRingGeo,
-    gemGeo,
-    gemMat,
-  );
+  disposables.push(instrument);
 
   // Dual-tone Interstellar Starfield (Ice-Blue + Solar-Gold stars in 3D space)
   const makeStarCloud = (count: number, size: number, color: number, core: string, mid: string) => {
@@ -720,7 +645,7 @@ export function mountHeroStage(
       map: tex,
       size,
       transparent: true,
-      opacity: isLight ? 0.42 : 0.78,
+      opacity: isLight ? 0.26 : 0.48,
       depthWrite: false,
     });
     const pts = new Points(geo, mat);
@@ -731,14 +656,14 @@ export function mountHeroStage(
 
   const iceStars = makeStarCloud(
     64,
-    0.15,
+    0.055,
     isLight ? 0x036296 : 0xbae6fd,
     "rgba(255,255,255,1)",
     "rgba(125,211,252,0.7)",
   );
   const goldStars = makeStarCloud(
     32,
-    0.17,
+    0.06,
     isLight ? 0x8a5d10 : 0xf3c979,
     "rgba(255,250,235,1)",
     "rgba(243,201,121,0.72)",
@@ -829,21 +754,6 @@ export function mountHeroStage(
 
     orbitalGroup.rotation.z = elapsed * 0.09 + dolly * 1.85;
     orbitalGroup.rotation.y = Math.sin(elapsed * 0.25) * 0.14 + dolly * 0.95;
-
-    // Ringed exoplanet orbital trajectory
-    const pAngle = elapsed * 0.42 + dolly * 1.6;
-    planetGroup.position.set(
-      Math.cos(pAngle) * 2.75,
-      Math.sin(pAngle * 0.85) * 1.28,
-      Math.sin(pAngle) * 1.05,
-    );
-    planetGroup.rotation.y = elapsed * 0.65;
-
-    gems.forEach((gem, i) => {
-      const a = elapsed * 0.55 + (i * Math.PI * 2) / 3;
-      gem.position.set(Math.cos(a) * 2.55, Math.sin(a) * 1.15, Math.sin(a * 1.3) * 0.95);
-      gem.rotation.set(elapsed * 0.9 + i, elapsed * 0.7, 0);
-    });
 
     iceStars.rotation.y = elapsed * 0.032 + smoothPointerX * 0.14 + dolly * 0.9 + spinCurrent * 0.35;
     iceStars.rotation.x = -smoothPointerY * 0.08 + dolly * 0.32;

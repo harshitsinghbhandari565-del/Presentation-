@@ -1282,3 +1282,22 @@ em { font-family: var(--font-editorial); font-style: italic; font-weight: 400; c
 [data-theme="light"] .document-cover { background:linear-gradient(135deg,#e4f1fa,#f5f8fc 60%,#f4ebd7); }
 .resource-card, .subject-card, .featured-editorial, .resource-facts, .source-panel { border-color:color-mix(in oklab,var(--accent) 18%,var(--border)); box-shadow:inset 0 1px 0 color-mix(in oklab,var(--accent) 12%,transparent),var(--shadow); }
 @media (prefers-reduced-motion: reduce) { :root:not([data-force-motion="true"]) .ambient-starfield { transform:none; } }
+
+/* Mission-control details: quiet instrument lines instead of illustrated paper. */
+.hero-stage-aura { opacity: .5; filter: blur(24px); }
+.hero-stage-hud { border-radius: 8px; border-color: color-mix(in oklab, var(--accent) 24%, var(--border)); background: var(--surface); }
+.hero-motion-toggle { border-radius: 5px; }
+.cover-art { background: linear-gradient(90deg, rgba(125,211,252,.045) 1px, transparent 1px), linear-gradient(rgba(125,211,252,.045) 1px, transparent 1px), radial-gradient(ellipse at 78% 34%, rgba(125,211,252,.13), transparent 65%); background-size: 32px 32px, 32px 32px, auto; }
+.cover-orbit { border-style: solid; border-color: rgba(125,211,252,.18); }
+.cover-paper { background: linear-gradient(150deg,#152537,#0a1421); border: 1px solid rgba(125,211,252,.36); color: #e6f3fc; border-radius: 4px; box-shadow: 6px 6px 0 rgba(125,211,252,.06),0 12px 24px rgba(0,0,0,.25); transform: rotate(-3deg) translateY(18px); }
+.resource-card:hover .cover-paper { transform: rotate(-1deg) translateY(12px); }
+.cover-paper .paper-top, .cover-paper .paper-bottom { color: #b6cce0; }
+.cover-paper .paper-bottom { border-color: rgba(125,211,252,.22); }
+.cover-paper .paper-rule { background: #f3c979; }
+.cover-paper .paper-lines i { background: #59748a; }
+:root[data-theme="light"] .cover-art { background: linear-gradient(90deg,rgba(3,98,150,.07) 1px,transparent 1px),linear-gradient(rgba(3,98,150,.07) 1px,transparent 1px),radial-gradient(ellipse at 78% 34%,rgba(3,98,150,.12),transparent 65%); background-size:32px 32px,32px 32px,auto; }
+:root[data-theme="light"] .cover-paper { background: linear-gradient(150deg,#fff,#eaf2f8); border-color:rgba(3,98,150,.36); color:#10243a; box-shadow:6px 6px 0 rgba(3,98,150,.08),0 12px 24px rgba(15,35,55,.12); }
+:root[data-theme="light"] .cover-paper .paper-top, :root[data-theme="light"] .cover-paper .paper-bottom { color:#405b70; }
+:root[data-theme="light"] .cover-paper .paper-bottom { border-color:rgba(3,98,150,.22); }
+:root[data-theme="light"] .cover-paper .paper-rule { background:#8a5d10; }
+:root[data-theme="light"] .cover-paper .paper-lines i { background:#9fb2c2; }
