@@ -28,7 +28,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(validSiteUrl),
   title: { default: "Harshit Presentation Hub — Less searching. More learning.", template: "%s · Harshit Presentation Hub" },
   description: "Discover presentations, notes and study resources in one thoughtfully organized hub. Find your next resource and open it at its original source. No student account needed.",
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [
+      { url: "/images/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/images/brand/favicon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/images/brand/apple-touch-icon.png",
+  },
   alternates: { canonical: "/" },
   openGraph: { type: "website", siteName: "Harshit Presentation Hub", title: "Less searching. More learning.", description: "Good resources deserve a better home. Discover your next study resource, without the endless searching.", url: "/" },
   twitter: { card: "summary", title: "Harshit Presentation Hub", description: "Less searching. More learning." },

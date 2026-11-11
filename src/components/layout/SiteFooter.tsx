@@ -1,6 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Heart } from "lucide-react";
-import Brand from "./Brand";
 import StudioLiveClock from "./StudioLiveClock";
 
 export default function SiteFooter() {
@@ -9,7 +9,9 @@ export default function SiteFooter() {
       <div className="container">
         <div className="footer-main">
           <div>
-            <Brand />
+            <Link href="/" className="footer-brand" aria-label="Harshit Presentation Hub home">
+              <Image src="/images/brand/full-logo.webp" alt="" width={920} height={775} sizes="210px" />
+            </Link>
             <p className="footer-description">
               A little more organized.
               <br />A lot more ready to learn.
