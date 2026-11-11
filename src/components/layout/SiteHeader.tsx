@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import Brand from "./Brand";
+import MotionToggle from "./MotionToggle";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import ProjectorModeToggle from "@/components/projector/ProjectorModeToggle";
 import CommandTrigger from "@/components/command/CommandTrigger";
@@ -24,6 +25,7 @@ export default function SiteHeader() {
         {links.map(link => <Link key={link.href} href={link.href} className={pathname === link.href ? "nav-link active" : "nav-link"} aria-current={pathname === link.href ? "page" : undefined}>{link.label}</Link>)}
       </nav>
       <div className="header-actions">
+        <MotionToggle />
         <CommandTrigger />
         <span className="header-divider" />
         <span className="projector-desktop"><ProjectorModeToggle /></span>

@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Boxes, LoaderCircle, RotateCw } from "lucide-react";
+import { canRun3DMotion, subscribeMotionPaused } from "@/components/layout/motion-state";
 import { subscribeToProjectorMode, useProjectorMode } from "@/components/projector/ProjectorModeToggle";
 import type { ShelfController } from "./shelf-scene";
 
@@ -97,24 +98,35 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
   useEffect(() => {
     const el = host.current;
     if (!el || projectorMode) return;
-    const media = window.matchMedia("(prefers-reduced-motion: no-preference)");
-    if (!media.matches) return;
 
-    if (typeof IntersectionObserver === "undefined") {
-      const timer = window.setTimeout(() => { void load(); }, 0);
-      return () => window.clearTimeout(timer);
-    }
-    const io = new IntersectionObserver(
-      entries => {
-        if (entries[0]?.isIntersecting) {
-          io.disconnect();
-          void load();
-        }
-      },
-      { rootMargin: "260px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
+    let io: IntersectionObserver | undefined;
+    const arm = () => {
+      io?.disconnect();
+      if (!canRun3DMotion()) return;
+      if (typeof IntersectionObserver === "undefined") {
+        window.setTimeout(() => { void load(); }, 0);
+        return;
+      }
+      io = new IntersectionObserver(
+        entries => {
+          if (entries[0]?.isIntersecting) {
+            io?.disconnect();
+            void load();
+          }
+        },
+        { rootMargin: "260px" },
+      );
+      io.observe(el);
+    };
+
+    arm();
+    const unsubMotion = subscribeMotionPaused(() => {
+      if (canRun3DMotion() && !controllerRef.current) arm();
+    });
+    return () => {
+      io?.disconnect();
+      unsubMotion();
+    };
   }, [load, projectorMode]);
 
   // Re-mount 3D textures cleanly on theme toggle if already active

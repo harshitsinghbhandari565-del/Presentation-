@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { canRun3DMotion, subscribeMotionPaused } from "./motion-state";
 
 /**
  * Cinematic WebGL volumetric light & aurora layer.
  * Lazy-imported after idle so initial paint stays instant; re-syncs
- * automatically on theme switches and projector-mode changes.
+ * automatically on theme switches, motion overrides, and projector-mode changes.
  */
 export default function AmbientGL() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -17,7 +18,7 @@ export default function AmbientGL() {
     let cancelled = false;
     let revision = 0;
 
-    const allowed = () => !cancelled && media.matches && !document.documentElement.classList.contains("projector-mode");
+    const allowed = () => !cancelled && canRun3DMotion();
     const stop = () => {
       revision += 1;
       cleanup?.();
@@ -45,6 +46,7 @@ export default function AmbientGL() {
 
     const onChange = () => { void start(); };
     media.addEventListener("change", onChange);
+    const unsubMotion = subscribeMotionPaused(onChange);
     const observer = new MutationObserver(onChange);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
 
@@ -52,6 +54,7 @@ export default function AmbientGL() {
       cancelled = true;
       cancelIdle(handle);
       media.removeEventListener("change", onChange);
+      unsubMotion();
       observer.disconnect();
       stop();
     };

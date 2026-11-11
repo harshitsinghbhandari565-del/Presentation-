@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, FileText, Move3d, Pause, Play, Sparkles } from "lucide-react";
 import type { EducationalDocument } from "@/types/document";
-import { toggleMotionPaused, useMotionPaused } from "@/components/layout/motion-state";
+import { canRun3DMotion, subscribeMotionPaused, toggleMotionPaused, useMotionStatus } from "@/components/layout/motion-state";
 import { subscribeToProjectorMode, useProjectorMode } from "@/components/projector/ProjectorModeToggle";
 
 /**
@@ -14,7 +14,7 @@ import { subscribeToProjectorMode, useProjectorMode } from "@/components/project
 export default function HeroScene({ document: resource }: { document?: EducationalDocument }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"fallback" | "ready">("fallback");
-  const paused = useMotionPaused();
+  const motionStatus = useMotionStatus();
   const projectorMode = useProjectorMode();
 
   useEffect(() => {
@@ -25,10 +25,7 @@ export default function HeroScene({ document: resource }: { document?: Education
     let cancelled = false;
     let revision = 0;
 
-    const allowed = () =>
-      !cancelled &&
-      media.matches &&
-      !document.documentElement.classList.contains("projector-mode");
+    const allowed = () => !cancelled && canRun3DMotion();
 
     const stop = () => {
       revision += 1;
@@ -60,6 +57,13 @@ export default function HeroScene({ document: resource }: { document?: Education
     const handle = window.setTimeout(() => { void start(); }, 40);
     const onChange = () => { void start(); };
     media.addEventListener("change", onChange);
+    const unsubMotion = subscribeMotionPaused(() => {
+      if (canRun3DMotion() && !cleanup) {
+        void start();
+      } else if (!canRun3DMotion() && cleanup) {
+        stop();
+      }
+    });
 
     const themeObserver = new MutationObserver(() => { void start(); });
     themeObserver.observe(document.documentElement, {
@@ -72,6 +76,7 @@ export default function HeroScene({ document: resource }: { document?: Education
       cancelled = true;
       window.clearTimeout(handle);
       media.removeEventListener("change", onChange);
+      unsubMotion();
       themeObserver.disconnect();
       unsubProjector();
       stop();
@@ -125,7 +130,7 @@ export default function HeroScene({ document: resource }: { document?: Education
 
       {!projectorMode && (
         <div className="hero-stage-hud">
-          {visibleState === "ready" && (
+          {visibleState === "ready" && motionStatus === "active" && (
             <span className="hero-hud-hint" aria-hidden="true">
               <Move3d size={13} />
               Drag or move to tilt 3D
@@ -133,12 +138,18 @@ export default function HeroScene({ document: resource }: { document?: Education
           )}
           <button
             type="button"
-            className="hero-motion-toggle"
+            className={motionStatus === "os-blocked" ? "hero-motion-toggle hero-motion-alert" : "hero-motion-toggle"}
             onClick={() => toggleMotionPaused()}
-            aria-pressed={paused}
+            aria-pressed={motionStatus !== "active"}
           >
-            {paused ? <Play size={12} /> : <Pause size={12} />}
-            <span>{paused ? "Resume motion" : "Pause motion"}</span>
+            {motionStatus !== "active" ? <Play size={12} /> : <Pause size={12} />}
+            <span>
+              {motionStatus === "os-blocked"
+                ? "OS Reduced Motion On — Tap to Enable 3D"
+                : motionStatus === "paused"
+                  ? "Resume 3D motion"
+                  : "Pause motion"}
+            </span>
           </button>
         </div>
       )}

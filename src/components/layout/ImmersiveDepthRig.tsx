@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { isMotionPaused, subscribeMotionPaused } from "./motion-state";
+import { canRun3DMotion, subscribeMotionPaused, syncForceDataset } from "./motion-state";
 
 const SCROLL_3D_SELECTOR = [
   ".section-heading",
@@ -82,10 +82,8 @@ export default function ImmersiveDepthRig() {
       });
     };
 
-    const canAnimate = () =>
-      motionMedia.matches &&
-      !document.documentElement.classList.contains("projector-mode") &&
-      !isMotionPaused();
+    syncForceDataset();
+    const canAnimate = () => canRun3DMotion();
 
     const stepFrame = () => {
       raf = 0;

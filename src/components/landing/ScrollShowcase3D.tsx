@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, Layers, Orbit, ShieldCheck, Sparkles } from "lucide-react";
 import type { EducationalDocument } from "@/types/document";
+import { canRun3DMotion, subscribeMotionPaused } from "@/components/layout/motion-state";
 import { subscribeToProjectorMode, useProjectorMode } from "@/components/projector/ProjectorModeToggle";
 import type { ShowcaseController } from "./scroll-showcase-3d";
 
@@ -60,12 +61,11 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
   useEffect(() => {
     const track = trackRef.current;
     if (!track || projectorMode) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduce.matches) return;
 
     let raf = 0;
     const update = () => {
       raf = 0;
+      if (!canRun3DMotion()) return;
       const rect = track.getBoundingClientRect();
       const scrollable = Math.max(1, rect.height - window.innerHeight);
       const raw = -rect.top / scrollable;
@@ -91,8 +91,10 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
+    const unsubMotion = subscribeMotionPaused(onScroll);
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      unsubMotion();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -118,12 +120,12 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
     const start = async () => {
       stop();
       const current = revision;
-      if (cancelled || !motionOk.matches || document.documentElement.classList.contains("projector-mode")) {
+      if (cancelled || !canRun3DMotion()) {
         return;
       }
       try {
         const { mountScrollShowcase } = await import("./scroll-showcase-3d");
-        if (cancelled || current !== revision || !motionOk.matches) return;
+        if (cancelled || current !== revision || !canRun3DMotion()) return;
         const ctrl = mountScrollShowcase(host, resource, () => {
           if (current === revision) {
             ctrlRef.current = undefined;
@@ -171,12 +173,21 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
     });
     const onMotion = () => { void start(); };
     motionOk.addEventListener("change", onMotion);
+    const unsubMotion = subscribeMotionPaused(() => {
+      if (canRun3DMotion() && !ctrlRef.current) {
+        io?.disconnect();
+        void start();
+      } else if (!canRun3DMotion() && ctrlRef.current) {
+        stop();
+      }
+    });
 
     return () => {
       cancelled = true;
       io?.disconnect();
       themeObserver.disconnect();
       unsubProjector();
+      unsubMotion();
       motionOk.removeEventListener("change", onMotion);
       stop();
     };
