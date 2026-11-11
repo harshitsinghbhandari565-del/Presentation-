@@ -43,7 +43,7 @@ export default function StudioLiveClock() {
   return (
     <span className="studio-live-clock" aria-hidden="true">
       <span className="studio-clock-dot" />
-      <span>LIVE STUDIO · {label}</span>
+      <span>ORBITAL TELEMETRY · {label}</span>
     </span>
   );
 }

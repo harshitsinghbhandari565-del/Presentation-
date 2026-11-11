@@ -70,32 +70,32 @@ function paintFolioCover(
       grad.addColorStop(0, "#ffffff");
       grad.addColorStop(1, "#e7ebfa");
     } else {
-      grad.addColorStop(0, "#252e4c");
-      grad.addColorStop(1, "#14192b");
+      grad.addColorStop(0, "#12223a");
+      grad.addColorStop(1, "#080e19");
     }
   } else {
     if (isLight) {
       grad.addColorStop(0, "#f3f5fb");
       grad.addColorStop(1, "#e5e9f4");
     } else {
-      grad.addColorStop(0, "#181d2b");
-      grad.addColorStop(1, "#10141f");
+      grad.addColorStop(0, "#101a2a");
+      grad.addColorStop(1, "#080d17");
     }
   }
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
   // Accent bar at top
-  ctx.fillStyle = item.live ? (isLight ? "#5157c4" : "#a5aaff") : (isLight ? "#b4bdd4" : "#364057");
+  ctx.fillStyle = item.live ? (isLight ? "#036296" : "#7dd3fc") : (isLight ? "#b4bdd4" : "#364057");
   ctx.fillRect(42, 46, W - 84, 8);
 
   // Index number
-  ctx.fillStyle = item.live ? (isLight ? "#5157c4" : "#a5aaff") : (isLight ? "#7a849d" : "#75809c");
+  ctx.fillStyle = item.live ? (isLight ? "#036296" : "#7dd3fc") : (isLight ? "#7a849d" : "#75809c");
   ctx.font = `600 26px ${SANS_FONT_STACK}`;
   ctx.fillText(`0${index + 1}`, 42, 108);
 
   // Status badge
-  ctx.fillStyle = item.live ? "#91d8bd" : (isLight ? "#8a94ad" : "#717c98");
+  ctx.fillStyle = item.live ? "#6ee7b7" : (isLight ? "#8a94ad" : "#717c98");
   ctx.font = `600 19px ${SANS_FONT_STACK}`;
   ctx.textAlign = "right";
   ctx.fillText(item.live ? "LIVE SHELF" : "UPCOMING", W - 42, 106);
@@ -111,7 +111,7 @@ function paintFolioCover(
 
   // Decorative architectural lines
   ctx.strokeStyle = item.live
-    ? (isLight ? "rgba(81,87,196,0.24)" : "rgba(165,170,255,0.28)")
+    ? (isLight ? "rgba(3,98,150,0.24)" : "rgba(125,211,252,0.28)")
     : (isLight ? "rgba(30,41,75,0.1)" : "rgba(255,255,255,0.085)");
   ctx.lineWidth = 2.6;
   for (let i = 0; i < 3; i++) {
@@ -123,7 +123,7 @@ function paintFolioCover(
   }
 
   // Bottom count label
-  ctx.fillStyle = item.live ? (isLight ? "#237457" : "#91d8bd") : (isLight ? "#5c677d" : "#8790a8");
+  ctx.fillStyle = item.live ? (isLight ? "#0f7656" : "#6ee7b7") : (isLight ? "#5c677d" : "#8790a8");
   ctx.font = `500 24px ${SANS_FONT_STACK}`;
   ctx.fillText(
     item.live ? `${item.count} curated resource${item.count !== 1 ? "s" : ""}` : "Ready for future decks",
@@ -133,7 +133,7 @@ function paintFolioCover(
 
   // Frame border
   ctx.strokeStyle = item.live
-    ? (isLight ? "rgba(81,87,196,0.38)" : "rgba(165,170,255,0.44)")
+    ? (isLight ? "rgba(3,98,150,0.38)" : "rgba(125,211,252,0.44)")
     : (isLight ? "rgba(30,41,75,0.16)" : "rgba(255,255,255,0.12)");
   ctx.lineWidth = 5;
   ctx.strokeRect(3, 3, W - 6, H - 6);
@@ -170,7 +170,7 @@ function paintFolioSpine(
     : (isLight ? "#e6eaf4" : "#181e2c");
   ctx.fillRect(0, 0, W, H);
 
-  ctx.fillStyle = item.live ? (isLight ? "#5157c4" : "#a5aaff") : (isLight ? "#9aa4bd" : "#444e66");
+  ctx.fillStyle = item.live ? (isLight ? "#036296" : "#7dd3fc") : (isLight ? "#9aa4bd" : "#444e66");
   ctx.fillRect(20, 36, W - 40, 8);
 
   ctx.save();
@@ -242,12 +242,12 @@ export function mountShelf(
   const turntable = new Group();
   scene.add(turntable);
 
-  scene.add(new AmbientLight(isLight ? 0xffffff : 0xdbe0ff, isLight ? 1.35 : 0.98));
+  scene.add(new AmbientLight(isLight ? 0xffffff : 0xd4e8ff, isLight ? 1.35 : 0.98));
   const key = new DirectionalLight(0xffffff, isLight ? 1.4 : 1.68);
   key.position.set(3.2, 4.8, 5.2);
   scene.add(key);
 
-  const rim = new PointLight(isLight ? 0x5157c4 : 0xa5aaff, isLight ? 2.0 : 3.4, 10, 1.5);
+  const rim = new PointLight(isLight ? 0x036296 : 0x7dd3fc, isLight ? 2.0 : 3.4, 10, 1.5);
   rim.position.set(-2.5, 2.0, 3.2);
   scene.add(rim);
 
@@ -283,7 +283,7 @@ export function mountShelf(
       metalness: 0.1,
     });
     const edgeMat = new MeshStandardMaterial({
-      color: new Color(item.live ? (isLight ? 0xd9dff4 : 0x2c3556) : (isLight ? 0xe5e9f3 : 0x1b2130)),
+      color: new Color(item.live ? (isLight ? 0xd9dff4 : 0x1a3048) : (isLight ? 0xe5e9f3 : 0x1b2130)),
       roughness: 0.42,
       metalness: 0.35,
     });
@@ -314,7 +314,7 @@ export function mountShelf(
   // Architectural cylindrical studio pedestal + glowing accent halo ring
   const plinthGeo = new CylinderGeometry(2.35, 2.52, 0.18, 80);
   const plinthMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0xe2e6f3 : 0x161b28),
+    color: new Color(isLight ? 0xe2e6f3 : 0x101a2b),
     metalness: isLight ? 0.2 : 0.62,
     roughness: 0.35,
   });
@@ -324,8 +324,8 @@ export function mountShelf(
 
   const haloGeo = new TorusGeometry(2.42, 0.014, 16, 128);
   const haloMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x5157c4 : 0x9aa2ff),
-    emissive: new Color(isLight ? 0x3b41a8 : 0x5860d8),
+    color: new Color(isLight ? 0x036296 : 0x7dd3fc),
+    emissive: new Color(isLight ? 0x024469 : 0x256b96),
     emissiveIntensity: 0.5,
     metalness: 0.8,
     roughness: 0.2,
@@ -334,7 +334,13 @@ export function mountShelf(
   halo.rotation.x = Math.PI / 2;
   halo.position.y = -0.59;
   turntable.add(halo);
-  disposables.push(plinthGeo, plinthMat, haloGeo, haloMat);
+  const goldHaloGeo = new TorusGeometry(2.28, 0.009, 12, 128);
+  const goldHaloMat = new MeshStandardMaterial({ color: isLight ? 0x8a5d10 : 0xf3c979, emissive: isLight ? 0x5e3e08 : 0x8c641e, emissiveIntensity: 0.45, metalness: 0.8, roughness: 0.2 });
+  const goldHalo = new Mesh(goldHaloGeo, goldHaloMat);
+  goldHalo.rotation.x = Math.PI / 2;
+  goldHalo.position.y = -0.58;
+  turntable.add(goldHalo);
+  disposables.push(plinthGeo, plinthMat, haloGeo, haloMat, goldHaloGeo, goldHaloMat);
 
   let disposed = false;
   let inView = true;

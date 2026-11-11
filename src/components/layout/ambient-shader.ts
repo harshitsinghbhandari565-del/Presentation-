@@ -15,6 +15,7 @@ uniform vec2 m;
 uniform float s;
 
 float h(vec2 x){return fract(sin(dot(x,vec2(127.1,311.7)))*43758.5453123);}
+vec2 h2(vec2 x){return fract(sin(vec2(dot(x,vec2(127.1,311.7)),dot(x,vec2(269.5,183.3))))*43758.5453);}
 float n(vec2 x){
   vec2 i=floor(x),f=fract(x);
   f=f*f*(3.-2.*f);
@@ -26,47 +27,65 @@ float fbm(vec2 p){
   for(int i=0;i<4;i++){v+=a*n(p);p=rot*p*2.03+vec2(1.7,9.2);a*=.5;}
   return v;
 }
+vec3 stars(vec2 uv,float scale,float density,float time,vec3 iceCol,vec3 goldCol){
+  vec2 gv=uv*scale;
+  vec2 id=floor(gv);
+  vec2 f=fract(gv)-.5;
+  vec2 rnd=h2(id);
+  float keep=step(density,rnd.x);
+  vec2 offset=(rnd-.5)*.72;
+  float d=length(f-offset);
+  float twinkle=.62+.38*sin(time*2.1+rnd.y*62.83);
+  float spark=(1.-smoothstep(0.,.085,d))*keep*twinkle;
+  float halo=exp(-d*18.)*.18*keep*twinkle;
+  vec3 tint=mix(iceCol,goldCol,step(.76,rnd.y));
+  return tint*(spark+halo);
+}
 void main(){
   vec2 u=gl_FragCoord.xy/r;
   float aspect=r.x/max(r.y,1.);
-  vec2 p=vec2((u.x-.5)*aspect,u.y-.5+s*.12);
+  vec2 p=vec2((u.x-.5)*aspect,u.y-.5+s*.14);
 
-  float slow=t*.075;
-  vec2 q=vec2(fbm(p*1.6+vec2(slow,-.6*slow)),fbm(p*1.6+vec2(-.5*slow,slow)+3.1));
-  vec2 w=vec2(fbm(p*2.2+1.4*q+vec2(1.7,9.2)+slow*.7),fbm(p*2.2+1.4*q+vec2(8.3,2.8)-slow*.5));
-  float silk=fbm(p*1.9+w*.85);
+  float slow=t*.055;
+  vec2 q=vec2(fbm(p*1.55+vec2(slow,-.5*slow)),fbm(p*1.55+vec2(-.45*slow,slow)+3.1));
+  vec2 w=vec2(fbm(p*2.15+1.35*q+vec2(1.7,9.2)+slow*.65),fbm(p*2.15+1.35*q+vec2(8.3,2.8)-slow*.45));
+  float nebula=fbm(p*1.85+w*.88);
 
-  // Diagonal volumetric studio light beams from upper-right
-  vec2 origin=vec2(.42*aspect,.58)+((m-.5)*vec2(.18,.12));
-  vec2 dir=p-origin;
-  float dist=length(dir);
-  float angle=atan(dir.y,dir.x+1e-5);
-  float rays=n(vec2(angle*5.5+slow*1.1,dist*1.4-slow*.6))*.65+n(vec2(angle*11.-slow*.8,dist*2.2))*.35;
-  float cone=smoothstep(1.55,.08,dist)*smoothstep(-.98,-.15,sin(angle));
-  float beam=pow(clamp(rays,.0001,1.),1.8)*cone;
+  // Curved orbital planetary limb & solar corona arc in upper-right quadrant
+  vec2 planetCenter=vec2(.62*aspect,-.62)+((m-.5)*vec2(.08,.06));
+  float limbDist=abs(length(p-planetCenter)-1.18);
+  float limbArc=exp(-limbDist*7.5)*smoothstep(-.35,.48,p.y)*smoothstep(-.15,.55,p.x);
 
-  // Horizon depth glow + cursor halo
+  // Volumetric cosmic dust + cursor telemetry halo
   vec2 cursor=vec2((m.x-.5)*aspect,m.y-.5);
-  float halo=exp(-dot(p-cursor,p-cursor)*4.2)*.28;
-  float ribbon=smoothstep(.30,.78,silk)*smoothstep(1.35,.15,length(p-vec2(.18*aspect,.12)));
+  float halo=exp(-dot(p-cursor,p-cursor)*4.4)*.26;
+  float cloud=smoothstep(.32,.80,nebula)*(1.-smoothstep(.12,1.45,length(p-vec2(.20*aspect,.14))));
 
-  // Blend studio accent & secondarymint/violet harmonic into theme background
-  vec3 secondary=mix(c,vec3(.42,.82,.76),.28);
+  vec3 gold=vec3(.953,.788,.475);
   float lumaBg=dot(b,vec3(.299,.587,.114));
-  float intensity=mix(.34,.18,smoothstep(.2,.8,lumaBg));
+  float isDark=1.-smoothstep(.15,.65,lumaBg);
+  float intensity=mix(.16,.36,isDark);
 
   vec3 col=b;
-  col=mix(col,c,clamp((ribbon*.65+beam*.75+halo)*intensity,0.,.52));
-  col+=secondary*beam*intensity*.32;
+  col=mix(col,c,clamp((cloud*.68+limbArc*.85+halo)*intensity,0.,.54));
+  col+=gold*(limbArc*.52+pow(cloud,2.2)*.28)*intensity;
 
-  // Subtle filmic grain to prevent 8-bit gradient banding
+  // 3-layer parallax drifting interstellar starfield (prominent in dark cosmos, subtle in lunar daylight)
+  vec2 par=(m-.5);
+  vec3 iceStar=mix(vec3(.92,.96,1.),c,.35);
+  vec3 st=vec3(0.);
+  st+=stars(p+par*.018+vec2(slow*.18,s*.06),26.,.84,t,iceStar,gold)*.95;
+  st+=stars(p+par*.035+vec2(-slow*.11,s*.11),46.,.89,t*1.2,iceStar,gold)*.7;
+  st+=stars(p+par*.055+vec2(slow*.07,s*.17),78.,.92,t*.85,iceStar,gold)*.45;
+  col+=st*mix(.08,.92,isDark);
+
   float dither=(h(gl_FragCoord.xy+fract(t))-0.5)/255.0;
   gl_FragColor=vec4(clamp(col+dither,0.,1.),1.);
 }`;
 
 export type RGB = readonly [number, number, number];
-const FALLBACK_ACCENT: RGB = [165 / 255, 170 / 255, 1];
-const FALLBACK_BG: RGB = [9 / 255, 11 / 255, 16 / 255];
+const FALLBACK_ACCENT: RGB = [125 / 255, 211 / 255, 252 / 255];
+const FALLBACK_BG: RGB = [5 / 255, 7 / 255, 12 / 255];
 
 /** Parse the site's hex/RGB colour tokens without executing CSS or using a GPU. */
 export function parseCssColor(value: string, fallback: RGB): RGB {

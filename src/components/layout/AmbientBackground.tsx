@@ -2,15 +2,17 @@ import AmbientGL from "./AmbientGL";
 import ImmersiveDepthRig from "./ImmersiveDepthRig";
 
 /**
- * Full-page 3D spatial atmosphere + volumetric hero shader + 60fps scroll rig.
- * Fixed viewport depth planes travel down the entire page at 0 layout cost,
- * standing down cleanly in projector-mode, forced-colors, and reduced-motion.
+ * Full-page Interstellar Orbital Command atmosphere + 3-layer WebGL starfield/nebula + 60fps 3D scroll rig.
+ * Fixed viewport starlight, solar-gold/ice-blue nebula orbs, planetary horizon limb, and coordinate grid
+ * travel down every route at 0 layout cost, standing down cleanly in projector-mode and reduced-motion.
  */
 export default function AmbientBackground() {
   return (
     <>
       <ImmersiveDepthRig />
       <div className="ambient-viewport-field" aria-hidden="true">
+        <div className="ambient-starfield" />
+        <div className="ambient-planet-arc" />
         <div className="ambient-cursor-halo" />
         <div className="ambient-orb ambient-orb-indigo" />
         <div className="ambient-orb ambient-orb-emerald" />

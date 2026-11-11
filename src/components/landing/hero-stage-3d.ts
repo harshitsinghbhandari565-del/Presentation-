@@ -19,6 +19,7 @@ import {
   PointsMaterial,
   Scene,
   Shape,
+  SphereGeometry,
   TorusGeometry,
   WebGLRenderer,
 } from "three";
@@ -42,6 +43,8 @@ interface CardSpec {
   footerLeft: string;
   footerRight: string;
   accentHex: string;
+  secondaryHex: string;
+  sectorCode: string;
   variant: "primary" | "secondary" | "tertiary";
 }
 
@@ -64,6 +67,40 @@ function drawRoundedRect(
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
+}
+
+function drawHudCornerBrackets(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  len: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = "square";
+  ctx.beginPath();
+  // Top-left
+  ctx.moveTo(x, y + len);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + len, y);
+  // Top-right
+  ctx.moveTo(x + w - len, y);
+  ctx.lineTo(x + w, y);
+  ctx.lineTo(x + w, y + len);
+  // Bottom-right
+  ctx.moveTo(x + w, y + h - len);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x + w - len, y + h);
+  // Bottom-left
+  ctx.moveTo(x + len, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.lineTo(x, y + h - len);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function wrapLines(
@@ -98,7 +135,7 @@ function paintCardFace(
   isLight: boolean,
 ) {
   const pad = 20;
-  const radius = 52;
+  const radius = 50;
 
   ctx.clearRect(0, 0, W, H);
 
@@ -107,54 +144,68 @@ function paintCardFace(
   ctx.save();
   ctx.clip();
 
-  // Studio surface gradient
+  // Interstellar hull surface gradient
   const bgGrad = ctx.createLinearGradient(0, 0, W, H);
   if (isLight) {
-    bgGrad.addColorStop(0, spec.variant === "primary" ? "#ffffff" : "#f7f9ff");
-    bgGrad.addColorStop(1, spec.variant === "primary" ? "#eef1fc" : "#e6ebf9");
+    bgGrad.addColorStop(0, spec.variant === "primary" ? "#ffffff" : "#f5f9ff");
+    bgGrad.addColorStop(1, spec.variant === "primary" ? "#e6effa" : "#dce8f7");
   } else {
-    bgGrad.addColorStop(0, spec.variant === "primary" ? "#1b2236" : "#161b2c");
-    bgGrad.addColorStop(0.55, spec.variant === "primary" ? "#121726" : "#0f1422");
-    bgGrad.addColorStop(1, "#0b0e18");
+    bgGrad.addColorStop(0, spec.variant === "primary" ? "#111c30" : "#0d1626");
+    bgGrad.addColorStop(0.52, spec.variant === "primary" ? "#0a111f" : "#080e1a");
+    bgGrad.addColorStop(1, "#04070e");
   }
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // Top-right radial studio glow
-  const glow = ctx.createRadialGradient(W * 0.82, H * 0.14, 10, W * 0.82, H * 0.14, W * 0.72);
-  glow.addColorStop(0, isLight ? "rgba(81,87,196,0.15)" : "rgba(165,170,255,0.22)");
-  glow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = glow;
+  // Dual cosmic nebula glow (Ice-Blue upper right + Solar-Gold lower left)
+  const glowIce = ctx.createRadialGradient(W * 0.84, H * 0.14, 10, W * 0.84, H * 0.14, W * 0.74);
+  glowIce.addColorStop(0, isLight ? "rgba(3,98,150,0.14)" : "rgba(125,211,252,0.22)");
+  glowIce.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = glowIce;
   ctx.fillRect(0, 0, W, H);
 
-  // Crisp architectural grid hairlines in header zone
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.065)" : "rgba(255,255,255,0.042)";
-  ctx.lineWidth = 1.25;
+  const glowGold = ctx.createRadialGradient(W * 0.16, H * 0.86, 10, W * 0.16, H * 0.86, W * 0.62);
+  glowGold.addColorStop(0, isLight ? "rgba(138,93,16,0.09)" : "rgba(243,201,121,0.13)");
+  glowGold.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = glowGold;
+  ctx.fillRect(0, 0, W, H);
+
+  // Orbital star-chart coordinate grid hairlines
+  ctx.strokeStyle = isLight ? "rgba(3,98,150,0.065)" : "rgba(125,211,252,0.055)";
+  ctx.lineWidth = 1.2;
   for (let gx = 80; gx < W; gx += 76) {
     ctx.beginPath();
     ctx.moveTo(gx, 0);
-    ctx.lineTo(gx, H * 0.48);
+    ctx.lineTo(gx, H * 0.5);
+    ctx.stroke();
+  }
+  for (let gy = 84; gy < H * 0.46; gy += 76) {
+    ctx.beginPath();
+    ctx.moveTo(pad, gy);
+    ctx.lineTo(W - pad, gy);
     ctx.stroke();
   }
 
-  // Header bar
+  // Header telemetry divider
   const headerH = 136;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.1)";
+  ctx.strokeStyle = isLight ? "rgba(12,20,36,0.11)" : "rgba(125,211,252,0.14)";
   ctx.lineWidth = 1.75;
   ctx.beginPath();
   ctx.moveTo(pad, pad + headerH);
   ctx.lineTo(W - pad, pad + headerH);
   ctx.stroke();
 
-  // Icon badge box
+  // Flight-deck icon badge box
   drawRoundedRect(ctx, 66, 58, 68, 68, 18);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.10)" : "rgba(165,170,255,0.15)";
+  ctx.fillStyle = isLight ? "rgba(3,98,150,0.09)" : "rgba(125,211,252,0.12)";
   ctx.fill();
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.3)" : "rgba(165,170,255,0.38)";
-  ctx.lineWidth = 1.8;
+  ctx.strokeStyle = spec.accentHex;
+  ctx.globalAlpha = 0.52;
+  ctx.lineWidth = 1.9;
   ctx.stroke();
+  ctx.globalAlpha = 1;
 
-  // Document glyph inside icon box
+  // Document telemetry glyph inside icon box
   ctx.strokeStyle = spec.accentHex;
   ctx.lineWidth = 3.2;
   ctx.lineCap = "round";
@@ -168,23 +219,24 @@ function paintCardFace(
   ctx.lineTo(105, 95);
   ctx.stroke();
 
-  // Platform label + status dot
-  ctx.fillStyle = isLight ? "#141a2b" : "#f7f8fc";
+  // Platform label + Solar-Gold / Emerald status beacon
+  ctx.fillStyle = isLight ? "#0c1424" : "#f4f8ff";
   ctx.font = `600 25px ${SANS_FONT_STACK}`;
   ctx.fillText(spec.badge, 154, 88);
 
-  ctx.fillStyle = "#91d8bd";
+  ctx.fillStyle = spec.secondaryHex;
   ctx.beginPath();
   ctx.arc(162, 113, 5.5, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = isLight ? "#505a70" : "#a8b1c8";
-  ctx.font = `500 19px ${SANS_FONT_STACK}`;
-  ctx.fillText("Verified classroom source", 176, 119);
+  ctx.fillStyle = isLight ? "#43526b" : "#9db0ca";
+  ctx.font = `500 18px ${SANS_FONT_STACK}`;
+  ctx.fillText(`${spec.sectorCode} • VERIFIED TELEMETRY`, 176, 119);
 
-  // Window dots on right
+  // Telemetry beacon dots on right
+  const dotPalette = [spec.accentHex, spec.secondaryHex, isLight ? "rgba(12,20,36,0.22)" : "rgba(255,255,255,0.28)"];
   for (let d = 0; d < 3; d++) {
-    ctx.fillStyle = isLight ? "rgba(30,41,75,0.22)" : "rgba(255,255,255,0.26)";
+    ctx.fillStyle = dotPalette[d];
     ctx.beginPath();
     ctx.arc(W - 118 + d * 20, 92, 4.5, 0, Math.PI * 2);
     ctx.fill();
@@ -197,7 +249,7 @@ function paintCardFace(
   ctx.fillText(spec.eyebrow.toUpperCase(), 68, bodyTop);
 
   // Title
-  ctx.fillStyle = isLight ? "#111728" : "#f9faff";
+  ctx.fillStyle = isLight ? "#0c1424" : "#f8fbff";
   ctx.font = `600 54px ${SANS_FONT_STACK}`;
   const titleLines = wrapLines(ctx, spec.title, W - 136, 2);
   titleLines.forEach((line, idx) => {
@@ -206,83 +258,92 @@ function paintCardFace(
 
   // Editorial italic subtitle
   const subY = bodyTop + 68 + titleLines.length * 62 + 16;
-  ctx.fillStyle = isLight ? "#444e66" : "#bcc4da";
+  ctx.fillStyle = isLight ? "#43526b" : "#b5c4da";
   ctx.font = `italic 30px ${SERIF_FONT_STACK}`;
   const subLines = wrapLines(ctx, spec.subtitle, W - 136, 2);
   subLines.forEach((line, idx) => {
     ctx.fillText(line, 68, subY + idx * 38);
   });
 
-  // Visual presentation slide preview deck box
+  // Holographic orbital telemetry bay
   const deckY = 530;
   const deckH = 310;
   drawRoundedRect(ctx, 68, deckY, W - 136, deckH, 28);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.055)" : "rgba(255,255,255,0.04)";
+  ctx.fillStyle = isLight ? "rgba(3,98,150,0.05)" : "rgba(125,211,252,0.045)";
   ctx.fill();
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.2)" : "rgba(165,170,255,0.22)";
+  ctx.strokeStyle = isLight ? "rgba(3,98,150,0.22)" : "rgba(125,211,252,0.24)";
   ctx.lineWidth = 1.8;
   ctx.stroke();
 
-  // Miniature slide modules inside preview box
-  const barColors = [spec.accentHex, "#91d8bd", "#e2c58c"];
-  const widths = [0.78, 0.58, 0.42];
+  // Miniature telemetry bars inside bay
+  const barColors = [spec.accentHex, spec.secondaryHex, isLight ? "#0f7656" : "#6ee7b7"];
+  const widths = [0.80, 0.60, 0.44];
   for (let i = 0; i < 3; i++) {
     const by = deckY + 46 + i * 64;
     drawRoundedRect(ctx, 104, by, W - 320, 22, 11);
-    ctx.fillStyle = isLight ? "rgba(30,41,75,0.08)" : "rgba(255,255,255,0.07)";
+    ctx.fillStyle = isLight ? "rgba(12,20,36,0.08)" : "rgba(255,255,255,0.07)";
     ctx.fill();
     drawRoundedRect(ctx, 104, by, (W - 320) * widths[i], 22, 11);
     ctx.fillStyle = barColors[i];
-    ctx.globalAlpha = 0.88;
+    ctx.globalAlpha = 0.9;
     ctx.fill();
     ctx.globalAlpha = 1;
   }
 
-  // Circular radial stat dial on right side of deck box
+  // Dual-ring astrolabe telemetry dial on right side of bay
   const cx = W - 166;
   const cy = deckY + 136;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.11)";
-  ctx.lineWidth = 10;
+  ctx.strokeStyle = isLight ? "rgba(12,20,36,0.11)" : "rgba(125,211,252,0.14)";
+  ctx.lineWidth = 9;
   ctx.beginPath();
-  ctx.arc(cx, cy, 52, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 54, 0, Math.PI * 2);
   ctx.stroke();
 
   ctx.strokeStyle = spec.accentHex;
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.arc(cx, cy, 52, -Math.PI / 2, Math.PI * 0.85);
+  ctx.arc(cx, cy, 54, -Math.PI / 2, Math.PI * 0.88);
   ctx.stroke();
   ctx.lineCap = "butt";
 
-  ctx.fillStyle = isLight ? "#141a2b" : "#f7f8fc";
-  ctx.font = `600 24px ${SANS_FONT_STACK}`;
+  // Inner Solar-Gold orbital ring
+  ctx.strokeStyle = spec.secondaryHex;
+  ctx.lineWidth = 2.4;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 38, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = isLight ? "#0c1424" : "#f4f8ff";
+  ctx.font = `600 23px ${SANS_FONT_STACK}`;
   ctx.textAlign = "center";
-  ctx.fillText(spec.variant === "primary" ? "01" : spec.variant === "secondary" ? "A+" : "↗", cx, cy + 9);
+  ctx.fillText(spec.variant === "primary" ? "01" : spec.variant === "secondary" ? "ORB" : "↗", cx, cy + 8);
   ctx.textAlign = "left";
 
-  // Bottom callout chip inside deck box
+  // Bottom callout chip inside bay
   drawRoundedRect(ctx, 104, deckY + 236, W - 208, 46, 14);
-  ctx.fillStyle = isLight ? "rgba(81,87,196,0.095)" : "rgba(165,170,255,0.12)";
+  ctx.fillStyle = isLight ? "rgba(3,98,150,0.085)" : "rgba(243,201,121,0.10)";
   ctx.fill();
-  ctx.fillStyle = spec.accentHex;
-  ctx.font = `500 20px ${SANS_FONT_STACK}`;
-  ctx.fillText("✦  Instant classroom access — zero sign-up wall", 126, deckY + 266);
+  ctx.fillStyle = isLight ? spec.accentHex : spec.secondaryHex;
+  ctx.font = `600 19px ${SANS_FONT_STACK}`;
+  ctx.fillText("✦  DIRECT ORBITAL UPLINK — ZERO SIGN-UP WALL", 126, deckY + 266);
 
   // Footer divider + metadata
   const footerY = H - 118;
-  ctx.strokeStyle = isLight ? "rgba(30,41,75,0.11)" : "rgba(255,255,255,0.09)";
+  ctx.strokeStyle = isLight ? "rgba(12,20,36,0.11)" : "rgba(125,211,252,0.12)";
   ctx.lineWidth = 1.75;
   ctx.beginPath();
   ctx.moveTo(pad, footerY);
   ctx.lineTo(W - pad, footerY);
   ctx.stroke();
 
-  ctx.fillStyle = "#91d8bd";
+  ctx.fillStyle = isLight ? "#0f7656" : "#6ee7b7";
   ctx.beginPath();
   ctx.arc(76, footerY + 50, 6, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = isLight ? "#505a70" : "#a8b1c8";
+  ctx.fillStyle = isLight ? "#43526b" : "#9db0ca";
   ctx.font = `500 21px ${SANS_FONT_STACK}`;
   ctx.fillText(spec.footerLeft, 94, footerY + 57);
 
@@ -292,16 +353,27 @@ function paintCardFace(
   ctx.fillText(spec.footerRight, W - 68, footerY + 57);
   ctx.textAlign = "left";
 
+  // Precision HUD L-bracket reticles inside corners
+  drawHudCornerBrackets(
+    ctx,
+    pad + 18,
+    pad + 18,
+    W - (pad + 18) * 2,
+    H - (pad + 18) * 2,
+    24,
+    isLight ? "rgba(3,98,150,0.38)" : "rgba(243,201,121,0.48)",
+  );
+
   ctx.restore();
 
-  // Inner subtle sapphire highlight + outer crisp glass rim stroke
+  // Inner subtle sapphire highlight + outer holographic rim stroke
   drawRoundedRect(ctx, pad + 2.5, pad + 2.5, W - (pad + 2.5) * 2, H - (pad + 2.5) * 2, radius - 2);
-  ctx.strokeStyle = isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.08)";
+  ctx.strokeStyle = isLight ? "rgba(255,255,255,0.8)" : "rgba(186,230,253,0.11)";
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   drawRoundedRect(ctx, pad, pad, W - pad * 2, H - pad * 2, radius);
-  ctx.strokeStyle = isLight ? "rgba(81,87,196,0.32)" : "rgba(185,192,255,0.38)";
+  ctx.strokeStyle = isLight ? "rgba(3,98,150,0.34)" : "rgba(125,211,252,0.44)";
   ctx.lineWidth = 3.2;
   ctx.stroke();
 }
@@ -324,15 +396,15 @@ function createCardTexture(
   return { texture, repaint };
 }
 
-function createBokehSpriteTexture(): CanvasTexture {
+function createStarSpriteTexture(coreRgba: string, midRgba: string): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 64;
   canvas.height = 64;
   const ctx = canvas.getContext("2d")!;
   const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  grad.addColorStop(0, "rgba(255,255,255,1)");
-  grad.addColorStop(0.35, "rgba(200,206,255,0.65)");
-  grad.addColorStop(1, "rgba(165,170,255,0)");
+  grad.addColorStop(0, coreRgba);
+  grad.addColorStop(0.32, midRgba);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 64, 64);
   const texture = new CanvasTexture(canvas);
@@ -341,18 +413,19 @@ function createBokehSpriteTexture(): CanvasTexture {
 }
 
 function createBeveledChassisGeometry(width: number, height: number, radius: number, depth: number): ExtrudeGeometry {
+  const r = Math.min(radius, width * 0.45, height * 0.45);
   const shape = new Shape();
   const x = -width / 2;
   const y = -height / 2;
-  shape.moveTo(x + radius, y);
-  shape.lineTo(x + width - radius, y);
-  shape.quadraticCurveTo(x + width, y, x + width, y + rClamp(radius, width, height));
-  shape.lineTo(x + width, y + height - radius);
-  shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  shape.lineTo(x + radius, y + height);
-  shape.quadraticCurveTo(x, y + height, x, y + height - radius);
-  shape.lineTo(x, y + radius);
-  shape.quadraticCurveTo(x, y, x + radius, y);
+  shape.moveTo(x + r, y);
+  shape.lineTo(x + width - r, y);
+  shape.quadraticCurveTo(x + width, y, x + width, y + r);
+  shape.lineTo(x + width, y + height - r);
+  shape.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  shape.lineTo(x + r, y + height);
+  shape.quadraticCurveTo(x, y + height, x, y + height - r);
+  shape.lineTo(x, y + r);
+  shape.quadraticCurveTo(x, y, x + r, y);
 
   const geo = new ExtrudeGeometry(shape, {
     depth,
@@ -364,10 +437,6 @@ function createBeveledChassisGeometry(width: number, height: number, radius: num
   });
   geo.center();
   return geo;
-}
-
-function rClamp(r: number, w: number, h: number): number {
-  return Math.min(r, w * 0.45, h * 0.45);
 }
 
 export function mountHeroStage(
@@ -396,12 +465,14 @@ export function mountHeroStage(
   }
 
   const isLight = document.documentElement.dataset.theme === "light";
-  const accentHex = isLight ? "#5157c4" : "#a5aaff";
+  const iceHex = isLight ? "#036296" : "#7dd3fc";
+  const goldHex = isLight ? "#8a5d10" : "#f3c979";
+  const mintHex = isLight ? "#0f7656" : "#6ee7b7";
 
   renderer.setPixelRatio(computeCrispPixelRatio(host.clientWidth || 560, host.clientHeight || 470, renderer));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = isLight ? 1.05 : 1.12;
+  renderer.toneMappingExposure = isLight ? 1.05 : 1.13;
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
@@ -412,19 +483,19 @@ export function mountHeroStage(
   const rig = new Group();
   scene.add(rig);
 
-  // Studio 3-point PBR lighting + cursor-tracking specular light
-  const ambient = new AmbientLight(isLight ? 0xffffff : 0xdde2ff, isLight ? 1.38 : 0.96);
+  // Interstellar 3-point lighting: cool starlight key + warm solar-gold rim + cursor telemetry light
+  const ambient = new AmbientLight(isLight ? 0xffffff : 0xd4e8ff, isLight ? 1.38 : 0.96);
   scene.add(ambient);
 
-  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.5 : 1.78);
+  const keyLight = new DirectionalLight(0xffffff, isLight ? 1.52 : 1.82);
   keyLight.position.set(-3.5, 4.5, 5.5);
   scene.add(keyLight);
 
-  const rimLight = new DirectionalLight(isLight ? 0x6168d8 : 0x9aa2ff, 1.45);
+  const rimLight = new DirectionalLight(isLight ? 0x036296 : 0xf3c979, isLight ? 1.35 : 1.55);
   rimLight.position.set(4.2, -2.2, 3.2);
   scene.add(rimLight);
 
-  const cursorLight = new PointLight(isLight ? 0x5157c4 : 0xb8beff, isLight ? 2.1 : 3.6, 9.5, 1.6);
+  const cursorLight = new PointLight(isLight ? 0x036296 : 0x7dd3fc, isLight ? 2.1 : 3.8, 9.5, 1.6);
   cursorLight.position.set(0.6, 0.6, 3.2);
   scene.add(cursorLight);
 
@@ -442,12 +513,14 @@ export function mountHeroStage(
     {
       spec: {
         badge: doc?.platform ?? "Google Slides",
-        eyebrow: `${doc?.subject ?? "English"}  •  Featured Deck`,
+        eyebrow: `${doc?.subject ?? "English"}  •  Command Deck`,
         title: doc?.title ?? "MCQs Practice",
         subtitle: doc?.topic ?? "Ch 2 – The Lost Spring",
-        footerLeft: "Ready for class",
-        footerRight: "Open source ↗",
-        accentHex,
+        footerLeft: "Locked & ready",
+        footerRight: "Launch source ↗",
+        accentHex: iceHex,
+        secondaryHex: goldHex,
+        sectorCode: "ORB-01",
         variant: "primary",
       },
       w: 2.38,
@@ -458,13 +531,15 @@ export function mountHeroStage(
     },
     {
       spec: {
-        badge: "Subject Archive",
-        eyebrow: "Structured Context",
+        badge: "Orbital Archive",
+        eyebrow: "Structured Telemetry",
         title: "Organized by Course & Topic",
-        subtitle: "Every slide deck & note right where you expect it.",
-        footerLeft: "Curated shelves",
-        footerRight: "Browse ↗",
-        accentHex: isLight ? "#237457" : "#91d8bd",
+        subtitle: "Every slide deck & note mapped to exact coordinates.",
+        footerLeft: "Curated bays",
+        footerRight: "Explore ↗",
+        accentHex: goldHex,
+        secondaryHex: iceHex,
+        sectorCode: "ORB-02",
         variant: "secondary",
       },
       w: 1.92,
@@ -475,13 +550,15 @@ export function mountHeroStage(
     },
     {
       spec: {
-        badge: "Direct Links",
+        badge: "Direct Uplink",
         eyebrow: "Owner Controlled",
         title: "Original Cloud Sources",
         subtitle: "Slides, Docs, Sheets & Dropbox without middlemen.",
         footerLeft: "Zero sign-up",
         footerRight: "1-Click ↗",
-        accentHex: isLight ? "#866020" : "#e2c58c",
+        accentHex: mintHex,
+        secondaryHex: goldHex,
+        sectorCode: "ORB-03",
         variant: "tertiary",
       },
       w: 1.82,
@@ -501,9 +578,9 @@ export function mountHeroStage(
   }[] = [];
 
   const chassisMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0xd9dff0 : 0x252d44),
-    metalness: isLight ? 0.35 : 0.72,
-    roughness: isLight ? 0.32 : 0.24,
+    color: new Color(isLight ? 0xd2dfef : 0x162238),
+    metalness: isLight ? 0.38 : 0.78,
+    roughness: isLight ? 0.3 : 0.22,
   });
   disposables.push(chassisMat);
 
@@ -548,34 +625,66 @@ export function mountHeroStage(
     });
   });
 
-  // Precision studio orbital rings + faceted floating gems
+  // Dual Ice-Blue & Solar-Gold orbital astrolabe rings + orbiting ringed exoplanet + telemetry satellites
   const orbitalGroup = new Group();
   rig.add(orbitalGroup);
 
-  const ringMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x5157c4 : 0x8f96ff),
+  const iceRingMat = new MeshStandardMaterial({
+    color: new Color(isLight ? 0x036296 : 0x7dd3fc),
+    emissive: new Color(isLight ? 0x024469 : 0x256b96),
+    emissiveIntensity: 0.42,
     metalness: 0.85,
-    roughness: 0.2,
+    roughness: 0.18,
     transparent: true,
-    opacity: isLight ? 0.28 : 0.36,
+    opacity: isLight ? 0.34 : 0.48,
   });
-  const ringGeo1 = new TorusGeometry(2.55, 0.011, 16, 128);
-  const ring1 = new Mesh(ringGeo1, ringMat);
+  const goldRingMat = new MeshStandardMaterial({
+    color: new Color(isLight ? 0x8a5d10 : 0xf3c979),
+    emissive: new Color(isLight ? 0x5e3e08 : 0x8c641e),
+    emissiveIntensity: 0.42,
+    metalness: 0.88,
+    roughness: 0.18,
+    transparent: true,
+    opacity: isLight ? 0.32 : 0.44,
+  });
+
+  const ringGeo1 = new TorusGeometry(2.58, 0.012, 16, 128);
+  const ring1 = new Mesh(ringGeo1, iceRingMat);
   ring1.rotation.set(1.12, 0.28, -0.2);
   orbitalGroup.add(ring1);
 
-  const ringGeo2 = new TorusGeometry(2.95, 0.008, 16, 128);
-  const ring2 = new Mesh(ringGeo2, ringMat);
+  const ringGeo2 = new TorusGeometry(2.98, 0.009, 16, 128);
+  const ring2 = new Mesh(ringGeo2, goldRingMat);
   ring2.rotation.set(-0.95, -0.42, 0.35);
   orbitalGroup.add(ring2);
 
-  const gemGeo = new OctahedronGeometry(0.085, 0);
+  // Orbiting ringed miniature exoplanet satellite
+  const planetGroup = new Group();
+  const planetGeo = new SphereGeometry(0.125, 24, 24);
+  const planetMat = new MeshStandardMaterial({
+    color: new Color(isLight ? 0x036296 : 0xf3c979),
+    emissive: new Color(isLight ? 0x023e61 : 0x8f6219),
+    emissiveIntensity: 0.55,
+    metalness: 0.55,
+    roughness: 0.25,
+  });
+  const planetCore = new Mesh(planetGeo, planetMat);
+  planetGroup.add(planetCore);
+
+  const saturnRingGeo = new TorusGeometry(0.24, 0.014, 12, 64);
+  const saturnRing = new Mesh(saturnRingGeo, iceRingMat);
+  saturnRing.rotation.x = Math.PI * 0.38;
+  saturnRing.rotation.y = 0.25;
+  planetGroup.add(saturnRing);
+  orbitalGroup.add(planetGroup);
+
+  const gemGeo = new OctahedronGeometry(0.082, 0);
   const gemMat = new MeshStandardMaterial({
-    color: new Color(isLight ? 0x5157c4 : 0xc5c9ff),
-    emissive: new Color(isLight ? 0x2d3396 : 0x4b52c9),
-    emissiveIntensity: 0.45,
-    metalness: 0.75,
-    roughness: 0.15,
+    color: new Color(isLight ? 0x036296 : 0xbae6fd),
+    emissive: new Color(isLight ? 0x024469 : 0x38bdf8),
+    emissiveIntensity: 0.52,
+    metalness: 0.78,
+    roughness: 0.14,
   });
   const gems: Mesh[] = [];
   for (let g = 0; g < 3; g++) {
@@ -583,32 +692,58 @@ export function mountHeroStage(
     orbitalGroup.add(gem);
     gems.push(gem);
   }
-  disposables.push(ringMat, ringGeo1, ringGeo2, gemGeo, gemMat);
+  disposables.push(
+    iceRingMat,
+    goldRingMat,
+    ringGeo1,
+    ringGeo2,
+    planetGeo,
+    planetMat,
+    saturnRingGeo,
+    gemGeo,
+    gemMat,
+  );
 
-  // Soft optical bokeh particles in 3D depth
-  const particleCount = 56;
-  const particlePositions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i++) {
-    particlePositions[i * 3] = (Math.random() - 0.5) * 7.8;
-    particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 5.6;
-    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 4.5 - 0.8;
-  }
-  const particleGeo = new BufferGeometry();
-  particleGeo.setAttribute("position", new BufferAttribute(particlePositions, 3));
-  const bokehTex = createBokehSpriteTexture();
-  const particleMat = new PointsMaterial({
-    color: isLight ? 0x5157c4 : 0xa5aaff,
-    map: bokehTex,
-    size: 0.16,
-    transparent: true,
-    opacity: isLight ? 0.42 : 0.62,
-    depthWrite: false,
-  });
-  const particles = new Points(particleGeo, particleMat);
-  scene.add(particles);
-  disposables.push(particleGeo, bokehTex, particleMat);
+  // Dual-tone Interstellar Starfield (Ice-Blue + Solar-Gold stars in 3D space)
+  const makeStarCloud = (count: number, size: number, color: number, core: string, mid: string) => {
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 8.6;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 6.2;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 5.2 - 0.9;
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute("position", new BufferAttribute(positions, 3));
+    const tex = createStarSpriteTexture(core, mid);
+    const mat = new PointsMaterial({
+      color,
+      map: tex,
+      size,
+      transparent: true,
+      opacity: isLight ? 0.42 : 0.78,
+      depthWrite: false,
+    });
+    const pts = new Points(geo, mat);
+    scene.add(pts);
+    disposables.push(geo, tex, mat);
+    return pts;
+  };
 
-  // Interaction state: pointer parallax + direct drag-to-orbit + scroll dolly
+  const iceStars = makeStarCloud(
+    64,
+    0.15,
+    isLight ? 0x036296 : 0xbae6fd,
+    "rgba(255,255,255,1)",
+    "rgba(125,211,252,0.7)",
+  );
+  const goldStars = makeStarCloud(
+    32,
+    0.17,
+    isLight ? 0x8a5d10 : 0xf3c979,
+    "rgba(255,250,235,1)",
+    "rgba(243,201,121,0.72)",
+  );
+
   let disposed = false;
   let inView = true;
   let paused = isMotionPaused();
@@ -694,15 +829,30 @@ export function mountHeroStage(
 
     orbitalGroup.rotation.z = elapsed * 0.09 + dolly * 1.85;
     orbitalGroup.rotation.y = Math.sin(elapsed * 0.25) * 0.14 + dolly * 0.95;
+
+    // Ringed exoplanet orbital trajectory
+    const pAngle = elapsed * 0.42 + dolly * 1.6;
+    planetGroup.position.set(
+      Math.cos(pAngle) * 2.75,
+      Math.sin(pAngle * 0.85) * 1.28,
+      Math.sin(pAngle) * 1.05,
+    );
+    planetGroup.rotation.y = elapsed * 0.65;
+
     gems.forEach((gem, i) => {
       const a = elapsed * 0.55 + (i * Math.PI * 2) / 3;
       gem.position.set(Math.cos(a) * 2.55, Math.sin(a) * 1.15, Math.sin(a * 1.3) * 0.95);
       gem.rotation.set(elapsed * 0.9 + i, elapsed * 0.7, 0);
     });
 
-    particles.rotation.y = elapsed * 0.035 + smoothPointerX * 0.14 + dolly * 0.9 + spinCurrent * 0.35;
-    particles.rotation.x = -smoothPointerY * 0.08 + dolly * 0.32;
-    particles.position.y = dolly * 0.65;
+    iceStars.rotation.y = elapsed * 0.032 + smoothPointerX * 0.14 + dolly * 0.9 + spinCurrent * 0.35;
+    iceStars.rotation.x = -smoothPointerY * 0.08 + dolly * 0.32;
+    iceStars.position.y = dolly * 0.65;
+
+    goldStars.rotation.y = -elapsed * 0.024 + smoothPointerX * 0.1 + dolly * 0.65 + spinCurrent * 0.25;
+    goldStars.rotation.x = -smoothPointerY * 0.06 + dolly * 0.24;
+    goldStars.position.y = dolly * 0.48;
+
     renderer.render(scene, camera);
   };
 
