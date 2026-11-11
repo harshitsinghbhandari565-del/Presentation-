@@ -105,15 +105,15 @@ export default function HeroScene({ document: resource }: { document?: Education
                 <FileText size={21} strokeWidth={1.5} />
               </span>
               <span>
-                {resource?.platform ?? "Google Slides"}
+                {resource?.platform ?? "Resource library"}
                 <small>Made for your next study session</small>
               </span>
               <span className="visual-file-menu">•••</span>
             </div>
             <div className="visual-document-content">
-              <span className="visual-eyebrow">{resource?.subject ?? "English"}</span>
-              <h2>{resource?.title ?? "MCQs Practice"}</h2>
-              <p>{resource?.topic ?? "Good resources. All together."}</p>
+              <span className="visual-eyebrow">{resource?.subject ?? "READY FOR LAUNCH"}</span>
+              <h2>{resource?.title ?? "Your library awaits"}</h2>
+              <p>{resource?.topic ?? "Resources will appear here when published."}</p>
               <div className="visual-content-lines"><i /><i /><i /></div>
               <div className="visual-note">
                 <Sparkles size={14} />

@@ -7,7 +7,7 @@ const db=new PGlite();
 const root=process.cwd()+'/';
 const read=f=>readFileSync(root+f,'utf8');
 await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated;`);
-for(const f of ['supabase/migrations/202611010001_catalog.sql','supabase/seed.sql','supabase/migrations/202611010002_least_privilege_catalog_grants.sql','supabase/seed.test-fixtures.sql']) await db.exec(read(f));
+for(const f of ['supabase/migrations/202611010001_catalog.sql','tests/fixtures/catalog-seed.sql','supabase/migrations/202611010002_least_privilege_catalog_grants.sql','supabase/seed.test-fixtures.sql']) await db.exec(read(f));
 const sql=read('supabase/migrations/202611020001_search_ranking.sql');
 await db.exec(sql);
 const match=sql.match(/  \), ordered as \(\n    select f\.\*, row_number\(\) over \(\n      order by\n([\s\S]*?)\n    \) as rn\n    from filtered f\n    order by rn/);

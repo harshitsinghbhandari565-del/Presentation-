@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { filterDocuments, DEFAULT_FILTERS } from "../../src/lib/search";
 import type { EducationalDocument } from "../../src/types/document";
 import fixtureData from "../../fixtures/review-catalog.json";
-import { compatibilityDocuments } from "../../src/lib/catalog";
+import { sampleDocument } from "../fixtures/sample-document";
 
 const database = new PGlite();
 let n = 0;
@@ -17,7 +17,7 @@ const db = {
 before(async () => {
   await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated;`);
   await db.exec(await readFile("supabase/migrations/202611010001_catalog.sql", "utf8"));
-  await db.exec(await readFile("supabase/seed.sql", "utf8"));
+  await db.exec(await readFile("tests/fixtures/catalog-seed.sql", "utf8"));
   await db.exec(await readFile("supabase/migrations/202611010002_least_privilege_catalog_grants.sql", "utf8"));
   await db.exec(await readFile("supabase/seed.test-fixtures.sql", "utf8"));
   await db.exec(await readFile("supabase/migrations/202611020001_search_ranking.sql", "utf8"));
@@ -68,7 +68,7 @@ test("anonymous callers can execute the security-invoker ranking RPC but cannot 
   await db.exec("reset role;");
 });
 
-const reviewDocuments = [...(fixtureData as EducationalDocument[]).filter(document => document.publicationStatus === "published"), ...compatibilityDocuments];
+const reviewDocuments = [...(fixtureData as EducationalDocument[]).filter(document => document.publicationStatus === "published"), sampleDocument];
 test("RPC and compatibility agree on semester, type, platform, subject, course and cross-field coverage", async () => {
   for (const query of ["Sem 1", "Worksheet", "Google Drive", "Google Slides", "Dropbox", "Fixture Mathematics", "Fixture Class 10", "mathematics algebra", "algebra geometry", "draft"]) {
     const sql = await search(query, { pageSize: 48 });

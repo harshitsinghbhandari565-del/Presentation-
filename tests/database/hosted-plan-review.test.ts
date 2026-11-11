@@ -16,7 +16,7 @@ test("hosted plan preparation is the exact parameterized V1 body and runs locall
   const db = new PGlite();
   try {
     await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated;`);
-    for (const path of ["supabase/migrations/202611010001_catalog.sql", "supabase/seed.sql", "supabase/migrations/202611010002_least_privilege_catalog_grants.sql"]) await db.exec(await readFile(path, "utf8"));
+    for (const path of ["supabase/migrations/202611010001_catalog.sql", "tests/fixtures/catalog-seed.sql", "supabase/migrations/202611010002_least_privilege_catalog_grants.sql"]) await db.exec(await readFile(path, "utf8"));
     const results = await db.exec(script);
     assert.equal(results.filter(r => r.rows.length > 0).length, 4); // three body plans, one predicate plan
     assert.equal((await db.query<{n:number}>("select count(*)::int n from public.documents")).rows[0].n, 1);

@@ -40,7 +40,7 @@ export interface ShelfController {
 const UPCOMING_SUBJECTS = ["Physics", "Mathematics", "Computer Science", "Economics"];
 
 export function buildShelfItems(subjects: { name: string; count: number }[]): ShelfItem[] {
-  const liveItems: ShelfItem[] = (subjects.length ? subjects : [{ name: "English", count: 1 }])
+  const liveItems: ShelfItem[] = subjects
     .slice(0, 6)
     .map(s => ({ name: s.name, count: s.count, live: true }));
 

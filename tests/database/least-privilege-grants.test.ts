@@ -28,7 +28,7 @@ async function actor(id: string | null) {
 before(async () => {
   await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated; insert into auth.users values ('${adminId}'),('${studentId}');`);
   await db.exec(await readFile("supabase/migrations/202611010001_catalog.sql", "utf8"));
-  await db.exec(await readFile("supabase/seed.sql", "utf8"));
+  await db.exec(await readFile("tests/fixtures/catalog-seed.sql", "utf8"));
   // Reproduce the unexpected hosted Supabase default grants observed before remediation.
   await db.exec(`grant all on public.subjects, public.courses, public.documents to anon, authenticated;`);
   await db.exec(await readFile(remediationPath, "utf8"));
@@ -111,10 +111,10 @@ test("original external URLs remain unchanged after remediation", async () => {
     "select original_url,presentation_url,embed_url,backup_links from public.documents where slug='english-lost-spring-mcqs'",
   );
   assert.equal(result.rows.length, 1);
-  assert.equal(result.rows[0].original_url, "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/edit?usp=drivesdk&ouid=113784417699374679691&rtpof=true&sd=true");
-  assert.equal(result.rows[0].presentation_url, "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/present");
-  assert.equal(result.rows[0].embed_url, "https://docs.google.com/presentation/d/1652VXDxhNDAvwRLVOMduFi10BadnKH8R/embed?start=false&loop=false&delayms=3000");
-  assert.equal(result.rows[0].backup_links[0].url, "https://www.dropbox.com/scl/fi/ovqnktu25x7f2oq6txzjr/The_Lost_Spring_MCQs.pptx?rlkey=ethvwy1cuuvdasrn0gxk6p1sg&st=raevvife&dl=0");
+  assert.equal(result.rows[0].original_url, "https://example.com/fixture/document?ouid=test");
+  assert.equal(result.rows[0].presentation_url, "https://example.com/fixture/present");
+  assert.equal(result.rows[0].embed_url, "https://docs.google.com/presentation/d/fixture/embed");
+  assert.equal(result.rows[0].backup_links[0].url, "https://example.com/fixture/backup");
 });
 
 test("authorized administrators retain catalog writes after remediation", async () => {

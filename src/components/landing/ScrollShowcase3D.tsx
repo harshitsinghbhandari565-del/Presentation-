@@ -234,12 +234,12 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
               </div>
               <div className="css-deck-layer layer-2">
                 <span>LAYER 02 • CONTEXT</span>
-                <strong>{resource?.subject ?? "English"} • {resource?.course ?? "Class 12"}</strong>
+                <strong>{resource?.subject ?? "Subject"} • {resource?.course ?? "Course"}</strong>
               </div>
               <div className="css-deck-layer layer-1">
-                <span>LAYER 01 • {resource?.platform ?? "GOOGLE SLIDES"}</span>
-                <strong>{resource?.title ?? "MCQs Practice"}</strong>
-                <small>{resource?.topic ?? "Ch 2 – The Lost Spring"}</small>
+                <span>LAYER 01 • {resource?.platform ?? "RESOURCE LIBRARY"}</span>
+                <strong>{resource?.title ?? "Your library awaits"}</strong>
+                <small>{resource?.topic ?? "Resources appear here when published"}</small>
               </div>
             </div>
           </div>

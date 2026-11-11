@@ -47,6 +47,7 @@ interface LayerSpec {
   accent: string;
   secondary: string;
   kind: "cover" | "taxonomy" | "slides" | "source";
+  taxonomy?: string[];
 }
 
 function roundedRect(
@@ -225,7 +226,7 @@ function paintLayerFace(
       ctx.fillText("16:9", W - 120, boxY + 72);
       ctx.textAlign = "left";
     } else if (spec.kind === "taxonomy") {
-      const chips = ["Subject: English", "Course: Class 12", "Type: Slides Deck", "Topic: Lost Spring"];
+      const chips = spec.taxonomy ?? ["Subject: —", "Course: —", "Type: —", "Topic: —"];
       chips.forEach((chip, idx) => {
         const col = idx % 2;
         const row = Math.floor(idx / 2);
@@ -431,9 +432,9 @@ export function mountScrollShowcase(
   const layerSpecs: LayerSpec[] = [
     {
       step: "01",
-      tag: doc?.platform ?? "Google Slides",
-      title: doc?.title ?? "MCQs Practice",
-      detail: doc?.topic ?? "Ch 2 – The Lost Spring",
+      tag: doc?.platform ?? "Resource Library",
+      title: doc?.title ?? "Your library awaits",
+      detail: doc?.topic ?? "Resources appear here when published.",
       accent: accentIce,
       secondary: accentGold,
       kind: "cover",
@@ -441,11 +442,12 @@ export function mountScrollShowcase(
     {
       step: "02",
       tag: "Orbital Context",
-      title: `${doc?.subject ?? "English"} • ${doc?.course ?? "Class 12"}`,
+      title: `${doc?.subject ?? "Subject"} • ${doc?.course ?? "Course"}`,
       detail: "Structured telemetry before you open a single tab.",
       accent: accentGold,
       secondary: accentIce,
       kind: "taxonomy",
+      taxonomy: [`Subject: ${doc?.subject ?? "—"}`, `Course: ${doc?.course ?? "—"}`, `Type: ${doc?.documentType ?? "—"}`, `Topic: ${doc?.topic ?? "—"}`],
     },
     {
       step: "03",

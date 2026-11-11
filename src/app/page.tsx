@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, Check, FileText, FolderOpen, Layers3, Link2, Search, ShieldCheck, Sparkles, Presentation, Table2, FileType2 } from "lucide-react";
-import { getCatalogHighlights, getFacets, getCatalogMode } from "@/lib/catalog";
+import { getCatalogHighlights, getFacets } from "@/lib/catalog";
 import HeroScene from "@/components/landing/HeroScene";
 import ScrollShowcase3D from "@/components/landing/ScrollShowcase3D";
 import Reveal from "@/components/layout/Reveal";
@@ -45,6 +45,5 @@ export default async function HomePage() {
 
     <section className="container final-section"><Reveal className="final-cta"><div className="cta-decoration" aria-hidden="true"><BookOpen size={160} strokeWidth={0.5} /></div><div className="eyebrow"><span className="eyebrow-dot" />YOUR NEXT STUDY SESSION STARTS HERE</div><h2>A little less searching.<br />A lot more <em>possibility.</em></h2><p>Make room for the part that matters: learning.</p><Link href="/library" className="button button-primary button-large">Find your next resource <ArrowRight size={18} /></Link><span className="cta-note">Free to explore. No student account required.</span></Reveal></section>
     {featured[0] && <div className="container source-strip"><span><span className="tiny-dot" />From the collection: {featured[0].title}</span><ExternalLink href={featured[0].originalUrl} className="text-link">Open original</ExternalLink></div>}
-    {getCatalogMode() === "compatibility" && <p className="container compatibility-note">The original classroom collection is available while the live library is being connected.</p>}
   </>;
 }

@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { compatibilityDocuments, deriveFacets } from "../../src/lib/catalog";
 import { searchDocuments, filterDocuments, DEFAULT_FILTERS, parseFilters, libraryHref, normalizeSearch } from "../../src/lib/search";
-const docs = compatibilityDocuments;
-test("legacy resource is retained without fabricating records or timestamps", () => {
+import { sampleDocument } from "../fixtures/sample-document";
+const docs = [sampleDocument];
+test("compatibility catalog remains empty and tests use synthetic data", () => {
+  assert.deepEqual(compatibilityDocuments, []);
   assert.equal(docs.length, 1);
   assert.equal(docs[0].slug, "english-lost-spring-mcqs");
   assert.equal(docs[0].course, "Class 12");

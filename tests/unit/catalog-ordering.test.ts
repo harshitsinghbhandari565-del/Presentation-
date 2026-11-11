@@ -7,7 +7,7 @@ import { DEFAULT_FILTERS, filterDocuments, searchDocuments } from "../../src/lib
 import type { EducationalDocument } from "../../src/types/document";
 
 const id = (n: number) => `00000000-0000-4000-8000-${n.toString().padStart(12, "0")}`;
-const sample = compatibilityDocuments[0];
+import { sampleDocument as sample } from "../fixtures/sample-document";
 const doc = (n: number, changes: Partial<EducationalDocument> = {}): EducationalDocument => ({
   ...sample, id: id(n), slug: `ordering-${n}`, title: "Equal title", description: "Shared matching description.",
   subject: "Subject", subjectSlug: "subject", subjectId: id(900), course: "Course", courseSlug: "course", courseId: id(901),

@@ -25,7 +25,7 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
   const projectorMode = useProjectorMode();
 
   const items = useMemo(() => {
-    const live = (subjects.length ? subjects : [{ name: "English", count: 1 }])
+    const live = subjects
       .slice(0, 6)
       .map(s => ({ name: s.name, count: s.count, live: true }));
     const seen = new Set(live.map(s => s.name.toLowerCase()));

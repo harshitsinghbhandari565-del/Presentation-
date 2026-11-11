@@ -20,6 +20,8 @@ test("missing or malformed colours use a safe cached fallback", () => {
 });
 
 test("shelf builder preserves genuine live counts and fills upcoming studio folios", () => {
+  const emptyItems = buildShelfItems([]);
+  assert.ok(emptyItems.every(item => item.live === false && item.count === 0));
   const items = buildShelfItems([{ name: "English", count: 1 }]);
   assert.equal(items.length, 5);
   assert.deepEqual(items[0], { name: "English", count: 1, live: true });

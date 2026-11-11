@@ -510,12 +510,12 @@ export function mountHeroStage(
   }[] = [
     {
       spec: {
-        badge: doc?.platform ?? "Google Slides",
-        eyebrow: `${doc?.subject ?? "English"}  •  Command Deck`,
-        title: doc?.title ?? "MCQs Practice",
-        subtitle: doc?.topic ?? "Ch 2 – The Lost Spring",
-        footerLeft: "Locked & ready",
-        footerRight: "Launch source ↗",
+        badge: doc?.platform ?? "Resource Library",
+        eyebrow: `${doc?.subject ?? "Ready for launch"}  •  Command Deck`,
+        title: doc?.title ?? "Your library awaits",
+        subtitle: doc?.topic ?? "Resources appear here when published.",
+        footerLeft: doc ? "Locked & ready" : "Awaiting resources",
+        footerRight: doc ? "Launch source ↗" : "Stand by",
         accentHex: iceHex,
         secondaryHex: goldHex,
         sectorCode: "ORB-01",

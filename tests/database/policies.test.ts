@@ -28,7 +28,7 @@ async function actor(id: string | null) {
 before(async () => {
   await db.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$; grant usage on schema auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated; grant usage on schema public to anon, authenticated; insert into auth.users values ('${adminId}'),('${studentId}'),('${approvedId}');`);
   await db.exec(await readFile("supabase/migrations/202611010001_catalog.sql", "utf8"));
-  await db.exec(await readFile("supabase/seed.sql", "utf8"));
+  await db.exec(await readFile("tests/fixtures/catalog-seed.sql", "utf8"));
   await db.exec(`insert into public.administrators(user_id) values ('${adminId}');`);
 });
 after(async () => { await db.close(); });
@@ -121,7 +121,7 @@ test("seed is idempotent and never overwrites edited metadata", async () => {
   await db.exec("reset role;");
   await db.query("select set_config('request.jwt.claims', '', false)");
   await db.query("update public.documents set description='Owner edited description.' where slug='english-lost-spring-mcqs'");
-  await db.exec(await readFile("supabase/seed.sql","utf8"));
+  await db.exec(await readFile("tests/fixtures/catalog-seed.sql","utf8"));
   const result = await db.query<{ description: string }>("select description from public.documents where slug='english-lost-spring-mcqs'");
   assert.equal(result.rows.length,1); assert.equal(result.rows[0].description,"Owner edited description.");
 });
