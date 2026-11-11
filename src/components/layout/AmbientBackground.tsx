@@ -10,6 +10,7 @@ export default function AmbientBackground() {
   return (
     <>
       <ImmersiveDepthRig />
+      <div className="ambient-cosmic-photo" aria-hidden="true" />
       <div className="ambient-viewport-field" aria-hidden="true">
         <div className="ambient-starfield" />
         <div className="ambient-planet-arc" />

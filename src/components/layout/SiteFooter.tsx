@@ -42,6 +42,9 @@ export default function SiteFooter() {
         <p className="footer-note">
           Documents stay on their original platforms. Access is subject to the owner’s sharing permissions.
         </p>
+        <p className="footer-note cosmic-photo-credit">
+          Background: <a href="https://www.esa.int/ESA_Multimedia/Images/2022/07/Cosmic_Cliffs_in_Carina_NIRCam" target="_blank" rel="noopener noreferrer">Cosmic Cliffs in Carina</a>, NASA, ESA, CSA and STScI. Darkened for readability. <a href="https://creativecommons.org/licenses/by-sa/3.0/igo/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0 IGO</a>.
+        </p>
       </div>
     </footer>
   );
