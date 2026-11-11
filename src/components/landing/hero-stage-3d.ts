@@ -679,7 +679,9 @@ export function mountHeroStage(
       gem.rotation.set(elapsed * 0.9 + i, elapsed * 0.7, 0);
     });
 
-    particles.rotation.y = elapsed * 0.035 + smoothPointerX * 0.08;
+    particles.rotation.y = elapsed * 0.035 + smoothPointerX * 0.14 + dolly * 0.9 + spinCurrent * 0.35;
+    particles.rotation.x = -smoothPointerY * 0.08 + dolly * 0.32;
+    particles.position.y = dolly * 0.65;
     renderer.render(scene, camera);
   };
 

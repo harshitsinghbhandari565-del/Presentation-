@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { ArrowUp } from "lucide-react";
 import { canRun3DMotion, subscribeMotionPaused, syncForceDataset } from "./motion-state";
 
 const SCROLL_3D_SELECTOR = [
@@ -15,15 +16,18 @@ const SCROLL_3D_SELECTOR = [
   ".final-cta",
   ".source-strip",
   ".page-intro",
+  ".inner-sculpture",
   ".library-search-form",
   ".results-toolbar",
   ".subject-card",
   ".course-list > a",
   ".about-principles > article",
+  ".about-spec-card",
   ".about-note",
   ".empty-state",
   ".detail-title",
   ".source-panel",
+  ".detail-folio-3d",
   ".detail-sidebar > .document-cover",
   ".resource-facts",
   ".optional-preview",
@@ -49,13 +53,15 @@ function resolveZoneLabel(progress: number, pathname: string): string {
 }
 
 /**
- * Full-website 60fps spring-damped 3D scroll choreography, magnetic CTA engine,
- * and live scroll elevation HUD.
+ * Full-website 60fps spring-damped 3D scroll choreography, cursor halo,
+ * magnetic CTA engine, live scroll elevation HUD, and 3D back-to-top orb.
  */
 export default function ImmersiveDepthRig() {
   const pathname = usePathname();
   const pctRef = useRef<HTMLSpanElement>(null);
   const zoneRef = useRef<HTMLSpanElement>(null);
+  const [showTop, setShowTop] = useState(false);
+  const showTopRef = useRef(false);
 
   useEffect(() => {
     const motionMedia = window.matchMedia("(prefers-reduced-motion: no-preference)");
@@ -122,6 +128,12 @@ export default function ImmersiveDepthRig() {
       const isDesktopSticky = vw >= 768;
 
       const rawY = window.scrollY;
+      const shouldShowTop = rawY > 440;
+      if (shouldShowTop !== showTopRef.current) {
+        showTopRef.current = shouldShowTop;
+        setShowTop(shouldShowTop);
+      }
+
       const maxScroll = Math.max(1, root.scrollHeight - vh);
       const progress = Math.min(1, Math.max(0, rawY / maxScroll));
       root.style.setProperty("--scroll-progress", progress.toFixed(4));
@@ -161,7 +173,7 @@ export default function ImmersiveDepthRig() {
       root.style.setProperty("--hero-p", heroP.toFixed(4));
       root.style.setProperty("--hero-vel", smoothVel.toFixed(4));
       root.style.setProperty("--scroll-vel", Math.abs(smoothVel).toFixed(4));
-      root.style.setProperty("--grid-flow", `${(smoothY * 0.28) % 72}px`);
+      root.style.setProperty("--grid-flow", `${(smoothY * 0.28) % 64}px`);
 
       // Drive #how-it-works vertical laser spine fill
       const howSteps = document.querySelector<HTMLElement>(".how-steps");
@@ -214,9 +226,7 @@ export default function ImmersiveDepthRig() {
           Boolean(el.closest(".pinned-story"));
 
         const wideBlock = rect.width >= vw * 0.72;
-        const normX = (rect.left + rect.width * 0.5) / vw; // 0..1 across screen
-
-        // Multi-column wave stagger so side-by-side cards ripple into 3D place sequentially
+        const normX = (rect.left + rect.width * 0.5) / vw;
         const colStagger = wideBlock ? 0 : (normX - 0.5) * 0.18;
 
         const centerY = rect.top + rect.height * 0.5 + lagOffset;
@@ -271,7 +281,6 @@ export default function ImmersiveDepthRig() {
           scale = Math.max(0.87, 1 - absT * 0.072 + focus * 0.014);
         }
 
-        // Studio specular light rolls across card surface as it tilts in 3D (works on mobile too!)
         const glintX = 50 - side * clampedT * 36;
         const glintY = 42 - clampedT * 44;
 
@@ -312,6 +321,11 @@ export default function ImmersiveDepthRig() {
         return;
       }
 
+      // Smooth viewport-wide ambient cursor spotlight coordinates
+      const root = document.documentElement;
+      root.style.setProperty("--cursor-x", `${event.clientX.toFixed(0)}px`);
+      root.style.setProperty("--cursor-y", `${event.clientY.toFixed(0)}px`);
+
       // Magnetic 3D pull on buttons
       const magnet = (event.target as Element | null)?.closest<HTMLElement>(
         ".button-primary, .button-secondary",
@@ -333,7 +347,7 @@ export default function ImmersiveDepthRig() {
 
       // 3D card tilt + cursor spotlight
       const target = (event.target as Element | null)?.closest<HTMLElement>(
-        ".resource-card, .subject-preview, .subject-card, .how-step, .featured-editorial",
+        ".resource-card, .subject-preview, .subject-card, .how-step, .featured-editorial, .about-spec-card, .about-principle-card",
       );
       if (target !== activeCard) {
         clearCard(activeCard);
@@ -409,16 +423,38 @@ export default function ImmersiveDepthRig() {
     };
   }, [pathname]);
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: canRun3DMotion() ? "smooth" : "auto",
+    });
+  };
+
   return (
     <>
       <div className="scroll-progress-bar" aria-hidden="true" />
       <div className="scroll-elevation-hud" aria-hidden="true">
-        <span className="scroll-elevation-zone" ref={zoneRef}>01 • HERO</span>
+        <span className="scroll-elevation-label" ref={zoneRef}>01 • HERO</span>
         <div className="scroll-elevation-track">
           <div className="scroll-elevation-fill" />
+          <div className="scroll-elevation-pip" />
         </div>
         <span className="scroll-elevation-pct" ref={pctRef}>00%</span>
       </div>
+      <button
+        type="button"
+        className={`scroll-top-orb ${showTop ? "visible" : ""}`}
+        aria-label="Scroll back to top"
+        aria-hidden={!showTop || undefined}
+        tabIndex={showTop ? 0 : -1}
+        onClick={scrollToTop}
+      >
+        <svg className="scroll-top-ring" viewBox="0 0 44 44" aria-hidden="true">
+          <circle className="scroll-top-ring-bg" cx="22" cy="22" r="19" />
+          <circle className="scroll-top-ring-fg" cx="22" cy="22" r="19" />
+        </svg>
+        <ArrowUp size={16} aria-hidden="true" />
+      </button>
     </>
   );
 }
