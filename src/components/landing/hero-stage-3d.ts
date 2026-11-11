@@ -590,10 +590,13 @@ export function mountHeroStage(
   let dragging = false;
   let dragStartX = 0;
   let dragStartY = 0;
+  let dragTravel = 0;
   let orbitY = 0;
   let orbitX = 0;
   let targetOrbitY = 0;
   let targetOrbitX = 0;
+  let spinTarget = 0;
+  let spinCurrent = 0;
   let scrollDepth = 0;
   let smoothScroll = 0;
 
@@ -620,6 +623,8 @@ export function mountHeroStage(
     smoothPointerX += (pointerX - smoothPointerX) * 0.07;
     smoothPointerY += (pointerY - smoothPointerY) * 0.07;
     smoothScroll += (scrollDepth - smoothScroll) * 0.14;
+    spinCurrent += (spinTarget - spinCurrent) * 0.11;
+    const spinEnergy = Math.min(1, Math.abs(spinTarget - spinCurrent) / Math.PI);
 
     if (!dragging) {
       targetOrbitY *= 0.94;
@@ -628,16 +633,16 @@ export function mountHeroStage(
     orbitY += (targetOrbitY - orbitY) * 0.12;
     orbitX += (targetOrbitX - orbitX) * 0.12;
 
-    const parallaxY = paused ? 0 : smoothPointerX * 0.26;
-    const parallaxX = paused ? 0 : -smoothPointerY * 0.17;
+    const parallaxY = paused ? 0 : smoothPointerX * 0.28;
+    const parallaxX = paused ? 0 : -smoothPointerY * 0.19;
     const dolly = paused ? 0 : smoothScroll;
 
-    rig.rotation.y = parallaxY + orbitY - dolly * 1.18;
-    rig.rotation.x = MathUtils.clamp(parallaxX + orbitX + dolly * 0.44, -0.65, 0.72);
-    rig.rotation.z = dolly * -0.14;
+    rig.rotation.y = parallaxY + orbitY + spinCurrent - dolly * 1.24;
+    rig.rotation.x = MathUtils.clamp(parallaxX + orbitX + dolly * 0.46, -0.68, 0.75);
+    rig.rotation.z = dolly * -0.15 + spinEnergy * 0.08;
     rig.position.y = dolly * 0.18;
 
-    camera.position.z = baseCameraZ - dolly * 0.55;
+    camera.position.z = baseCameraZ - dolly * 0.55 - spinEnergy * 0.35;
     camera.lookAt(0, 0, 0);
 
     cursorLight.position.set(
@@ -646,12 +651,13 @@ export function mountHeroStage(
       3.1,
     );
 
+    const fanBoost = dolly + spinEnergy * 0.55;
     cardGroups.forEach(({ group, basePos, baseRot, depthFactor, phase }, idx) => {
       const floatY = Math.sin(elapsed * 0.95 + phase) * 0.075;
       const floatRotZ = Math.cos(elapsed * 0.7 + phase) * 0.014;
-      const spreadX = dolly * (idx === 1 ? -0.78 : idx === 2 ? 0.78 : 0);
-      const spreadY = dolly * (idx === 1 ? 0.28 : idx === 2 ? -0.28 : 0);
-      const spreadZ = dolly * depthFactor * 1.05;
+      const spreadX = fanBoost * (idx === 1 ? -0.78 : idx === 2 ? 0.78 : 0);
+      const spreadY = fanBoost * (idx === 1 ? 0.28 : idx === 2 ? -0.28 : 0);
+      const spreadZ = fanBoost * depthFactor * 1.05;
 
       group.position.set(
         basePos[0] + spreadX + smoothPointerX * depthFactor * 0.11,
@@ -683,7 +689,8 @@ export function mountHeroStage(
     lastNow = now;
     if (inView && document.visibilityState === "visible") {
       renderScene(dt);
-      if (!paused || dragging || Math.abs(orbitY) > 0.002 || Math.abs(orbitX) > 0.002) {
+      const spinning = Math.abs(spinTarget - spinCurrent) > 0.003;
+      if (!paused || dragging || spinning || Math.abs(orbitY) > 0.002 || Math.abs(orbitX) > 0.002) {
         raf = requestAnimationFrame(loop);
         return;
       }
@@ -706,8 +713,16 @@ export function mountHeroStage(
     pointerY = MathUtils.clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1.25, 1.25);
   };
 
+  const onDeviceOrientation = (event: DeviceOrientationEvent) => {
+    if (paused || dragging || event.gamma === null || event.beta === null) return;
+    pointerX = MathUtils.clamp(event.gamma / 28, -1.15, 1.15);
+    pointerY = MathUtils.clamp((event.beta - 45) / 28, -1.15, 1.15);
+    if (inView) wakeLoop();
+  };
+
   const onPointerDown = (event: PointerEvent) => {
     dragging = true;
+    dragTravel = 0;
     dragStartX = event.clientX;
     dragStartY = event.clientY;
     host.dataset.dragging = "true";
@@ -721,6 +736,7 @@ export function mountHeroStage(
     if (!dragging) return;
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
+    dragTravel += Math.hypot(dx, dy);
     dragStartX = event.clientX;
     dragStartY = event.clientY;
     targetOrbitY = MathUtils.clamp(targetOrbitY + dx * 0.0075, -0.68, 0.68);
@@ -731,6 +747,9 @@ export function mountHeroStage(
     if (!dragging) return;
     dragging = false;
     delete host.dataset.dragging;
+    if (dragTravel < 7) {
+      spinTarget += Math.PI * 2;
+    }
     wakeLoop();
   };
 
@@ -767,6 +786,7 @@ export function mountHeroStage(
   });
 
   window.addEventListener("pointermove", onWindowPointerMove, { passive: true });
+  window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", onVisibility);
@@ -789,6 +809,7 @@ export function mountHeroStage(
     io?.disconnect();
     ro?.disconnect();
     window.removeEventListener("pointermove", onWindowPointerMove);
+    window.removeEventListener("deviceorientation", onDeviceOrientation);
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("resize", resize);
     document.removeEventListener("visibilitychange", onVisibility);

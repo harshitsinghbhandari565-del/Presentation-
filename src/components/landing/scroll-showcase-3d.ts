@@ -540,6 +540,16 @@ export function mountScrollShowcase(
   let pointerY = 0;
   let smoothPX = 0;
   let smoothPY = 0;
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragTravel = 0;
+  let userYaw = 0;
+  let userPitch = 0;
+  let targetYaw = 0;
+  let targetPitch = 0;
+  let flipTarget = 0;
+  let flipCurrent = 0;
   let isPortrait = false;
   let baseCamZ = 6.6;
   let elapsed = 0;
@@ -565,6 +575,13 @@ export function mountScrollShowcase(
     smoothProgress += (targetProgress - smoothProgress) * 0.11;
     smoothPX += (pointerX - smoothPX) * 0.08;
     smoothPY += (pointerY - smoothPY) * 0.08;
+    if (!dragging) {
+      targetYaw *= 0.95;
+      targetPitch *= 0.95;
+    }
+    userYaw += (targetYaw - userYaw) * 0.13;
+    userPitch += (targetPitch - userPitch) * 0.13;
+    flipCurrent += (flipTarget - flipCurrent) * 0.1;
 
     const p = smoothProgress;
 
@@ -573,9 +590,9 @@ export function mountScrollShowcase(
     const closeOut = 1 - MathUtils.smoothstep(p, 0.76, 0.97);
     const explode = openIn * closeOut;
 
-    // Full 3D orbital sweep driven directly by scroll progress!
-    const sweepY = -0.38 + p * Math.PI * 1.18 + (paused ? 0 : smoothPX * 0.18);
-    const sweepX = 0.14 + Math.sin(p * Math.PI * 2) * 0.24 + (paused ? 0 : -smoothPY * 0.12);
+    // Full 3D orbital sweep driven directly by scroll progress + user touch/drag + tap flip!
+    const sweepY = -0.38 + p * Math.PI * 1.18 + userYaw + flipCurrent + (paused ? 0 : smoothPX * 0.2);
+    const sweepX = MathUtils.clamp(0.14 + Math.sin(p * Math.PI * 2) * 0.24 + userPitch + (paused ? 0 : -smoothPY * 0.14), -0.68, 0.68);
     const sweepZ = Math.sin(p * Math.PI) * -0.08;
 
     deckCluster.rotation.set(sweepX, sweepY, sweepZ);
@@ -640,7 +657,10 @@ export function mountScrollShowcase(
     lastNow = now;
     if (inView && document.visibilityState === "visible") {
       renderFrame(dt);
-      const scrubbing = Math.abs(targetProgress - smoothProgress) > 0.0008;
+      const scrubbing =
+        Math.abs(targetProgress - smoothProgress) > 0.0008 ||
+        Math.abs(flipTarget - flipCurrent) > 0.003 ||
+        dragging;
       if (!paused || scrubbing) {
         raf = requestAnimationFrame(loop);
         return;
@@ -662,6 +682,46 @@ export function mountScrollShowcase(
     if (rect.width <= 0 || rect.height <= 0) return;
     pointerX = MathUtils.clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
     pointerY = MathUtils.clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
+  };
+
+  const onDeviceOrientation = (event: DeviceOrientationEvent) => {
+    if (paused || dragging || event.gamma === null || event.beta === null) return;
+    pointerX = MathUtils.clamp(event.gamma / 28, -1, 1);
+    pointerY = MathUtils.clamp((event.beta - 45) / 28, -1, 1);
+    if (inView) wake();
+  };
+
+  const onStageDown = (event: PointerEvent) => {
+    dragging = true;
+    dragTravel = 0;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    host.dataset.dragging = "true";
+    try {
+      renderer.domElement.setPointerCapture(event.pointerId);
+    } catch {}
+    wake();
+  };
+
+  const onStageMove = (event: PointerEvent) => {
+    if (!dragging) return;
+    const dx = event.clientX - dragStartX;
+    const dy = event.clientY - dragStartY;
+    dragTravel += Math.hypot(dx, dy);
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    targetYaw = MathUtils.clamp(targetYaw + dx * 0.0085, -1.2, 1.2);
+    targetPitch = MathUtils.clamp(targetPitch + dy * 0.006, -0.45, 0.45);
+  };
+
+  const onStageUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    delete host.dataset.dragging;
+    if (dragTravel < 7) {
+      flipTarget += Math.PI;
+    }
+    wake();
   };
 
   const onVisibility = () => {
@@ -695,8 +755,13 @@ export function mountScrollShowcase(
   });
 
   window.addEventListener("pointermove", onPointerMove, { passive: true });
+  window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", onVisibility);
+  renderer.domElement.addEventListener("pointerdown", onStageDown);
+  renderer.domElement.addEventListener("pointermove", onStageMove);
+  renderer.domElement.addEventListener("pointerup", onStageUp);
+  renderer.domElement.addEventListener("pointercancel", onStageUp);
   renderer.domElement.addEventListener("webglcontextlost", onContextLost);
 
   resize();
@@ -711,8 +776,13 @@ export function mountScrollShowcase(
     io?.disconnect();
     ro?.disconnect();
     window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("deviceorientation", onDeviceOrientation);
     window.removeEventListener("resize", resize);
     document.removeEventListener("visibilitychange", onVisibility);
+    renderer.domElement.removeEventListener("pointerdown", onStageDown);
+    renderer.domElement.removeEventListener("pointermove", onStageMove);
+    renderer.domElement.removeEventListener("pointerup", onStageUp);
+    renderer.domElement.removeEventListener("pointercancel", onStageUp);
     renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
     disposables.forEach(d => d.dispose());
     renderer.dispose();

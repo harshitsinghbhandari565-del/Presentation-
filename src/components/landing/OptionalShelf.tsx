@@ -154,8 +154,8 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
     ? "Projector mode keeps the static shelf visible for high-contrast classroom reading."
     : visibleState === "fallback"
       ? interrupted
-        ? "The 3D view was interrupted. The static shelf is visible; you can reload 3D anytime."
-        : "3D preview is standing by. Every subject remains accessible below."
+        ? "The 3D view was interrupted. 3D is unavailable here; the static shelf remains visible."
+        : "3D is unavailable here; every subject remains accessible below."
       : visibleState === "ready"
         ? "Interactive 3D turntable active — select a subject folio or drag horizontally to orbit."
         : "Preparing interactive 3D subject shelf…";
@@ -192,11 +192,12 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
             onClick={() => { void load(); }}
             disabled={projectorMode || visibleState === "loading"}
             aria-controls="optional-shelf-stage"
+            aria-label="View optional 3D shelf"
           >
             {visibleState === "loading" ? (
               <><LoaderCircle size={16} className="spin" />Loading 3D shelf…</>
             ) : (
-              <><RotateCw size={15} />{visibleState === "fallback" ? "Reload 3D shelf" : "Launch interactive 3D shelf"}</>
+              <><RotateCw size={15} />{visibleState === "fallback" ? "Reload 3D shelf" : "View optional 3D shelf"}</>
             )}
           </button>
         )}
@@ -214,7 +215,7 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
         aria-hidden={visibleState === "ready"}
       >
         {visibleState !== "ready" && (
-          <div className="static-shelf-grid">
+          <div className="static-shelf static-shelf-grid">
             {items.map((s, idx) => (
               <div
                 key={s.name}

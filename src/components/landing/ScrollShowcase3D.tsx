@@ -193,6 +193,16 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
     };
   }, [resource, projectorMode]);
 
+  const jumpToChapter = (idx: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const trackTop = window.scrollY + rect.top;
+    const scrollable = Math.max(1, track.offsetHeight - window.innerHeight);
+    const targetP = idx === 0 ? 0.04 : idx === 1 ? 0.34 : idx === 2 ? 0.64 : 0.94;
+    window.scrollTo({ top: trackTop + scrollable * targetP, behavior: "smooth" });
+  };
+
   const current = CHAPTERS[activeBeat] ?? CHAPTERS[0];
   const Icon = current.icon;
   const visibleState = projectorMode ? "fallback" : webglState;
@@ -248,7 +258,7 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
             </div>
 
             <div className="scroll-3d-copy" key={current.num}>
-              <span className="scroll-3d-step-badge">{current.num} / 04</span>
+              <span className="scroll-3d-step-badge">{current.num} / 04 • Drag or tap 3D deck</span>
               <h2>
                 {current.title}{" "}
                 <em>{current.emphasis}</em>
@@ -256,18 +266,22 @@ export default function ScrollShowcase3D({ document: resource }: { document?: Ed
               <p>{current.body}</p>
             </div>
 
-            <div className="scroll-3d-rail" aria-hidden="true">
-              <div className="scroll-3d-dots">
+            <div className="scroll-3d-rail">
+              <div className="scroll-3d-dots" role="group" aria-label="Jump to 3D presentation chapter">
                 {CHAPTERS.map((ch, idx) => (
-                  <span
+                  <button
                     key={ch.num}
+                    type="button"
+                    onClick={() => jumpToChapter(idx)}
+                    aria-label={`Chapter ${ch.num}: ${ch.eyebrow}`}
+                    aria-pressed={idx === activeBeat}
                     className={`scroll-3d-dot ${idx === activeBeat ? "active" : idx < activeBeat ? "done" : ""}`}
                   >
                     {ch.num}
-                  </span>
+                  </button>
                 ))}
               </div>
-              <div className="scroll-3d-bar-track">
+              <div className="scroll-3d-bar-track" aria-hidden="true">
                 <div className="scroll-3d-bar-fill" />
               </div>
             </div>

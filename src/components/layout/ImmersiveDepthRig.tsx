@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { canRun3DMotion, subscribeMotionPaused, syncForceDataset } from "./motion-state";
 
@@ -32,21 +32,37 @@ const SCROLL_3D_SELECTOR = [
 
 const PLATFORM_BADGE_SELECTOR = ".compatibility .platform-list > span";
 
+function resolveZoneLabel(progress: number, pathname: string): string {
+  if (pathname !== "/") {
+    if (pathname.startsWith("/library")) return "LIBRARY";
+    if (pathname.startsWith("/subjects")) return "SUBJECTS";
+    if (pathname.startsWith("/resources")) return "RESOURCE";
+    if (pathname.startsWith("/about")) return "MANIFESTO";
+    return "STUDIO";
+  }
+  if (progress < 0.13) return "01 • HERO";
+  if (progress < 0.38) return "02 • 3D DECK";
+  if (progress < 0.54) return "03 • FEATURED";
+  if (progress < 0.72) return "04 • 3D SHELF";
+  if (progress < 0.88) return "05 • WORKFLOW";
+  return "06 • LAUNCH";
+}
+
 /**
- * Full-website 60fps spring-damped 3D scroll choreography & cursor spotlight engine.
- * Continuously drives every UI component across X/Y/Z translation and 3-axis
- * perspective rotation (rotateX, rotateY, rotateZ) + inner child parallax while
- * scrolling on both mobile and desktop, standing down cleanly for reduced-motion,
- * projector-mode, or paused motion.
+ * Full-website 60fps spring-damped 3D scroll choreography, magnetic CTA engine,
+ * and live scroll elevation HUD.
  */
 export default function ImmersiveDepthRig() {
   const pathname = usePathname();
+  const pctRef = useRef<HTMLSpanElement>(null);
+  const zoneRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const motionMedia = window.matchMedia("(prefers-reduced-motion: no-preference)");
     const hoverMedia = window.matchMedia("(hover: hover) and (min-width: 768px)");
     let raf = 0;
     let activeCard: HTMLElement | null = null;
+    let activeMagnet: HTMLElement | null = null;
     let smoothY = window.scrollY;
     let smoothVel = 0;
     let initialized = false;
@@ -60,12 +76,21 @@ export default function ImmersiveDepthRig() {
       card.removeAttribute("data-tilting");
     };
 
+    const clearMagnet = (btn: HTMLElement | null) => {
+      if (!btn) return;
+      btn.style.removeProperty("--mag-x");
+      btn.style.removeProperty("--mag-y");
+      btn.removeAttribute("data-magnetic");
+    };
+
     const resetAllScrollTransforms = () => {
       const root = document.documentElement;
       root.removeAttribute("data-s3d-ready");
       root.style.setProperty("--hero-scroll", "0");
       root.style.setProperty("--hero-p", "0");
       root.style.setProperty("--hero-vel", "0");
+      root.style.setProperty("--scroll-vel", "0");
+      root.style.setProperty("--grid-flow", "0px");
 
       document.querySelectorAll<HTMLElement>("[data-s3d], [data-s3d-badge]").forEach(el => {
         el.style.removeProperty("--s3d-tx");
@@ -77,6 +102,9 @@ export default function ImmersiveDepthRig() {
         el.style.removeProperty("--s3d-scale");
         el.style.removeProperty("--s3d-t");
         el.style.removeProperty("--s3d-abs");
+        el.style.removeProperty("--s3d-focus");
+        el.style.removeProperty("--s3d-glint-x");
+        el.style.removeProperty("--s3d-glint-y");
         el.removeAttribute("data-s3d");
         el.removeAttribute("data-s3d-badge");
       });
@@ -98,6 +126,13 @@ export default function ImmersiveDepthRig() {
       const progress = Math.min(1, Math.max(0, rawY / maxScroll));
       root.style.setProperty("--scroll-progress", progress.toFixed(4));
 
+      if (pctRef.current) {
+        pctRef.current.textContent = `${Math.round(progress * 100).toString().padStart(2, "0")}%`;
+      }
+      if (zoneRef.current) {
+        zoneRef.current.textContent = resolveZoneLabel(progress, pathname);
+      }
+
       if (!canAnimate()) {
         smoothY = rawY;
         smoothVel = 0;
@@ -111,9 +146,9 @@ export default function ImmersiveDepthRig() {
       }
 
       const diff = rawY - smoothY;
-      smoothY += diff * 0.2;
-      const targetVel = Math.max(-1, Math.min(1, diff / 85));
-      smoothVel += (targetVel - smoothVel) * 0.26;
+      smoothY += diff * 0.19;
+      const targetVel = Math.max(-1, Math.min(1, diff / 80));
+      smoothVel += (targetVel - smoothVel) * 0.25;
       if (Math.abs(diff) < 0.15 && Math.abs(smoothVel) < 0.003) {
         smoothY = rawY;
         smoothVel = 0;
@@ -121,15 +156,24 @@ export default function ImmersiveDepthRig() {
 
       root.dataset.s3dReady = "true";
 
-      const heroP = Math.min(1, Math.max(0, smoothY / 540));
+      const heroP = Math.min(1, Math.max(0, smoothY / 520));
       root.style.setProperty("--hero-scroll", heroP.toFixed(4));
       root.style.setProperty("--hero-p", heroP.toFixed(4));
       root.style.setProperty("--hero-vel", smoothVel.toFixed(4));
+      root.style.setProperty("--scroll-vel", Math.abs(smoothVel).toFixed(4));
+      root.style.setProperty("--grid-flow", `${(smoothY * 0.28) % 72}px`);
 
-      // Inertia delta compensates native jump so components glide with physical 3D momentum
-      const lagOffset = (rawY - smoothY) * 0.34;
+      // Drive #how-it-works vertical laser spine fill
+      const howSteps = document.querySelector<HTMLElement>(".how-steps");
+      if (howSteps) {
+        const hsRect = howSteps.getBoundingClientRect();
+        const hsProg = Math.min(1, Math.max(0, (vh * 0.68 - hsRect.top) / Math.max(1, hsRect.height * 0.88)));
+        howSteps.style.setProperty("--steps-progress", hsProg.toFixed(3));
+      }
+
+      const lagOffset = (rawY - smoothY) * 0.36;
       const focalY = vh * 0.48;
-      const rangeY = vh * 0.58;
+      const rangeY = vh * 0.56;
 
       // 1. Platform compatibility strip 5-badge 3D helical wave
       const badges = document.querySelectorAll<HTMLElement>(PLATFORM_BADGE_SELECTOR);
@@ -137,17 +181,17 @@ export default function ImmersiveDepthRig() {
         const rect = badge.getBoundingClientRect();
         if (rect.top > vh * 1.35 || rect.bottom < -vh * 0.35) return;
         const centerY = rect.top + rect.height * 0.5 + lagOffset;
-        const baseT = Math.max(-1.3, Math.min(1.3, (centerY - focalY) / (vh * 0.52)));
-        const slot = idx - (badges.length - 1) / 2; // -2 .. +2
-        const waveT = Math.max(-1.3, Math.min(1.3, baseT + slot * 0.14));
+        const baseT = Math.max(-1.3, Math.min(1.3, (centerY - focalY) / (vh * 0.5)));
+        const slot = idx - (badges.length - 1) / 2;
+        const waveT = Math.max(-1.3, Math.min(1.3, baseT + slot * 0.15));
         const absWave = Math.abs(waveT);
 
-        const rx = waveT * 36 + smoothVel * 11;
-        const ry = slot * 14 * Math.min(1, absWave * 1.2) - waveT * 16;
-        const rz = slot * waveT * 2.6;
-        const tx = slot * waveT * (isMobile ? 9 : 18);
-        const ty = waveT * 28 + lagOffset * 0.5;
-        const tz = (1 - Math.min(1, absWave)) * 34 - absWave * 48;
+        const rx = waveT * 38 + smoothVel * 12;
+        const ry = slot * 16 * Math.min(1, absWave * 1.2) - waveT * 18;
+        const rz = slot * waveT * 3.0;
+        const tx = slot * waveT * (isMobile ? 10 : 20);
+        const ty = waveT * 30 + lagOffset * 0.5;
+        const tz = (1 - Math.min(1, absWave)) * 38 - absWave * 52;
 
         badge.dataset.s3dBadge = "true";
         badge.style.setProperty("--s3d-tx", `${tx.toFixed(1)}px`);
@@ -158,36 +202,39 @@ export default function ImmersiveDepthRig() {
         badge.style.setProperty("--s3d-rz", `${rz.toFixed(2)}deg`);
       });
 
-      // 2. Page-wide 3D perspective orbit for all cards, headings, steps & sections
+      // 2. Page-wide 3D perspective orbit + multi-column wave stagger + mobile specular glint
       const targets = document.querySelectorAll<HTMLElement>(SCROLL_3D_SELECTOR);
       targets.forEach((el, idx) => {
         const rect = el.getBoundingClientRect();
-        if (rect.top > vh * 1.45 || rect.bottom < -vh * 0.45) return;
+        if (rect.top > vh * 1.48 || rect.bottom < -vh * 0.48) return;
 
         const isStickyIntro =
           isDesktopSticky &&
           el.classList.contains("how-intro") &&
           Boolean(el.closest(".pinned-story"));
 
+        const wideBlock = rect.width >= vw * 0.72;
+        const normX = (rect.left + rect.width * 0.5) / vw; // 0..1 across screen
+
+        // Multi-column wave stagger so side-by-side cards ripple into 3D place sequentially
+        const colStagger = wideBlock ? 0 : (normX - 0.5) * 0.18;
+
         const centerY = rect.top + rect.height * 0.5 + lagOffset;
-        const rawT = (centerY - focalY) / rangeY;
+        const rawT = (centerY - focalY) / rangeY + colStagger;
         const clampedT = Math.max(-1.25, Math.min(1.25, rawT));
         const absT = Math.abs(clampedT);
-        // Continuous non-zero curve: gentle through eye-level, bold 3D sweep toward top/bottom
-        const shaped = clampedT * (0.68 + 0.32 * absT);
+        const shaped = clampedT * (0.7 + 0.3 * absT);
+        const focus = Math.max(0, 1 - absT * 1.65);
 
-        // Determine lateral 3D wing (-1 left .. +1 right)
-        const wideBlock = rect.width >= vw * 0.72;
         let side: number;
         if (!wideBlock) {
-          const centerX = rect.left + rect.width * 0.5;
-          side = Math.max(-1, Math.min(1, ((centerX / vw) - 0.5) * 2.3));
+          side = Math.max(-1, Math.min(1, (normX - 0.5) * 2.35));
         } else if (
           el.classList.contains("section-heading") ||
           el.classList.contains("page-intro") ||
           el.classList.contains("detail-title")
         ) {
-          side = -0.45;
+          side = -0.48;
         } else if (
           el.classList.contains("final-cta") ||
           el.classList.contains("optional-shelf") ||
@@ -195,8 +242,7 @@ export default function ImmersiveDepthRig() {
         ) {
           side = 0;
         } else {
-          // Single-column mobile cards alternate left/right 3D wing sweep!
-          side = idx % 2 === 0 ? -0.78 : 0.78;
+          side = idx % 2 === 0 ? -0.82 : 0.82;
         }
 
         let rx: number;
@@ -208,23 +254,26 @@ export default function ImmersiveDepthRig() {
         let scale: number;
 
         if (isStickyIntro) {
-          // Preserve sticky pin position while tilting in 3D with scroll velocity & depth
-          rx = clampedT * 12 + smoothVel * 7;
-          ry = 10 * Math.max(-1, Math.min(1, clampedT)) - smoothVel * 4;
+          rx = clampedT * 13 + smoothVel * 7.5;
+          ry = 11 * Math.max(-1, Math.min(1, clampedT)) - smoothVel * 4.5;
           rz = 0;
           tx = 0;
           ty = 0;
-          tz = -absT * 30;
+          tz = -absT * 32;
           scale = 1;
         } else {
-          rx = shaped * 27 + smoothVel * 8.5;
-          ry = -side * shaped * 21;
-          rz = side * shaped * 2.8 + side * smoothVel * 1.2;
-          tx = side * absT * (isMobile ? 20 : 40);
-          ty = shaped * (isMobile ? 36 : 52) + lagOffset;
-          tz = -absT * (isMobile ? 92 : 140);
-          scale = Math.max(0.88, 1 - absT * 0.068);
+          rx = shaped * 29 + smoothVel * 9.5;
+          ry = -side * shaped * 23;
+          rz = side * shaped * 3.1 + side * smoothVel * 1.35;
+          tx = side * absT * (isMobile ? 22 : 44);
+          ty = shaped * (isMobile ? 40 : 56) + lagOffset;
+          tz = -absT * (isMobile ? 98 : 152) + focus * 14;
+          scale = Math.max(0.87, 1 - absT * 0.072 + focus * 0.014);
         }
+
+        // Studio specular light rolls across card surface as it tilts in 3D (works on mobile too!)
+        const glintX = 50 - side * clampedT * 36;
+        const glintY = 42 - clampedT * 44;
 
         el.dataset.s3d = "true";
         el.style.setProperty("--s3d-tx", `${tx.toFixed(1)}px`);
@@ -236,9 +285,11 @@ export default function ImmersiveDepthRig() {
         el.style.setProperty("--s3d-scale", scale.toFixed(3));
         el.style.setProperty("--s3d-t", clampedT.toFixed(3));
         el.style.setProperty("--s3d-abs", absT.toFixed(3));
+        el.style.setProperty("--s3d-focus", focus.toFixed(3));
+        el.style.setProperty("--s3d-glint-x", `${glintX.toFixed(1)}%`);
+        el.style.setProperty("--s3d-glint-y", `${glintY.toFixed(1)}%`);
       });
 
-      // Continue spring-damping frames until settled, then sleep at 0% CPU
       if (Math.abs(rawY - smoothY) > 0.2 || Math.abs(smoothVel) > 0.0035) {
         raf = requestAnimationFrame(stepFrame);
       }
@@ -254,8 +305,33 @@ export default function ImmersiveDepthRig() {
           clearCard(activeCard);
           activeCard = null;
         }
+        if (activeMagnet) {
+          clearMagnet(activeMagnet);
+          activeMagnet = null;
+        }
         return;
       }
+
+      // Magnetic 3D pull on buttons
+      const magnet = (event.target as Element | null)?.closest<HTMLElement>(
+        ".button-primary, .button-secondary",
+      );
+      if (magnet !== activeMagnet) {
+        clearMagnet(activeMagnet);
+        activeMagnet = magnet ?? null;
+      }
+      if (activeMagnet) {
+        const mRect = activeMagnet.getBoundingClientRect();
+        if (mRect.width > 0 && mRect.height > 0) {
+          const mx = ((event.clientX - mRect.left) / mRect.width - 0.5) * 10;
+          const my = ((event.clientY - mRect.top) / mRect.height - 0.5) * 7;
+          activeMagnet.dataset.magnetic = "true";
+          activeMagnet.style.setProperty("--mag-x", `${mx.toFixed(1)}px`);
+          activeMagnet.style.setProperty("--mag-y", `${my.toFixed(1)}px`);
+        }
+      }
+
+      // 3D card tilt + cursor spotlight
       const target = (event.target as Element | null)?.closest<HTMLElement>(
         ".resource-card, .subject-preview, .subject-card, .how-step, .featured-editorial",
       );
@@ -268,8 +344,8 @@ export default function ImmersiveDepthRig() {
       if (rect.width <= 0 || rect.height <= 0) return;
       const nx = (event.clientX - rect.left) / rect.width;
       const ny = (event.clientY - rect.top) / rect.height;
-      const tiltX = ((0.5 - ny) * 8.5).toFixed(2);
-      const tiltY = ((nx - 0.5) * 10.5).toFixed(2);
+      const tiltX = ((0.5 - ny) * 9.5).toFixed(2);
+      const tiltY = ((nx - 0.5) * 11.5).toFixed(2);
       activeCard.dataset.tilting = "true";
       activeCard.style.setProperty("--spot-x", `${(nx * 100).toFixed(1)}%`);
       activeCard.style.setProperty("--spot-y", `${(ny * 100).toFixed(1)}%`);
@@ -280,6 +356,8 @@ export default function ImmersiveDepthRig() {
     const onPointerLeave = () => {
       clearCard(activeCard);
       activeCard = null;
+      clearMagnet(activeMagnet);
+      activeMagnet = null;
     };
 
     stepFrame();
@@ -288,7 +366,6 @@ export default function ImmersiveDepthRig() {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("blur", onPointerLeave);
 
-    // Observe dynamic DOM updates (e.g. Library search/filter changes)
     const mainEl = document.getElementById("main-content");
     let mo: MutationObserver | undefined;
     if (mainEl && typeof MutationObserver !== "undefined") {
@@ -298,8 +375,7 @@ export default function ImmersiveDepthRig() {
 
     const unsubPause = subscribeMotionPaused(() => {
       if (!canAnimate()) {
-        clearCard(activeCard);
-        activeCard = null;
+        onPointerLeave();
         resetAllScrollTransforms();
       } else {
         scheduleFrame();
@@ -309,7 +385,6 @@ export default function ImmersiveDepthRig() {
     const onMotionChange = () => scheduleFrame();
     motionMedia.addEventListener("change", onMotionChange);
 
-    // Watch projector-mode class toggles on <html>
     let rootObserver: MutationObserver | undefined;
     if (typeof MutationObserver !== "undefined") {
       rootObserver = new MutationObserver(() => scheduleFrame());
@@ -323,7 +398,7 @@ export default function ImmersiveDepthRig() {
       if (raf) cancelAnimationFrame(raf);
       mo?.disconnect();
       rootObserver?.disconnect();
-      clearCard(activeCard);
+      onPointerLeave();
       resetAllScrollTransforms();
       unsubPause();
       motionMedia.removeEventListener("change", onMotionChange);
@@ -334,5 +409,16 @@ export default function ImmersiveDepthRig() {
     };
   }, [pathname]);
 
-  return <div className="scroll-progress-bar" aria-hidden="true" />;
+  return (
+    <>
+      <div className="scroll-progress-bar" aria-hidden="true" />
+      <div className="scroll-elevation-hud" aria-hidden="true">
+        <span className="scroll-elevation-zone" ref={zoneRef}>01 • HERO</span>
+        <div className="scroll-elevation-track">
+          <div className="scroll-elevation-fill" />
+        </div>
+        <span className="scroll-elevation-pct" ref={pctRef}>00%</span>
+      </div>
+    </>
+  );
 }

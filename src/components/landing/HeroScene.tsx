@@ -133,7 +133,7 @@ export default function HeroScene({ document: resource }: { document?: Education
           {visibleState === "ready" && motionStatus === "active" && (
             <span className="hero-hud-hint" aria-hidden="true">
               <Move3d size={13} />
-              Drag or move to tilt 3D
+              Tap to 360° spin • Drag to orbit
             </span>
           )}
           <button
