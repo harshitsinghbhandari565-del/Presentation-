@@ -1,5 +1,7 @@
 # SQL Workbench: architecture, progress and limits
 
+**Historical first-milestone record:** see `SQL_WORKBENCH_AUDIT.md` for the current implementation and limitations.
+
 ## Purpose and current milestone
 
 The workbench is a section of the existing site at `/sql-workbench`, not a replacement for the resource library. This first milestone executes **real SQLite** through sql.js 1.16.0 (SQLite compiled to WebAssembly). Seven fictional sample databases, a CodeMirror SQLite editor, schema explorer, result tables, CSV export and SQL export are implemented. It has no student accounts and does not execute visitor SQL on Supabase or any server. No production database migrations or new services are required.

@@ -69,3 +69,34 @@ test("deployed SQLite WebAssembly matches the installed engine", () => {
   const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
   assert.equal(hash("public/sql/sql-wasm.wasm"), hash("node_modules/sql.js/dist/sql-wasm.wasm"));
 });
+
+test("RETURNING completes mutations even when output is truncated", async () => {
+  const SQL = await sqlReady; const db = new SQL.Database();
+  try {
+    db.run("CREATE TABLE t(x)");
+    const result = executeSql(db, "WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x < 1000) INSERT INTO t SELECT x FROM n RETURNING x");
+    assert.equal(result.results[0].rows.length, 500); assert.equal(result.results[0].truncated, true);
+    assert.equal(result.changes, 1000);
+    assert.deepEqual(db.exec("SELECT count(*) FROM t")[0].values, [[1000]]);
+  } finally { db.close(); }
+});
+
+test("errors identify the failing statement and retain explicit transaction state", async () => {
+  const SQL = await sqlReady; const db = new SQL.Database();
+  try {
+    db.run("CREATE TABLE t(x UNIQUE)");
+    assert.throws(() => executeSql(db, "BEGIN; INSERT INTO t VALUES(1); INSERT INTO t VALUES(1);"), /Statement 3.*UNIQUE/);
+    assert.deepEqual(db.exec("SELECT count(*) FROM t")[0].values, [[1]]);
+    executeSql(db, "ROLLBACK"); assert.deepEqual(db.exec("SELECT count(*) FROM t")[0].values, [[0]]);
+    assert.throws(() => executeSql(db, "SELECT 1; SELECT * FROM missing"), /Statement 2/);
+  } finally { db.close(); }
+});
+
+test("large result values and statement count are bounded", async () => {
+  const SQL = await sqlReady; const db = new SQL.Database();
+  try {
+    const r = executeSql(db, "SELECT hex(zeroblob(600000)) AS value;");
+    assert.equal(r.results[0].truncated, true); assert.equal(r.results[0].rows.length, 0);
+    assert.throws(() => executeSql(db, Array(101).fill("SELECT 1;").join(" ")), /at most 100/);
+  } finally { db.close(); }
+});

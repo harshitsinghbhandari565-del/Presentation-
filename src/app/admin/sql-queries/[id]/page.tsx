@@ -1,0 +1,18 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { z } from "zod";
+import { requireAdministrator } from "@/lib/admin/auth";
+import { saveSharedQuery, restoreSharedQuery } from "../actions";
+export const dynamic = "force-dynamic";
+export default async function QueryEdit({ params, searchParams }: { params: Promise<{id:string}>; searchParams: Promise<Record<string,string | string[] | undefined>> }) {
+  const { client } = await requireAdministrator(); const { id } = await params; const state = await searchParams;
+  if (!z.string().uuid().safeParse(id).success) notFound();
+  const [query, history] = await Promise.all([client.from("shared_sql_queries").select("id,title,description,sql_text,dialect,publication_status,updated_at").eq("id", id).maybeSingle(), client.from("shared_sql_query_versions").select("id,title,description,sql_text,dialect,publication_status,created_at").eq("query_id", id).order("id", { ascending: false }).limit(100)]);
+  if (query.error || history.error) return <div className="sql-notice">Shared-query storage could not be loaded.</div>;
+  if (!query.data) notFound(); const row = query.data;
+  return <><div className="admin-heading"><div><h1>Edit shared query.</h1><p>Changes create a private, append-only version. Publishing makes the SQL public.</p></div><Link href="/admin/sql-queries" className="button button-secondary">Back to queries</Link></div>
+    {(state.saved || state.restored) && <p className="form-success">{state.restored ? "Version restored as a draft; it is not publicly visible." : "Query saved."}</p>}{state.error && <p className="form-alert">The version could not be restored.</p>}
+    <section className="editor-panel"><form action={saveSharedQuery}><input type="hidden" name="id" value={id}/><label className="form-field"><span>Title</span><input name="title" defaultValue={row.title} required maxLength={120}/></label><label className="form-field"><span>Description</span><textarea name="description" defaultValue={row.description} maxLength={1000}/></label><label className="form-field"><span>SQL</span><textarea name="sql_text" defaultValue={row.sql_text} required maxLength={100000}/></label><label className="form-field"><span>Dialect</span><select name="dialect" defaultValue={row.dialect}><option value="sqlite">SQLite</option><option value="postgresql">PostgreSQL</option><option value="mysql">MySQL</option></select></label><label className="form-field"><span>Status</span><select name="publication_status" defaultValue={row.publication_status}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label><label><input type="checkbox" name="confirm_public" value="yes"/> I understand published SQL is public.</label><p><button className="button button-primary">Save changes</button></p></form></section>
+    <section className="editor-panel"><h2>Version history</h2><p className="fine-print">Visible only to administrators. Restore creates a new draft and removes the current public version from view.</p>{(history.data ?? []).map(version => <form action={restoreSharedQuery} key={version.id} className="sql-version"><input type="hidden" name="id" value={id}/><input type="hidden" name="version_id" value={String(version.id)}/><details><summary>#{version.id} · {version.title} · {version.publication_status} · {new Date(version.created_at).toLocaleString("en-GB", { timeZone: "UTC" })} UTC</summary><p>{version.description}</p><pre className="sql-version-code">{version.sql_text}</pre></details><button className="button button-secondary">Restore as draft</button></form>)}</section>
+  </>;
+}
