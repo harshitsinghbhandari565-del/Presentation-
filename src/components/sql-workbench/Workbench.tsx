@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { sql, SQLite } from "@codemirror/lang-sql";
-import { type EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { Database, Play, RotateCcw, Download, Square, ChevronDown, TerminalSquare, ShieldCheck, FileCode2 } from "lucide-react";
 import { samples } from "@/lib/sql-workbench/samples";
 import { csvForResult, mayChangeOrDeleteExistingData, type Execution, type SchemaObject } from "@/lib/sql-workbench/engine";
@@ -11,6 +13,13 @@ import { csvForResult, mayChangeOrDeleteExistingData, type Execution, type Schem
 const DRAFT_KEY = "presentation-hub-sqlite-draft-v1";
 const TIMEOUT_MS = 10_000;
 const PAGE_SIZE = 50;
+const accessibleSqlHighlight = syntaxHighlighting(HighlightStyle.define([
+  { tag: tags.keyword, color: "#d6a4f3 !important" },
+  { tag: [tags.name, tags.variableName, tags.propertyName], color: "#f4a2aa !important" },
+  { tag: tags.string, color: "#b9df9e !important" },
+  { tag: tags.number, color: "#f5c184 !important" },
+  { tag: tags.comment, color: "#b5c0ce !important", fontStyle: "italic" },
+]));
 type WorkerReply = { id: number; ok: boolean; type?: "load" | "run"; execution?: Execution; schema?: SchemaObject[] | null; error?: string };
 
 function download(name: string, contents: string, type: string) {
@@ -124,7 +133,7 @@ export default function Workbench() {
   }, [stopWorker]);
 
   const schemaCompletion = useMemo(() => Object.fromEntries(schema.map(item => [item.name, item.columns.map(column => column.name)])), [schema]);
-  const extensions = useMemo(() => [sql({ dialect: SQLite, schema: schemaCompletion })], [schemaCompletion]);
+  const extensions = useMemo(() => [sql({ dialect: SQLite, schema: schemaCompletion }), accessibleSqlHighlight, EditorView.contentAttributes.of({ "aria-label": "SQL editor" })], [schemaCompletion]);
   const result = execution?.results[resultIndex];
   const pageCount = result ? Math.max(1, Math.ceil(result.rows.length / PAGE_SIZE)) : 1;
 

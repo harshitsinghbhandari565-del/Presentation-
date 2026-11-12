@@ -36,3 +36,5 @@ The copied `public/sql/sql-wasm.wasm` must match the pinned `sql.js` version. Wh
 ## Milestone verification record
 
 For the initial SQLite milestone, `npm run check` passed (lint, typecheck, unit tests, database tests, production build). Five Playwright tests ran against a local production build with headless Chromium on desktop and a 390px viewport: real query execution and mutation, separate-page database isolation, reset and draft refresh, sample loading, errors, CSV download, mobile width, destructive warning, stop and watchdog timeout. These are targeted checks, not a comprehensive security audit or cross-browser certification. No live infrastructure or Supabase data was changed for this milestone.
+
+An automated axe pass on the workbench's default desktop view found two remaining shared-header label/name mismatches (the brand link and search shortcut). The editor input has a label and its initial syntax colors pass that automated contrast check. This is not a complete accessibility audit; address the shared-header findings and test additional states and assistive technologies in a future pass.
