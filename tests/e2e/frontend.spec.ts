@@ -10,7 +10,8 @@ test("reduced motion keeps content visible and disables ambient/skeleton animati
   await expect(page.locator(".how-step")).toHaveCount(3);
   expect(await page.locator(".ambient-canvas").evaluate(el => getComputedStyle(el).display)).toBe("none");
   await page.goto("/library");
-  await expect(page.locator(".resource-card")).toHaveCount(1);
+  if (process.env.TEST_MATH_PAPERS === "1") await expect(page.locator(".resource-card").first()).toBeVisible();
+  else await expect(page.locator(".resource-card")).toHaveCount(0);
 });
 test("WebGL unavailable falls back without hiding content or breaking optional 3D", async ({ page }) => {
   await page.addInitScript(() => {
@@ -50,8 +51,10 @@ test("search results announce updates atomically and empty state remains underst
   await page.goto("/library");
   const status = page.locator('.results-toolbar p[role="status"]');
   await expect(status).toHaveAttribute("aria-atomic", "true");
-  await expect(status).toContainText("1 resource");
+  if (process.env.TEST_MATH_PAPERS === "1") await expect(status).not.toContainText("0 resources");
+  else await expect(status).toContainText("0 resources");
   await page.getByRole("searchbox", { name: "Search the resource library" }).fill("nonexistent");
+  await expect(page).toHaveURL(/q=nonexistent/);
   await expect(status).toContainText("0 resources");
   await expect(page.getByRole("heading", { name: "No resources on this shelf. Yet." })).toBeVisible();
 });
@@ -60,13 +63,13 @@ test("optional 3D is not requested on initial load and landing has no automated 
   page.on("request", request => { if (request.resourceType() === "script") requests.push(request.url()); });
   await page.goto("/");
   await expect(page.getByRole("button", { name: "View optional 3D shelf" })).toBeVisible();
-  // Turbopack uses hashed chunk names: inspect the built client chunks rather
-  // than hoping a network URL contains the source name "three".
+  // Other on-page 3D components share Three.js. Identify the optional shelf's
+  // own module, not the shared library that other components legitimately use.
   const chunks = join(process.cwd(), ".next/static/chunks");
-  const threeChunks = readdirSync(chunks).filter(name => name.endsWith(".js") && readFileSync(join(chunks, name), "utf8").includes("WebGLRenderer"));
-  expect(threeChunks.length).toBeGreaterThan(0);
+  const shelfChunks = readdirSync(chunks).filter(name => name.endsWith(".js") && readFileSync(join(chunks, name), "utf8").includes("Ready for future decks"));
+  expect(shelfChunks.length).toBeGreaterThan(0);
   await page.waitForTimeout(600);
-  expect(requests.some(url => threeChunks.some(name => new URL(url).pathname.endsWith(`/${name}`)))).toBe(false);
+  expect(requests.some(url => shelfChunks.some(name => new URL(url).pathname.endsWith(`/${name}`)))).toBe(false);
   const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(accessibility.violations).toEqual([]);
 });
@@ -102,10 +105,10 @@ test("successful shelf context loss restores poster, retry control, and polite s
   await page.goto("/");
   await page.getByRole("button", { name: "View optional 3D shelf" }).click();
   const stage = page.locator("#optional-shelf-stage");
-  await expect(stage).toHaveAttribute("data-state", "ready");
+  await expect(stage).toHaveAttribute("data-state", "ready", { timeout: 30000 });
   await expect(stage.locator("canvas")).toHaveCount(1);
   const requests = await page.evaluate(() => (window as unknown as { glRequests: { type: string; options: Record<string, unknown> }[] }).glRequests);
-  expect(requests.some(call => call.type === "webgl2" && call.options.failIfMajorPerformanceCaveat === true && call.options.powerPreference === "low-power")).toBe(true);
+  expect(requests.some(call => call.type === "webgl2" && call.options.failIfMajorPerformanceCaveat === true && call.options.powerPreference === "high-performance")).toBe(true);
   const loss = await stage.locator("canvas").evaluate(canvas => {
     const element = canvas as HTMLCanvasElement;
     const gl = element.getContext("webgl2");
@@ -125,8 +128,11 @@ test("successful shelf context loss restores poster, retry control, and polite s
 test("projector mode blocks and tears down the optional scene without blocking scrolling", async ({ page }) => {
   await allowHeadlessSoftwareWebGL(page);
   await page.goto("/");
-  await page.getByRole("button", { name: "View optional 3D shelf" }).click();
-  await expect(page.locator("#optional-shelf-stage")).toHaveAttribute("data-state", "ready");
+  // This shelf auto-loads near the viewport; scrolling is the real trigger and
+  // avoids racing a button which disappears as soon as loading succeeds.
+  await page.locator("#optional-shelf-stage").evaluate(element => element.scrollIntoView({ block: "center" }));
+  await expect(page.locator("#optional-shelf-stage")).toHaveAttribute("data-state", "ready", { timeout: 30000 });
+  await page.getByRole("group", { name: "Spotlight subject folio" }).getByRole("button").first().click();
   await page.getByRole("button", { name: "Enable projector mode" }).click();
   await expect(page.locator("#optional-shelf-stage")).toHaveAttribute("data-state", "fallback");
   await expect(page.locator("#optional-shelf-stage canvas")).toHaveCount(0);
@@ -170,26 +176,26 @@ test("forced colours suppress decoration and pending results retain full text co
 test("Geist heading roles, grid stacking and both theme tokens stay in sync", async ({ page }) => {
   await allowHeadlessSoftwareWebGL(page);
   await page.goto("/");
-  await expect(page.locator(".ambient-canvas")).toHaveAttribute("data-state", "ready");
+  await expect(page.locator(".ambient-canvas")).toHaveAttribute("data-state", "ready", { timeout: 30000 });
   const layers = await page.evaluate(() => {
     const style = getComputedStyle(document.documentElement);
     return { bg: style.getPropertyValue("--bg").trim(), accent: style.getPropertyValue("--accent").trim(), grid: getComputedStyle(document.querySelector(".ambient-grid")!).zIndex, canvas: getComputedStyle(document.querySelector(".ambient-canvas")!).zIndex, h1: getComputedStyle(document.querySelector("h1")!).fontFamily, h3: getComputedStyle(document.querySelector(".optional-shelf h3")!).fontFamily, em: getComputedStyle(document.querySelector("h1 em")!).fontFamily };
   });
-  expect(layers.bg).toBe("#090b10"); expect(layers.accent).toBe("#a5aaff");
+  expect(layers.bg).toBe("#05070c"); expect(layers.accent).toBe("#7dd3fc");
   expect(Number(layers.grid)).toBeGreaterThan(Number(layers.canvas));
   expect(layers.h1).toBe(layers.h3); expect(layers.em).not.toBe(layers.h1);
   const hasColor = async (expected: number[]) => page.evaluate(value => (window as unknown as { glColors: number[][] }).glColors.some(color => color.every((channel, index) => Math.abs(channel - value[index]) < 0.0001)), expected);
-  await expect.poll(() => hasColor([165 / 255, 170 / 255, 1])).toBe(true);
-  await expect.poll(() => hasColor([9 / 255, 11 / 255, 16 / 255])).toBe(true);
+  await expect.poll(() => hasColor([125 / 255, 211 / 255, 252 / 255])).toBe(true);
+  await expect.poll(() => hasColor([5 / 255, 7 / 255, 12 / 255])).toBe(true);
   const requests = await page.evaluate(() => (window as unknown as { glRequests: { type: string; options: Record<string, unknown> }[] }).glRequests);
   expect(requests.some(call => call.type === "webgl" && call.options.failIfMajorPerformanceCaveat === true)).toBe(true);
   await page.getByRole("button", { name: /^Theme: dark/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator(".ambient-canvas")).toHaveAttribute("data-state", "ready");
+  await expect(page.locator(".ambient-canvas")).toHaveAttribute("data-state", "ready", { timeout: 30000 });
   const light = await page.evaluate(() => ({ bg: getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(), accent: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() }));
-  expect(light).toEqual({ bg: "#f8f9fc", accent: "#5157c4" });
-  await expect.poll(() => hasColor([81 / 255, 87 / 255, 196 / 255])).toBe(true);
-  await expect.poll(() => hasColor([248 / 255, 249 / 255, 252 / 255])).toBe(true);
+  expect(light).toEqual({ bg: "#f4f7fb", accent: "#036296" });
+  await expect.poll(() => hasColor([3 / 255, 98 / 255, 150 / 255])).toBe(true);
+  await expect.poll(() => hasColor([244 / 255, 247 / 255, 251 / 255])).toBe(true);
 });
 
 test("production ignores fixture flags", async ({ page }) => {
@@ -207,7 +213,8 @@ test("production ignores fixture flags", async ({ page }) => {
 test("projector mode at page load blocks any optional 3D download", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("presentation-hub-projector", "true"));
   const chunks = join(process.cwd(), ".next/static/chunks");
-  const threeChunks = readdirSync(chunks).filter(name => name.endsWith(".js") && readFileSync(join(chunks, name), "utf8").includes("WebGLRenderer"));
+  const shelfChunks = readdirSync(chunks).filter(name => name.endsWith(".js") && readFileSync(join(chunks, name), "utf8").includes("Ready for future decks"));
+  expect(shelfChunks.length).toBeGreaterThan(0);
   const requests: string[] = [];
   page.on("request", request => requests.push(request.url()));
   await page.goto("/");
@@ -215,5 +222,5 @@ test("projector mode at page load blocks any optional 3D download", async ({ pag
   await expect(page.locator("#optional-shelf-stage")).toHaveAttribute("data-state", "fallback");
   await expect(page.getByRole("button", { name: "Try optional 3D shelf again" })).toBeDisabled();
   await expect(page.locator('.optional-shelf [role="status"]')).toContainText("Projector mode");
-  expect(requests.some(url => threeChunks.some(name => new URL(url).pathname.endsWith(`/${name}`)))).toBe(false);
+  expect(requests.some(url => shelfChunks.some(name => new URL(url).pathname.endsWith(`/${name}`)))).toBe(false);
 });

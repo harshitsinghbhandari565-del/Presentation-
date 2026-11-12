@@ -10,5 +10,5 @@ export default function CommandTrigger() {
     document.addEventListener("keydown", handle);
     return () => document.removeEventListener("keydown", handle);
   }, []);
-  return <><button onClick={() => setOpen(true)} className="header-search" aria-label="Search resources (Command or Control K)" aria-haspopup="dialog" aria-expanded={open}><Search size={17} strokeWidth={1.7} /><span>Search</span><kbd>⌘ K</kbd></button><CommandPalette isOpen={open} onClose={close} /></>;
+  return <><button onClick={() => setOpen(true)} className="header-search" aria-label="Search ⌘ K resources (Command or Control K)" aria-haspopup="dialog" aria-expanded={open}><Search size={17} strokeWidth={1.7} /><span>Search</span><kbd>⌘ K</kbd></button><CommandPalette isOpen={open} onClose={close} /></>;
 }

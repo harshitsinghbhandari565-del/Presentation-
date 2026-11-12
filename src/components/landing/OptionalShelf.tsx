@@ -192,12 +192,12 @@ export default function OptionalShelf({ subjects }: { subjects: { name: string; 
             onClick={() => { void load(); }}
             disabled={projectorMode || visibleState === "loading"}
             aria-controls="optional-shelf-stage"
-            aria-label="View optional 3D shelf"
+            aria-label={visibleState === "loading" ? "Loading 3D shelf…" : visibleState === "fallback" ? "Try optional 3D shelf again" : "View optional 3D shelf"}
           >
             {visibleState === "loading" ? (
               <><LoaderCircle size={16} className="spin" />Loading 3D shelf…</>
             ) : (
-              <><RotateCw size={15} />{visibleState === "fallback" ? "Reload 3D shelf" : "View optional 3D shelf"}</>
+              <><RotateCw size={15} />{visibleState === "fallback" ? "Try optional 3D shelf again" : "View optional 3D shelf"}</>
             )}
           </button>
         )}

@@ -16,6 +16,13 @@ test("development-only fixtures render empty, one and multi states without expos
   await expect(page.locator('.results-toolbar [role="status"]')).toContainText("3 resources");
   await page.goto("/library?fixture=one");
   await expect(page.locator(".resource-card")).toHaveCount(1);
+  const status = page.locator('.results-toolbar [role="status"]');
+  await expect(status).toHaveAttribute("aria-atomic", "true");
+  await expect(status).toContainText("1 resource");
+  await page.getByRole("searchbox", { name: "Search the resource library" }).fill("nonexistent");
+  await expect(page).toHaveURL(/q=nonexistent/);
+  await expect(status).toContainText("0 resources");
+  await expect(page.getByRole("heading", { name: "No resources on this shelf. Yet." })).toBeVisible();
   await page.goto("/library?fixture=empty");
   await expect(page.locator(".resource-card")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "No resources on this shelf. Yet." })).toBeVisible();

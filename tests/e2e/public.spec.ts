@@ -39,7 +39,7 @@ test("deleted resource and its legacy URL return 404", async ({ page }) => {
 });
 test("command search has no deleted resource", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Search resources (Command or Control K)" }).click();
+  await page.getByRole("button", { name: "Search ⌘ K resources (Command or Control K)" }).click();
   const input = page.getByRole("combobox", { name: "Search resources" });
   await input.fill("mcqs");
   await expect(page.getByRole("option")).toHaveCount(0);
