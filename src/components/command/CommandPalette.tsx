@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, FileText, Star, ArrowRight, LoaderCircle, Compass, BookOpen, Sparkles, Info } from "lucide-react";
+import { Search, FileText, Star, ArrowRight, LoaderCircle, Compass, BookOpen, Sparkles, Info, TerminalSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Result {
@@ -14,6 +14,7 @@ interface Result {
 const QUICK_JUMPS = [
   { href: "/library", label: "Library", icon: BookOpen },
   { href: "/subjects", label: "Subjects", icon: Compass },
+  { href: "/sql-workbench", label: "SQL Workbench", icon: TerminalSquare },
   { href: "/library?featured=true", label: "Featured", icon: Sparkles },
   { href: "/about", label: "About", icon: Info },
 ];

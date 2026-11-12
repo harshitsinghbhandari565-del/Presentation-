@@ -23,6 +23,7 @@ export default function SiteFooter() {
               <h3>Discover</h3>
               <Link href="/library">Resource library</Link>
               <Link href="/subjects">Browse subjects</Link>
+              <Link href="/sql-workbench">SQL Workbench</Link>
               <Link href="/library?featured=true">Featured resources</Link>
             </div>
             <div>

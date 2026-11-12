@@ -9,11 +9,12 @@ A premium educational resource discovery hub for students. Find presentations, n
 - Canonical document pages with metadata, original/presentation/backup links and opt-in preview
 - Subject/course browsing, command palette, dark/light/system themes and projector mode
 - Responsive mobile navigation/filter disclosure and reduced-motion support
+- SQL Workbench: real in-browser SQLite sandbox, sample databases, SQL editor and CSV/SQL export; see `docs/SQL_WORKBENCH.md` for scope and limitations
 - Private admin source with server-side administrator checks, CRUD/archive/confirmed delete, categories and preview
 - SEO metadata, canonical/OG routes, robots/sitemap and LearningResource structured data
 - Supabase migration/seed with RLS, constraints, indexes and full-text search
 
-Without Supabase configuration, the app honestly serves the original single-resource JSON compatibility catalog. Admin shows setup instructions rather than fake persistence.
+Without Supabase configuration, the app serves the compatibility catalog, which is currently empty. Admin shows setup instructions rather than fake persistence.
 
 ## Stack
 
@@ -38,11 +39,11 @@ npm run test:e2e       # browser + axe checks
 npm audit --omit=dev --audit-level=high
 ```
 
-Local results: 14 unit tests, 8 PostgreSQL/RLS tests and 11 production-server E2E tests passed; axe found zero automated WCAG A/AA violations on landing/library/detail in both themes; production build and production dependency audit passed. See `VERIFICATION.md` for scope and limits.
+See `VERIFICATION.md` for historical verification and `docs/SQL_WORKBENCH.md` for the workbench test scope and current limitations. Run the commands above for current results.
 
 ## External setup still required
 
-No hosted Supabase project, administrator identity, applied migration, Vercel project or production deployment exists yet. Follow `DEVELOPMENT_GUIDE.md` to configure Supabase/Auth, apply the reviewed migration/seed, grant administrator membership, verify original sharing permissions, set `NEXT_PUBLIC_SITE_URL` and deploy only after approval. Never expose a service-role/secret key in frontend code.
+For a new installation, follow `DEVELOPMENT_GUIDE.md` to configure Supabase/Auth, apply the reviewed migration/seed, grant administrator membership, verify original sharing permissions, set `NEXT_PUBLIC_SITE_URL` and deploy only after approval. Never expose a service-role/secret key in frontend code.
 
 ## Project map
 
@@ -51,7 +52,7 @@ No hosted Supabase project, administrator identity, applied migration, Vercel pr
 - `src/app/` — public, admin, SEO and API routes
 - `src/components/` — landing, library, documents, admin, theme/projector and layout
 - `supabase/` — reviewed migration and idempotent real-resource seed
-- `src/data/presentations.json` — untouched original compatibility source
+- `src/data/presentations.json` — compatibility catalog
 - `tests/` — unit, PostgreSQL policy and browser/accessibility tests
 
 ## Continuity docs

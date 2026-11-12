@@ -8,7 +8,7 @@ import MotionToggle from "./MotionToggle";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import ProjectorModeToggle from "@/components/projector/ProjectorModeToggle";
 import CommandTrigger from "@/components/command/CommandTrigger";
-const links = [{ href: "/", label: "Home" }, { href: "/library", label: "Library" }, { href: "/subjects", label: "Subjects" }, { href: "/#how-it-works", label: "How it works" }];
+const links = [{ href: "/", label: "Home" }, { href: "/library", label: "Library" }, { href: "/subjects", label: "Subjects" }, { href: "/sql-workbench", label: "SQL Lab" }, { href: "/#how-it-works", label: "How it works" }];
 export default function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
