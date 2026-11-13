@@ -4,29 +4,25 @@ import initSqlJs from "sql.js";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { executeSql, csvForResult, schemaOf, mayChangeOrDeleteExistingData } from "../../src/lib/sql-workbench/engine";
-import { samples } from "../../src/lib/sql-workbench/samples";
 
 const sqlReady = initSqlJs();
 
-test("all seven fictional samples build and their starter SQL returns real rows", async () => {
+test("a new SQLite database has no user tables and accepts a custom schema", async () => {
   const SQL = await sqlReady;
-  assert.equal(samples.length, 7);
-  for (const sample of samples) {
-    const db = new SQL.Database();
-    try {
-      db.run("PRAGMA foreign_keys = ON"); db.run(sample.sql);
-      const result = executeSql(db, sample.starter);
-      assert.ok(result.results[0].rows.length > 0, sample.name);
-      assert.ok(result.schema.length >= 2, sample.name);
-    } finally { db.close(); }
-  }
+  const db = new SQL.Database();
+  try {
+    assert.deepEqual(schemaOf(db), []);
+    executeSql(db, "CREATE TABLE own_table(id INTEGER PRIMARY KEY, value TEXT); INSERT INTO own_table VALUES (1, 'created');");
+    assert.deepEqual(executeSql(db, "SELECT value FROM own_table").results[0].rows, [["created"]]);
+    assert.equal(schemaOf(db)[0].name, "own_table");
+  } finally { db.close(); }
 });
 
 test("SQLite execution supports DDL, mutations, transactions, joins and errors", async () => {
   const SQL = await sqlReady;
   const db = new SQL.Database();
   try {
-    db.run("PRAGMA foreign_keys=ON"); db.run(samples[0].sql);
+    db.run("PRAGMA foreign_keys=ON; CREATE TABLE classes (id INTEGER PRIMARY KEY); CREATE TABLE enrolments (student_id INTEGER, class_id INTEGER REFERENCES classes(id));");
     const result = executeSql(db, `CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT); INSERT INTO t VALUES (1,'Ada'); UPDATE t SET name='Grace' WHERE id=1; SELECT name FROM t;`);
     assert.equal(result.statements, 4);
     assert.equal(result.changes, 2);

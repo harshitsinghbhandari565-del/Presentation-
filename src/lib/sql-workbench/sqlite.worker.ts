@@ -1,18 +1,15 @@
 import initSqlJs, { type Database } from "sql.js";
 import { executeSql, schemaOf } from "./engine";
-import { samples } from "./samples";
 
 let db: Database | null = null;
 const ready = initSqlJs({ locateFile: () => "/sql/sql-wasm.wasm" });
-self.onmessage = async (event: MessageEvent<{ id: number; type: "load" | "run" | "import" | "export"; sql?: string; sampleId?: string; bytes?: ArrayBuffer }>) => {
+self.onmessage = async (event: MessageEvent<{ id: number; type: "load" | "run" | "import" | "export"; sql?: string; bytes?: ArrayBuffer }>) => {
   const message = event.data;
   try {
     const SQL = await ready;
     if (message.type === "load") {
-      const sample = samples.find(item => item.id === message.sampleId);
-      if (!sample) throw new Error("Unknown sample database.");
       const next = new SQL.Database();
-      try { next.run("PRAGMA foreign_keys = ON;"); next.run(sample.sql); }
+      try { next.run("PRAGMA foreign_keys = ON;"); }
       catch (error) { next.close(); throw error; }
       db?.close(); db = next;
       self.postMessage({ id: message.id, ok: true, type: "load", schema: schemaOf(db) });
@@ -30,7 +27,7 @@ self.onmessage = async (event: MessageEvent<{ id: number; type: "load" | "run" |
         self.postMessage({ id: message.id, ok: true, type: "import", schema });
       } catch (error) { next.close(); throw error; }
     } else {
-      if (!db) throw new Error("Load a sample database first.");
+      if (!db) throw new Error("Create a new database first.");
       if (message.type === "export") {
         const pages = Number(db.exec("PRAGMA main.page_count")[0]?.values[0]?.[0] ?? 0);
         const size = Number(db.exec("PRAGMA main.page_size")[0]?.values[0]?.[0] ?? 0);

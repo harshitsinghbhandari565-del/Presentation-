@@ -7,12 +7,21 @@ async function replaceSql(page: Page, value: string) {
   await page.keyboard.insertText(value);
 }
 
-test("real browser sandbox runs, mutates, resets and saves only its draft", async ({ page, context }) => {
+// Test data is explicitly created by the visitor; it is not preloaded by the app.
+async function createStudents(page: Page) {
+  await replaceSql(page, "CREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, marks INTEGER NOT NULL); INSERT INTO students VALUES (1,'Aarav',92),(2,'Mira',85),(3,'Kabir',74),(4,'Zoya',96);");
+  await page.getByRole("button", { name: /Run SQL/ }).click();
+  await expect(page.locator(".sql-status")).toContainText("Completed");
+}
+
+test("empty browser sandbox runs custom SQL, isolates visitors, resets and preserves drafts", async ({ page, context }) => {
   await page.goto("/sql-workbench");
   await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
-  await page.getByRole("button", { name: /Run SQL/ }).click();
-  await expect(page.locator(".sql-results-table")).toContainText("Zoya");
-  await expect(page.locator(".sql-results-table tbody tr")).toHaveCount(3);
+  await page.getByText("DATABASE OBJECTS").click();
+  await expect(page.locator(".sql-schema-list")).toContainText("No tables yet");
+  await expect(page.getByLabel("Sample database")).toHaveCount(0);
+  await createStudents(page);
+  await expect(page.locator(".sql-schema-list")).toContainText("students");
   await replaceSql(page, "INSERT INTO students VALUES (5, 'Test Student', 91); SELECT name FROM students WHERE id = 5;");
   await page.getByRole("button", { name: /Run SQL/ }).click();
   await expect(page.locator(".sql-results-table")).toContainText("Test Student");
@@ -21,29 +30,40 @@ test("real browser sandbox runs, mutates, resets and saves only its draft", asyn
   await expect(other.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
   await replaceSql(other, "SELECT name FROM students WHERE id = 5;");
   await other.getByRole("button", { name: /Run SQL/ }).click();
-  await expect(other.locator(".sql-result-summary")).toContainText("0 displayed rows");
+  await expect(other.locator(".sql-error")).toContainText("no such table");
   await other.close();
   page.once("dialog", dialog => dialog.accept());
   await page.getByRole("button", { name: "Reset database" }).click();
   await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await expect(page.locator(".sql-schema-list")).toContainText("No tables yet");
   await replaceSql(page, "SELECT name FROM students WHERE id = 5;");
   await page.getByRole("button", { name: /Run SQL/ }).click();
-  await expect(page.locator(".sql-result-summary")).toContainText("0 displayed rows");
+  await expect(page.locator(".sql-error")).toContainText("no such table");
   await page.reload();
   await expect(page.locator(".cm-content")).toContainText("SELECT name FROM students WHERE id = 5;");
 });
 
-test("sample selection, SQL errors, CSV and mobile layout", async ({ page }) => {
+test("refresh starts an empty database while retaining the SQL draft", async ({ page }) => {
+  await page.goto("/sql-workbench");
+  await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
+  await replaceSql(page, "SELECT * FROM students;");
+  await page.reload();
+  await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await expect(page.locator(".cm-content")).toContainText("SELECT * FROM students;");
+  await page.getByRole("button", { name: /Run SQL/ }).click();
+  await expect(page.locator(".sql-error")).toContainText("no such table");
+});
+
+test("custom table, SQL errors, CSV and mobile layout", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/sql-workbench");
   await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
-  await page.getByLabel("Sample database").selectOption("library");
-  page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Load sample" }).click();
-  await page.getByText("DATABASE OBJECTS").click();
-  await expect(page.locator(".sql-schema-list")).toContainText("loans");
+  await replaceSql(page, "CREATE TABLE books(title TEXT); INSERT INTO books VALUES('My book'); SELECT * FROM books;");
   await page.getByRole("button", { name: /Run SQL/ }).click();
-  await expect(page.locator(".sql-results-table")).toContainText("Meera");
+  await page.getByText("DATABASE OBJECTS").click();
+  await expect(page.locator(".sql-schema-list")).toContainText("books");
+  await expect(page.locator(".sql-results-table")).toContainText("My book");
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV" }).click();
   expect((await downloadPromise).suggestedFilename()).toBe("results.csv");
@@ -56,6 +76,7 @@ test("sample selection, SQL errors, CSV and mobile layout", async ({ page }) => 
 test("destructive SQL requires confirmation and can be cancelled", async ({ page }) => {
   await page.goto("/sql-workbench");
   await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
   await replaceSql(page, "DELETE FROM students;");
   page.once("dialog", dialog => dialog.dismiss());
   await page.getByRole("button", { name: /Run SQL/ }).click();
@@ -92,6 +113,7 @@ test("long-running SQL times out without sending SQL to a server", async ({ page
 test("multiple tabs, formatting, history and session refresh", async ({ page }) => {
   await page.goto("/sql-workbench");
   await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
   await replaceSql(page, "select name, marks from students where marks>90;");
   await page.getByRole("button", { name: "Format", exact: true }).click();
   await expect(page.locator(".cm-content")).toContainText("SELECT");
@@ -132,6 +154,7 @@ test("sorting, page size and CSV export retain correct data", async ({ page }) =
 
 test("database file and SQL exports round-trip, malformed files rejected", async ({ page }) => {
   await page.goto("/sql-workbench"); await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
   await replaceSql(page, "INSERT INTO students VALUES (9, 'Exported', 89);");
   await page.getByRole("button", { name: /Run SQL/ }).click(); await expect(page.locator(".sql-status")).toContainText("Completed");
   const sqlDownload = page.waitForEvent("download"); await page.getByRole("button", { name: "SQL", exact: true }).click();
@@ -150,15 +173,23 @@ test("database file and SQL exports round-trip, malformed files rejected", async
   await page.getByRole("button", { name: /Run SQL/ }).click(); await expect(page.locator(".sql-results-table")).toContainText("Exported");
 });
 
-test("all seven samples load in the browser and run their starter queries", async ({ page }) => {
-  await page.goto("/sql-workbench"); await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
-  for (const id of ["school", "students", "employees", "library", "hospital", "commerce", "banking"]) {
-    await page.getByLabel("Sample database").selectOption(id); page.once("dialog", dialog => dialog.accept());
-    await page.getByRole("button", { name: "Load sample" }).click();
-    await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
-    await page.getByRole("button", { name: /Run SQL/ }).click();
-    await expect(page.locator(".sql-results-table tbody tr").first()).toBeVisible();
-  }
+test("new empty database asks before replacing data and preserves SQL tabs", async ({ page }) => {
+  await page.goto("/sql-workbench");
+  await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
+  await replaceSql(page, "SELECT name FROM students WHERE id = 1;");
+  page.once("dialog", dialog => dialog.dismiss());
+  await page.getByRole("button", { name: "New empty database" }).click();
+  await page.getByRole("button", { name: /Run SQL/ }).click();
+  await expect(page.locator(".sql-results-table")).toContainText("Aarav");
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "New empty database" }).click();
+  await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await expect(page.locator(".cm-content")).toContainText("SELECT name FROM students");
+  await page.getByText("DATABASE OBJECTS").click();
+  await expect(page.locator(".sql-schema-list")).toContainText("No tables yet");
+  await page.getByRole("button", { name: /Run SQL/ }).click();
+  await expect(page.locator(".sql-error")).toContainText("no such table");
 });
 
 test("schema completion refreshes for newly created tables and copy writes the selected content", async ({ page, context }) => {
@@ -171,14 +202,15 @@ test("schema completion refreshes for newly created tables and copy writes the s
   await page.keyboard.press("Escape"); await page.getByRole("button", { name: "Copy query" }).click();
   await expect(page.getByText("Query copied.")).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("SELECT * FROM stell");
-  await replaceSql(page, "SELECT name FROM students WHERE id=1;"); await page.getByRole("button", { name: /Run SQL/ }).click();
-  await expect(page.locator(".sql-results-table")).toContainText("Aarav");
+  await replaceSql(page, "INSERT INTO stellar_objects VALUES (1, 'Orbit'); SELECT orbit_name AS name FROM stellar_objects;"); await page.getByRole("button", { name: /Run SQL/ }).click();
+  await expect(page.locator(".sql-results-table")).toContainText("Orbit");
   await page.getByRole("button", { name: "Copy results" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('"name"\r\n"Aarav"');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('"name"\r\n"Orbit"');
 });
 
 test("failed transaction is recoverable via rollback and reset is unavailable during execution", async ({ page }) => {
   await page.goto("/sql-workbench"); await expect(page.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 });
+  await createStudents(page);
   await replaceSql(page, "BEGIN; INSERT INTO students VALUES(9, 'Rollback', 70); INSERT INTO students VALUES(9, 'Duplicate', 70);");
   await page.getByRole("button", { name: /Run SQL/ }).click(); await expect(page.locator(".sql-error")).toContainText("Statement 3");
   await page.getByRole("button", { name: "Rollback", exact: true }).click(); await expect(page.locator(".sql-status")).toContainText("Completed");
@@ -202,11 +234,12 @@ test("concurrent visitors have separate databases and exports reject open write 
     const pa = await a.newPage(), pb = await b.newPage();
     await Promise.all([pa.goto("/sql-workbench"), pb.goto("/sql-workbench")]);
     await Promise.all([expect(pa.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 }), expect(pb.getByText("SQLite sandbox ready", { exact: false })).toBeVisible({ timeout: 30000 })]);
+    await createStudents(pa);
     await replaceSql(pa, "BEGIN; INSERT INTO students VALUES (77, 'Private', 77);"); await pa.getByRole("button", { name: /Run SQL/ }).click();
     await expect(pa.locator(".sql-status")).toContainText("Completed");
     await pa.getByRole("button", { name: "Export database" }).click(); await expect(pa.locator(".sql-error")).toContainText(/busy|locked/i, { timeout: 30000 });
     await replaceSql(pb, "SELECT COUNT(*) FROM students WHERE id=77;"); await pb.getByRole("button", { name: /Run SQL/ }).click();
-    await expect(pb.locator(".sql-results-table tbody")).toContainText("0");
+    await expect(pb.locator(".sql-error")).toContainText("no such table");
     await pa.getByRole("button", { name: "Rollback", exact: true }).click(); await expect(pa.locator(".sql-status")).toContainText("Completed");
   } finally { await a.close(); await b.close(); }
 });

@@ -10,14 +10,13 @@ import { tags } from "@lezer/highlight";
 import { format } from "sql-formatter";
 import { sortedResult } from "@/lib/sql-workbench/results";
 import { Database, Play, RotateCcw, Download, Square, ChevronDown, TerminalSquare, ShieldCheck, FileCode2 } from "lucide-react";
-import { samples } from "@/lib/sql-workbench/samples";
 import { csvForResult, mayChangeOrDeleteExistingData, type Execution, type SchemaObject } from "@/lib/sql-workbench/engine";
 
 const DRAFT_KEY = "presentation-hub-sqlite-draft-v1";
 const WORKSPACE_KEY = "presentation-hub-sql-workspace-v2";
 type Tab = { id: string; name: string; sql: string };
 type Workspace = { tabs: Tab[]; active: string; history: string[] };
-const defaultWorkspace: Workspace = { tabs: [{ id: "1", name: "query-1.sql", sql: samples[0].starter }], active: "1", history: [] };
+const defaultWorkspace: Workspace = { tabs: [{ id: "1", name: "query-1.sql", sql: "" }], active: "1", history: [] };
 function readWorkspace(): Workspace {
   try {
     const raw = sessionStorage.getItem(WORKSPACE_KEY);
@@ -50,8 +49,6 @@ function download(name: string, contents: string | ArrayBuffer, type: string) {
 }
 
 export default function Workbench() {
-  const [sampleId, setSampleId] = useState(samples[0].id);
-  const [loadedId, setLoadedId] = useState(samples[0].id);
   const [workspace, setWorkspace] = useState<Workspace>(defaultWorkspace);
   const [hydrated, setHydrated] = useState(false);
   const query = workspace.tabs.find(tab => tab.id === workspace.active)?.sql ?? "";
@@ -72,27 +69,26 @@ export default function Workbench() {
   const editorRef = useRef<EditorView | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idRef = useRef(0);
-  const requestRef = useRef<{ id: number; sampleId?: string } | null>(null);
+  const requestRef = useRef<{ id: number } | null>(null);
 
   const stopWorker = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = null; workerRef.current?.terminate(); workerRef.current = null; requestRef.current = null;
   }, []);
 
-  const startWorker = useCallback((id: string, reason?: string) => {
+  const startWorker = useCallback((reason?: string) => {
     stopWorker();
     let worker: Worker;
     try { worker = new Worker(new URL("../../lib/sql-workbench/sqlite.worker.ts", import.meta.url)); }
     catch { setBusy(false); setSandboxReady(false); setError("This browser could not start the sandbox. Try a modern browser and reset the database."); setStatus("Sandbox unavailable"); return; }
     workerRef.current = worker;
     const requestId = ++idRef.current;
-    requestRef.current = { id: requestId, sampleId: id };
+    requestRef.current = { id: requestId };
     setBusy(true); setSandboxReady(false); setError("");
     setStatus(reason ?? "Starting your private SQLite sandbox…");
     worker.onmessage = (event: MessageEvent<WorkerReply>) => {
       const message = event.data;
       if (workerRef.current !== worker || requestRef.current?.id !== message.id) return;
-      const request = requestRef.current;
       requestRef.current = null;
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = null; setBusy(false);
@@ -101,7 +97,6 @@ export default function Workbench() {
         setError(message.error ?? "SQLite could not complete the request.");
         setStatus("Stopped with an error. Earlier statements in this run may have completed.");
       } else if (message.type === "load" || message.type === "import") {
-        if (request.sampleId) setLoadedId(request.sampleId);
         setImported(message.type === "import");
         setSandboxReady(true); setSchema(message.schema ?? []); setExecution(null); setResultIndex(0); setPage(0);
         setStatus("SQLite sandbox ready · Runs only in this browser");
@@ -120,7 +115,7 @@ export default function Workbench() {
       if (workerRef.current !== worker) return;
       stopWorker(); setBusy(false); setSandboxReady(false); setError("The sandbox timed out. Its in-memory data was discarded. Reset the database to continue."); setSchema([]); setExecution(null); setStatus("Sandbox stopped · Reset required");
     }, TIMEOUT_MS);
-    worker.postMessage({ id: requestId, type: "load", sampleId: id });
+    worker.postMessage({ id: requestId, type: "load" });
   }, [stopWorker]);
 
   useEffect(() => {
@@ -136,7 +131,7 @@ export default function Workbench() {
         }
       } catch { /* Session storage may be unavailable. */ }
       setWorkspace(loaded); setHydrated(true);
-      startWorker(samples[0].id);
+      startWorker();
     }, 0);
     return () => { window.clearTimeout(timer); stopWorker(); };
   }, [startWorker, stopWorker]);
@@ -215,11 +210,10 @@ export default function Workbench() {
     } catch { setError("Could not read this file."); }
   }, [databaseTransfer]);
 
-  const reset = useCallback((id: string, useStarter: boolean) => {
-    if (!window.confirm("Load this sample? The current in-memory database and its changes will be lost.")) return;
-    if (useStarter) updateQuery(samples.find(sample => sample.id === id)!.starter);
-    startWorker(id, "Loading the sample database…");
-  }, [startWorker, updateQuery]);
+  const reset = useCallback(() => {
+    if (!window.confirm("Create a new empty database? The current temporary database, including imported data and uncommitted changes, will be lost. Export it first if you want to keep it. Your SQL tabs and history will remain.")) return;
+    startWorker("Creating an empty database…");
+  }, [startWorker]);
   const stop = useCallback(() => {
     stopWorker(); setBusy(false); setSandboxReady(false); setExecution(null); setSchema([]);
     setError("Execution stopped. The in-memory database was discarded. Reset the database to continue."); setStatus("Sandbox stopped · Reset required");
@@ -233,21 +227,21 @@ export default function Workbench() {
 
   return <div className="sql-workbench">
     <div className="sql-workbench-top"><div><div className="eyebrow"><TerminalSquare size={14} /> THE LEARNING LAB</div><h1>SQL <em>Workbench.</em></h1><p>Write real SQL. Explore the results. Learn by doing.</p></div><div className="sql-top-actions"><Link className="button button-secondary" href="/sql-workbench/library">Shared queries</Link><div className="sql-local-badge"><ShieldCheck size={16} /> Private browser sandbox</div></div></div>
-    <div className="sql-notice"><strong>SQLite is ready.</strong> PostgreSQL, MySQL and AI are planned—not yet available. Shared queries require administrator setup. Your database is temporary and resets when you refresh or leave this page.</div>
+    <div className="sql-notice"><strong>SQLite is ready.</strong> PostgreSQL, MySQL and AI are planned—not yet available. Shared queries require administrator setup. Your database starts empty and is temporary. Export it before refreshing or leaving the page.</div>
     <div className="sql-layout">
       <aside className="sql-sidebar" aria-label="Database explorer">
         <div className="sql-panel-heading"><span><Database size={16} /> EXPLORER</span><small>SQLite</small></div>
-        <div className="sql-side-body"><label htmlFor="sql-sample">Sample database</label><select id="sql-sample" value={sampleId} onChange={event => setSampleId(event.target.value)}>{samples.map(sample => <option key={sample.id} value={sample.id}>{sample.name}</option>)}</select><p>{samples.find(sample => sample.id === sampleId)?.description} · Fictional data</p>
-          <button className="sql-load-button" onClick={() => reset(sampleId, true)} disabled={busy}>Load sample <ChevronDown size={14} /></button><label className="sql-file-label">Import SQLite file (max 5 MiB)<input type="file" accept=".sqlite,.sqlite3,.db,application/vnd.sqlite3" disabled={busy || !sandboxReady} onChange={event => { void importFile(event.target.files?.[0]); event.target.value = ""; }} /></label><button className="sql-load-button" disabled={busy || !sandboxReady} onClick={() => databaseTransfer("export")}>Export database</button>{imported && <p>Imported database in use. Reset loads the last sample.</p>}
+        <div className="sql-side-body"><p>Start with an empty SQLite database. Create your own tables using SQL, or import an existing SQLite file.</p>
+          <button className="sql-load-button" onClick={reset} disabled={busy}>New empty database</button><label className="sql-file-label">Import SQLite file (max 5 MiB)<input type="file" accept=".sqlite,.sqlite3,.db,application/vnd.sqlite3" disabled={busy || !sandboxReady} onChange={event => { void importFile(event.target.files?.[0]); event.target.value = ""; }} /></label><button className="sql-load-button" disabled={busy || !sandboxReady} onClick={() => databaseTransfer("export")}>Export database</button>{imported && <p>Imported database in use. A new or reset database starts empty.</p>}
           <details className="sql-schema-disclosure"><summary className="sql-schema-heading">DATABASE OBJECTS <span>{schema.length} <ChevronDown size={13} /></span></summary>
-          <div className="sql-schema-list">{schema.length ? schema.map(item => <details key={`${item.type}-${item.name}`} open><summary><span className="sql-table-icon">▦</span> {item.name}<small>{item.type}</small></summary><ul>{item.columns.map(column => <li key={column.name}><span>{column.primaryKey ? "◇" : "·"} {column.name}</span><small>{column.type || "ANY"}</small></li>)}</ul></details>) : <p>No tables to display.</p>}</div></details>
+          <div className="sql-schema-list">{schema.length ? schema.map(item => <details key={`${item.type}-${item.name}`} open><summary><span className="sql-table-icon">▦</span> {item.name}<small>{item.type}</small></summary><ul>{item.columns.map(column => <li key={column.name}><span>{column.primaryKey ? "◇" : "·"} {column.name}</span><small>{column.type || "ANY"}</small></li>)}</ul></details>) : <p>No tables yet. Run CREATE TABLE to get started.</p>}</div></details>
         </div>
         <div className="sql-side-note"><ShieldCheck size={15} /><span>Sandbox data never reaches the website database.</span></div>
       </aside>
       <section className="sql-main" aria-label="SQL editor and results">
         <div className="sql-editor-bar"><div className="sql-tabs" aria-label="SQL editor tabs">{workspace.tabs.map(tab => <div className={`sql-tab ${workspace.active === tab.id ? "sql-tab-active" : ""}`} key={tab.id}><button type="button" aria-pressed={workspace.active === tab.id} onClick={() => setWorkspace(current => ({ ...current, active: tab.id }))}><FileCode2 size={15} /> {tab.name}</button>{workspace.tabs.length > 1 && <button type="button" aria-label={`Close ${tab.name}`} onClick={() => closeTab(tab.id)}>×</button>}</div>)}<button className="sql-add-tab" onClick={addTab} disabled={!hydrated || workspace.tabs.length >= 10} aria-label="Add SQL tab">+</button></div><span className="sql-dialect">SQLITE <span>●</span></span></div>
         <div className="sql-editor-wrap" onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); run(); } else if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f") { event.preventDefault(); formatQuery(); } }}><CodeMirror key={workspace.active} editable={hydrated} value={query} height="290px" theme="dark" extensions={extensions} onChange={updateQuery} onCreateEditor={view => { editorRef.current = view; }} basicSetup={{ foldGutter: true, lineNumbers: true, highlightActiveLine: true }} /></div>
-        <div className="sql-toolbar"><div className="sql-toolbar-actions"><button className="button button-primary" onClick={() => run()} disabled={busy || !sandboxReady}><Play size={15} fill="currentColor" /> Run SQL <kbd>Ctrl ↵</kbd></button>{busy && <button className="button button-secondary" onClick={stop}><Square size={13} /> Stop</button>}<button className="button button-secondary" onClick={() => reset(loadedId, false)} disabled={busy}><RotateCcw size={14} /> Reset database</button><button className="sql-icon-action" onClick={formatQuery} title="Ctrl or Command Shift F">Format</button><button className="sql-icon-action" onClick={() => copyText(query, "Query")}>Copy query</button><button className="sql-icon-action" onClick={() => download("query.sql", query, "application/sql;charset=utf-8")}><Download size={15} /> SQL</button><button className="sql-icon-action" disabled={busy || !sandboxReady} onClick={() => run("ROLLBACK;")} title="Roll back an open transaction">Rollback</button></div><span>Runs selected text, or the whole editor</span></div>
+        <div className="sql-toolbar"><div className="sql-toolbar-actions"><button className="button button-primary" onClick={() => run()} disabled={busy || !sandboxReady}><Play size={15} fill="currentColor" /> Run SQL <kbd>Ctrl ↵</kbd></button>{busy && <button className="button button-secondary" onClick={stop}><Square size={13} /> Stop</button>}<button className="button button-secondary" onClick={reset} disabled={busy}><RotateCcw size={14} /> Reset database</button><button className="sql-icon-action" onClick={formatQuery} title="Ctrl or Command Shift F">Format</button><button className="sql-icon-action" onClick={() => copyText(query, "Query")}>Copy query</button><button className="sql-icon-action" onClick={() => download("query.sql", query, "application/sql;charset=utf-8")}><Download size={15} /> SQL</button><button className="sql-icon-action" disabled={busy || !sandboxReady} onClick={() => run("ROLLBACK;")} title="Roll back an open transaction">Rollback</button></div><span>Runs selected text, or the whole editor</span></div>
         <div className="sql-history"><details><summary>Query history ({workspace.history.length})</summary><p>Private to this tab’s browser session. Selecting an entry replaces the current editor text.</p>{workspace.history.length > 0 && <><button className="sql-icon-action" onClick={() => setWorkspace(current => ({ ...current, history: [] }))}>Clear history</button><ul>{workspace.history.map((item, index) => <li key={index}><button onClick={() => { if (!query.trim() || window.confirm("Replace the current editor text with this history entry?")) updateQuery(item); }}>{item.slice(0, 120)}{item.length > 120 ? "…" : ""}</button></li>)}</ul></>}</details><span role="status">{notice}</span></div>
         <div className="sql-results-head"><div><span className="sql-active-tab">RESULTS</span></div><span className="sql-status-dot">● <span>{busy ? "WORKING" : "SQLITE"}</span></span></div>
         <div className="sql-output" aria-live="polite"><div className="sql-status">{status}</div>{error && <div className="sql-error" role="alert"><strong>SQLite message</strong><p>{error}</p></div>}

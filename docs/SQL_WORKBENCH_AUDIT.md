@@ -1,5 +1,7 @@
 # SQL Workbench audit and Phase 1 follow-up
 
+**Historical baseline:** At the owner’s subsequent request, the fictional sample databases were removed and the workbench now starts empty. See `SQL_WORKBENCH_EMPTY_DATABASE.md` for current database behavior.
+
 ## Evidence and scope
 
 Source reviewed against branch `arena/725e6c88-presentation` at baseline `021eab68c9299baf13943fbb8f87061cb8a27762`; `git ls-remote` matched this checkout. The deployed `/sql-workbench` was fetched successfully and reported its browser-local SQLite sandbox ready. This fetch is not a complete interactive audit of the hosted deployment. Baseline: 6 local engine tests and 5 Playwright tests against the pre-change local production build passed. Independently reviewed `engine.ts`, worker, UI, tests, Supabase authorization and migration patterns. PGlite tests use local PostgreSQL semantics, not hosted Supabase.

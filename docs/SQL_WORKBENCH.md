@@ -1,6 +1,6 @@
 # SQL Workbench: architecture, progress and limits
 
-**Historical first-milestone record:** see `SQL_WORKBENCH_AUDIT.md` for the current implementation and limitations.
+**Historical first-milestone record:** see `SQL_WORKBENCH_EMPTY_DATABASE.md` for the current empty-database behavior and `SQL_WORKBENCH_AUDIT.md` for the prior audit.
 
 ## Purpose and current milestone
 
