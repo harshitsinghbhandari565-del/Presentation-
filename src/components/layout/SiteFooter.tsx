@@ -9,8 +9,9 @@ export default function SiteFooter() {
       <div className="container">
         <div className="footer-main">
           <div>
-            <Link href="/" className="footer-brand" aria-label="Harshit Presentation Hub home">
-              <Image src="/images/brand/full-logo.webp" alt="" width={920} height={775} sizes="210px" />
+            <Link href="/" className="footer-brand" aria-label="Class12thA1 Hub home">
+              <Image src="/images/brand/orbital-mark.webp" alt="" width={290} height={290} sizes="100px" />
+              <span>Class12thA1 Hub</span>
             </Link>
             <p className="footer-description">
               A little more organized.
@@ -37,7 +38,7 @@ export default function SiteFooter() {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Harshit Presentation Hub</p>
+          <p>© {new Date().getFullYear()} Class12thA1 Hub</p>
           <p>
             Made for curious minds <Heart size={12} aria-hidden="true" />
           </p>

@@ -7,10 +7,11 @@ import Brand from "../../src/components/layout/Brand";
 
 test("header brand uses the selected icon and remains an accessible home link", () => {
   const html = renderToStaticMarkup(createElement(Brand));
-  assert.match(html, /aria-label="Harshit Presentation Hub home"/);
+  assert.match(html, /aria-label="Class12thA1 Hub home"/);
   assert.match(html, /orbital-mark\.webp/);
   assert.match(html, /alt=""/);
-  assert.match(html, /Presentation Hub/);
+  assert.match(html, /Class12thA1/);
+  assert.match(html, />Hub</);
 });
 
 test("selected logo assets and appropriately sized PNG icons are local", () => {
@@ -28,5 +29,9 @@ test("selected logo assets and appropriately sized PNG icons are local", () => {
   const layout = readFileSync("src/app/layout.tsx", "utf8");
   assert.match(layout, /favicon-32\.png/);
   assert.match(layout, /apple-touch-icon\.png/);
-  assert.match(readFileSync("src/components/layout/SiteFooter.tsx", "utf8"), /full-logo\.webp/);
+  const footer = readFileSync("src/components/layout/SiteFooter.tsx", "utf8");
+  assert.match(footer, /orbital-mark\.webp/);
+  assert.match(footer, /Class12thA1 Hub/);
+  assert.doesNotMatch(footer, /full-logo\.webp/);
+  assert.match(layout, /Class12thA1 Hub/);
 });

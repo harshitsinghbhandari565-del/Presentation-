@@ -5,7 +5,7 @@ test("header names, visible keyboard focus and search dialog work on workbench r
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const path of ["/sql-workbench", "/sql-workbench/library"]) {
     await page.goto(path);
-    const brand = page.getByRole("banner").getByRole("link", { name: "Harshit Presentation Hub home" });
+    const brand = page.getByRole("banner").getByRole("link", { name: "Class12thA1 Hub home" });
     const search = page.getByRole("button", { name: "Search ⌘ K resources (Command or Control K)" });
     await expect(brand).toBeVisible();
     await expect(search).toBeVisible();

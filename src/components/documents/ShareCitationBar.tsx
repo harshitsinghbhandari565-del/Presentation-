@@ -45,7 +45,7 @@ export default function ShareCitationBar({
     try {
       await navigator.share({
         title: `${title} — ${subject}`,
-        text: `Check out "${title}" (${subject}) on Harshit Presentation Hub:`,
+        text: `Check out "${title}" (${subject}) on Class12thA1 Hub:`,
         url: window.location.href,
       });
     } catch {}

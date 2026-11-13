@@ -16,7 +16,7 @@ import InnerPageSculpture from "@/components/layout/InnerPageSculpture";
 export const metadata: Metadata = {
   title: "About the hub",
   description:
-    "Why Harshit Presentation Hub exists: a simpler, calmer way to discover educational documents while keeping files at their original sources.",
+    "Why Class12thA1 Hub exists: a simpler, calmer way to discover educational documents while keeping files at their original sources.",
   alternates: { canonical: "/about" },
 };
 
@@ -57,7 +57,7 @@ export default function AboutPage() {
             <em>Finding resources shouldn’t be.</em>
           </h1>
           <p>
-            Harshit Presentation Hub began as a simple home for classroom presentations. It’s growing into a
+            Class12thA1 Hub began as a simple home for classroom presentations. It’s growing into a
             thoughtfully organized library of educational resources.
           </p>
         </div>

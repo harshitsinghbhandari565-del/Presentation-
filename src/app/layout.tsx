@@ -26,7 +26,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 const validSiteUrl = siteUrl && /^https?:\/\//.test(siteUrl) ? siteUrl : "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(validSiteUrl),
-  title: { default: "Harshit Presentation Hub — Less searching. More learning.", template: "%s · Harshit Presentation Hub" },
+  title: { default: "Class12thA1 Hub — Less searching. More learning.", template: "%s · Class12thA1 Hub" },
   description: "Discover presentations, notes and study resources in one thoughtfully organized hub. Find your next resource and open it at its original source. No student account needed.",
   icons: {
     icon: [
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     apple: "/images/brand/apple-touch-icon.png",
   },
   alternates: { canonical: "/" },
-  openGraph: { type: "website", siteName: "Harshit Presentation Hub", title: "Less searching. More learning.", description: "Good resources deserve a better home. Discover your next study resource, without the endless searching.", url: "/" },
-  twitter: { card: "summary", title: "Harshit Presentation Hub", description: "Less searching. More learning." },
+  openGraph: { type: "website", siteName: "Class12thA1 Hub", title: "Less searching. More learning.", description: "Good resources deserve a better home. Discover your next study resource, without the endless searching.", url: "/" },
+  twitter: { card: "summary", title: "Class12thA1 Hub", description: "Less searching. More learning." },
   robots: { index: true, follow: true },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#090b10" }, { media: "(prefers-color-scheme: light)", color: "#f8f9fc" }] };
